@@ -7,12 +7,9 @@
     "dev:3002": "next dev -p 3002",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint app components lib e2e --no-error-on-unmatched-pattern",
+    "lint": "eslint app --no-error-on-unmatched-pattern",
     "proxy": "./cloud-sql-proxy juriai-app:us-central1:juriai-db --port 5432",
     "db:check": "node scripts/check-db.mjs",
-    "db:init": "node scripts/init-db.mjs",
-    "db:patch": "node scripts/apply-sql.mjs",
-    "db:apply": "node scripts/apply-sql.mjs",
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui"
   },
