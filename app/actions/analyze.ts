@@ -2,12 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { getAccessibleCase } from "@/lib/access";
-import {
-  analyzeCaseWithClaude,
-  classifyLlmError,
-  getLlmRuntimeState,
-  type LlmFailureStatus,
-} from "@/lib/llm";
+import type { LlmFailureStatus } from "@/lib/llm";
+import { getLlmRouteState, routeCaseAnalysis } from "@/lib/llm-router";
 import { prisma } from "@/lib/prisma";
 import { CASE_TYPE_LABEL, DOMAIN_LABEL } from "@/lib/case-labels";
 
@@ -18,7 +14,7 @@ export type AnalyzeCaseActionResult =
 export async function analyzeCase(
   caseId: string,
 ): Promise<AnalyzeCaseActionResult> {
-  const runtimeState = await getLlmRuntimeState();
+  const runtimeState = await getLlmRouteState("case-analysis");
   if (runtimeState.status !== "ready") {
     return { ok: false, status: runtimeState.status };
   }
@@ -26,26 +22,23 @@ export async function analyzeCase(
   const caso = await getAccessibleCase(caseId);
   if (!caso) throw new Error("Caso não encontrado");
 
-  let analysis: Awaited<ReturnType<typeof analyzeCaseWithClaude>>;
-  try {
-    analysis = await analyzeCaseWithClaude({
-      title: caso.title,
-      domainLabel: DOMAIN_LABEL[caso.domain] ?? caso.domain,
-      typeLabel: CASE_TYPE_LABEL[caso.type] ?? caso.type,
-      summary: caso.summary,
-      evidenceLabels: caso.evidence.map((e) => e.label),
-    });
-  } catch (error) {
-    const status = classifyLlmError(error);
+  const route = await routeCaseAnalysis({
+    title: caso.title,
+    domainLabel: DOMAIN_LABEL[caso.domain] ?? caso.domain,
+    typeLabel: CASE_TYPE_LABEL[caso.type] ?? caso.type,
+    summary: caso.summary,
+    evidenceLabels: caso.evidence.map((e) => e.label),
+  });
+
+  if (!route.ok) {
     console.error("[JuriAI analyzeCase] falha na análise", {
       caseId,
-      status,
-      error,
+      status: route.status,
     });
-    return { ok: false, status };
+    return { ok: false, status: route.status };
   }
 
-  const { result, model } = analysis;
+  const { result, model } = route;
 
   await prisma.$transaction(async (tx) => {
     // Limpa análises anteriores geradas por IA (re-análise idempotente).
