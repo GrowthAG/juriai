@@ -7,6 +7,12 @@ import {
   resolveModelCandidates,
   resolveVertexRegionCandidates,
 } from "@/lib/llm-config";
+import {
+  SUPPORTED_LLM_PROVIDERS,
+  validateWorkspaceLlmConfig,
+  type SupportedLlmProvider,
+  type WorkspaceLlmRegistryConfig,
+} from "@/lib/llm-registry";
 
 /* Cliente Claude para o motor jurídico do JuriAI.
  *
@@ -167,11 +173,14 @@ function resolveModel(overrideModel: string | null | undefined) {
   return overrideModel?.trim() || process.env.JURIAI_LLM_MODEL?.trim() || null;
 }
 
-function resolveProviderName(value: string | null | undefined) {
+function resolveProviderName(
+  value: string | null | undefined,
+): SupportedLlmProvider | null {
   const normalized = value?.trim();
-  if (normalized === "anthropic-direct") return "anthropic-direct" as const;
-  if (normalized === "anthropic-vertex") return "anthropic-vertex" as const;
-  return null;
+  if (!normalized) return null;
+  return (SUPPORTED_LLM_PROVIDERS as readonly string[]).includes(normalized)
+    ? (normalized as SupportedLlmProvider)
+    : null;
 }
 
 function hasAnthropicApiKey() {
@@ -302,11 +311,29 @@ async function resolveLlmRuntime(): Promise<LlmRuntimeResolution> {
   }
 
   const workspaceConfig = workspaceLookup.config;
+
+  let workspaceLlm: WorkspaceLlmRegistryConfig;
+  try {
+    workspaceLlm = validateWorkspaceLlmConfig({
+      llmProvider: workspaceConfig?.llmProvider ?? null,
+      llmModel: workspaceConfig?.llmModel ?? null,
+    });
+  } catch {
+    // Valor explícito do workspace inválido: erro distinto (mesmo registry
+    // usado na gravação admin), sem cair silenciosamente para env/default —
+    // workspace preenchido sempre vence, mesmo quando o valor é inválido.
+    return {
+      state: { status: "unsupported_model" },
+      provider: null,
+      workspaceConfig,
+    };
+  }
+
+  // env só entra como default quando o workspace não define nada explícito.
   const configuredProvider =
-    workspaceConfig?.llmProvider?.trim() ||
-    process.env.JURIAI_LLM_PROVIDER?.trim() ||
-    null;
-  const model = resolveModel(workspaceConfig?.llmModel);
+    workspaceLlm.llmProvider ??
+    resolveProviderName(process.env.JURIAI_LLM_PROVIDER?.trim());
+  const model = workspaceLlm.llmModel ?? resolveModel(null);
 
   if (!configuredProvider || !model) {
     return {
@@ -324,14 +351,7 @@ async function resolveLlmRuntime(): Promise<LlmRuntimeResolution> {
     };
   }
 
-  const provider = resolveProviderName(configuredProvider);
-  if (!provider) {
-    return {
-      state: { status: "missing_config" },
-      provider: null,
-      workspaceConfig,
-    };
-  }
+  const provider = configuredProvider;
 
   if (provider === "anthropic-direct") {
     if (!hasAnthropicApiKey()) {
