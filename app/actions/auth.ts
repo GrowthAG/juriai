@@ -2,24 +2,28 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getActorContext } from "@/lib/actor-context";
 import { clearSession, setSession } from "@/lib/session";
 
 /* Login de desenvolvimento por e-mail (sem senha, ver lib/session.ts).
    O destino final depende da camada do usuário: Console JuriAI ou Escritório. */
 export async function loginAsEmail(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
-  if (!email) {
-    redirect(`/login?error=${encodeURIComponent("Informe seu e-mail.")}`);
-  }
 
-  // Guarda de segurança server-side para o login de desenvolvimento.
-  if (email.endsWith("@juriai.local") && process.env.NODE_ENV !== "development") {
+  if (process.env.NODE_ENV !== "development") {
     redirect(
       `/login?error=${encodeURIComponent(
         "Login de desenvolvimento está desabilitado neste ambiente.",
       )}`,
     );
   }
+
+  if (!email) {
+    redirect(`/login?error=${encodeURIComponent("Informe seu e-mail.")}`);
+  }
+
+  // Garante o usuário bootstrap antes da primeira autenticação local.
+  await getActorContext();
 
   const rows = await prisma.$queryRaw<
     Array<{
