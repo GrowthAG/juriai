@@ -20,6 +20,10 @@ import {
   StripeConfigError,
   StripeUpstreamError,
 } from "@/lib/stripe";
+import {
+  validateWorkspaceLlmConfig,
+  type WorkspaceLlmRegistryConfig,
+} from "@/lib/llm-registry";
 
 type AdminWorkspace = {
   id: string;
@@ -138,14 +142,6 @@ async function assertCanManageWorkspace(context: AdminContext, workspaceId: stri
   if (Number(rows[0]?.allowed ?? 0) === 0) {
     throw new Error("Escritório fora do escopo do administrador.");
   }
-}
-
-function normalizeLlmProvider(value: string) {
-  const normalized = value.trim();
-  if (!normalized || normalized === "inherit") return null;
-  if (normalized === "anthropic-vertex") return normalized;
-  if (normalized === "anthropic-direct") return normalized;
-  throw new Error("Provider de IA inválido.");
 }
 
 function validateOptionalColor(value: string, label: string) {
@@ -336,10 +332,21 @@ async function createSubWorkspaceOrThrow(formData: FormData) {
   const name = String(formData.get("name") || "").trim();
   const adminEmail = String(formData.get("adminEmail") || "").trim().toLowerCase();
   const adminName = String(formData.get("adminName") || "").trim();
-  const llmProvider = normalizeLlmProvider(String(formData.get("llmProvider") || ""));
+  let aiConfig: WorkspaceLlmRegistryConfig;
+  try {
+    aiConfig = validateWorkspaceLlmConfig({
+      llmProvider: String(formData.get("llmProvider") || ""),
+      llmModel: String(formData.get("llmModel") || ""),
+    });
+  } catch (error) {
+    throw new AdminInputError(
+      error instanceof Error ? error.message : "Configuração de IA inválida.",
+    );
+  }
+  const llmProvider = aiConfig.llmProvider;
+  const llmModel = aiConfig.llmModel;
   const llmRegion = String(formData.get("llmRegion") || "").trim() || null;
   const llmProjectId = String(formData.get("llmProjectId") || "").trim() || null;
-  const llmModel = String(formData.get("llmModel") || "").trim() || null;
 
   // Identidade visual + qualificação coletadas no onboarding
   const brandPrimaryColor = validateOptionalColor(
@@ -583,17 +590,11 @@ async function createSubWorkspaceOrThrow(formData: FormData) {
 export async function updateWorkspaceAiConfig(formData: FormData) {
   const context = await requireAdmin();
   const workspaceId = String(formData.get("workspaceId") || "").trim();
-  const llmProvider = formData.has("llmProvider")
-    ? normalizeLlmProvider(String(formData.get("llmProvider") || ""))
-    : undefined;
   const llmRegion = formData.has("llmRegion")
     ? String(formData.get("llmRegion") || "").trim() || null
     : undefined;
   const llmProjectId = formData.has("llmProjectId")
     ? String(formData.get("llmProjectId") || "").trim() || null
-    : undefined;
-  const llmModel = formData.has("llmModel")
-    ? String(formData.get("llmModel") || "").trim() || null
     : undefined;
 
   if (!workspaceId) {
@@ -615,6 +616,26 @@ export async function updateWorkspaceAiConfig(formData: FormData) {
     throw new Error("Escritório não encontrado.");
   }
 
+  let aiConfig: WorkspaceLlmRegistryConfig;
+  try {
+    aiConfig = validateWorkspaceLlmConfig({
+      llmProvider: formData.has("llmProvider")
+        ? String(formData.get("llmProvider") || "")
+        : undefined,
+      llmModel: formData.has("llmModel")
+        ? String(formData.get("llmModel") || "")
+        : undefined,
+      current: {
+        llmProvider: current.llmProvider,
+        llmModel: current.llmModel,
+      },
+    });
+  } catch (error) {
+    throw new AdminInputError(
+      error instanceof Error ? error.message : "Configuração de IA inválida.",
+    );
+  }
+
   await prisma.$executeRawUnsafe(
     `UPDATE "Workspace"
      SET
@@ -624,10 +645,10 @@ export async function updateWorkspaceAiConfig(formData: FormData) {
        "llmModel" = $4,
        "updatedAt" = NOW()
      WHERE "id" = $5`,
-    llmProvider === undefined ? current.llmProvider : llmProvider,
+    aiConfig.llmProvider,
     llmRegion === undefined ? current.llmRegion : llmRegion,
     llmProjectId === undefined ? current.llmProjectId : llmProjectId,
-    llmModel === undefined ? current.llmModel : llmModel,
+    aiConfig.llmModel,
     workspaceId,
   );
 
