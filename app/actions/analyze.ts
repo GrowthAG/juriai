@@ -2,33 +2,50 @@
 
 import { revalidatePath } from "next/cache";
 import { getAccessibleCase } from "@/lib/access";
-import { analyzeCaseWithClaude, isLlmConfigured } from "@/lib/llm";
+import {
+  analyzeCaseWithClaude,
+  classifyLlmError,
+  getLlmRuntimeState,
+  type LlmFailureStatus,
+} from "@/lib/llm";
 import { prisma } from "@/lib/prisma";
 import { CASE_TYPE_LABEL, DOMAIN_LABEL } from "@/lib/case-labels";
 
-// Mensagem única e segura para o client: nunca expõe provider, chave, modelo
-// ou região. O detalhe técnico fica só no log do servidor.
-const SAFE_ANALYSIS_ERROR =
-  "Análise indisponível neste workspace. Verifique a configuração de IA ou tente novamente mais tarde.";
+export type AnalyzeCaseActionResult =
+  | { ok: true }
+  | { ok: false; status: LlmFailureStatus };
 
-export async function analyzeCase(caseId: string) {
-  if (!(await isLlmConfigured())) {
-    throw new Error(SAFE_ANALYSIS_ERROR);
+export async function analyzeCase(
+  caseId: string,
+): Promise<AnalyzeCaseActionResult> {
+  const runtimeState = await getLlmRuntimeState();
+  if (runtimeState.status !== "ready") {
+    return { ok: false, status: runtimeState.status };
   }
 
   const caso = await getAccessibleCase(caseId);
   if (!caso) throw new Error("Caso não encontrado");
 
-  const { result, model } = await analyzeCaseWithClaude({
-    title: caso.title,
-    domainLabel: DOMAIN_LABEL[caso.domain] ?? caso.domain,
-    typeLabel: CASE_TYPE_LABEL[caso.type] ?? caso.type,
-    summary: caso.summary,
-    evidenceLabels: caso.evidence.map((e) => e.label),
-  }).catch((error) => {
-    console.error("[JuriAI analyzeCase] falha na análise", { caseId, error });
-    throw new Error(SAFE_ANALYSIS_ERROR);
-  });
+  let analysis: Awaited<ReturnType<typeof analyzeCaseWithClaude>>;
+  try {
+    analysis = await analyzeCaseWithClaude({
+      title: caso.title,
+      domainLabel: DOMAIN_LABEL[caso.domain] ?? caso.domain,
+      typeLabel: CASE_TYPE_LABEL[caso.type] ?? caso.type,
+      summary: caso.summary,
+      evidenceLabels: caso.evidence.map((e) => e.label),
+    });
+  } catch (error) {
+    const status = classifyLlmError(error);
+    console.error("[JuriAI analyzeCase] falha na análise", {
+      caseId,
+      status,
+      error,
+    });
+    return { ok: false, status };
+  }
+
+  const { result, model } = analysis;
 
   await prisma.$transaction(async (tx) => {
     // Limpa análises anteriores geradas por IA (re-análise idempotente).
@@ -81,4 +98,5 @@ export async function analyzeCase(caseId: string) {
 
   revalidatePath(`/casos/${caseId}`);
   revalidatePath("/workspace");
+  return { ok: true };
 }

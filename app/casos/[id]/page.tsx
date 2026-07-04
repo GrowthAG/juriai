@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 import { Button, ButtonLink, Card } from "@/components/ui";
 import { DeleteCaseButton } from "@/components/DeleteCaseButton";
 import { AnalisarCasoButton } from "@/components/AnalisarCasoButton";
-import { isLlmConfigured } from "@/lib/llm";
+import { EvidenceUploadForm } from "@/components/EvidenceUploadForm";
+import { VincularProcessoForm } from "@/components/VincularProcessoForm";
+import { getLlmRuntimeState } from "@/lib/llm";
 import { tribunalGroupsForDomain } from "@/lib/tribunais";
 import { CASE_TYPE_LABEL, DOMAIN_LABEL, GAP_LABEL } from "@/lib/case-labels";
 import {
-  attachDatajudProcess,
   getCase,
   listCaseCourtProcesses,
   listCaseIngestionJobs,
@@ -22,14 +23,17 @@ const TIPOS_JUDICIAIS = new Set(["JUDICIAL_PASSIVO", "JUDICIAL_ATIVO"]);
 
 export default async function CasoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { id } = await params;
+  const { error } = await searchParams;
   const caso = await getCase(id);
   const ingestionJobs = await listCaseIngestionJobs(id);
   const courtProcesses = await listCaseCourtProcesses(id);
-  const llmConfigured = await isLlmConfigured();
+  const llmRuntimeState = await getLlmRuntimeState();
   if (!caso) notFound();
 
   const isJudicial = TIPOS_JUDICIAIS.has(caso.type);
@@ -75,125 +79,61 @@ export default async function CasoPage({
         )}
 
         {isJudicial && (
-          <Card className="mt-6 border-[var(--primary)] bg-[var(--surface)] px-5 py-5">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-semibold">Vincular processo judicial</p>
-                <p className="mt-0.5 text-sm text-[var(--muted)]">
-                  Consulte o DataJud/CNJ pelo número único e importe as
-                  movimentações como timeline pendente de validação nos autos.
-                </p>
+          <section className="mt-6" aria-labelledby="court-process-title">
+            <Card className="border-[var(--primary)] bg-[var(--surface)] px-5 py-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p id="court-process-title" className="font-semibold">
+                    Vincular processo judicial
+                  </p>
+                  <p className="mt-0.5 text-sm text-[var(--muted)]">
+                    Consulte o DataJud/CNJ pelo número único e importe as
+                    movimentações como timeline pendente de validação nos autos.
+                  </p>
+                </div>
+                <span className="rounded-lg bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)]">
+                  CNJ
+                </span>
               </div>
-              <span className="rounded-lg bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)]">
-                CNJ
-              </span>
-            </div>
 
-            <form
-              action={attachDatajudProcess.bind(null, caso.id)}
-              className="mt-5 grid gap-3 sm:grid-cols-[200px_1fr_auto]"
-            >
-              <select
-                name="tribunal"
-                required
-                defaultValue=""
-                className="w-full rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-sm outline-none focus:border-[var(--primary)]"
-              >
-                <option value="" disabled>
-                  Selecione o tribunal
-                </option>
-                {tribunalGroups.map((group) => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.tribunais.map((t) => (
-                      <option key={t.sigla} value={t.sigla}>
-                        {t.sigla} · {t.nome}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-              <input
-                name="numeroProcesso"
-                type="text"
-                required
-                placeholder="100XXXX-XX.2024.8.26.0000"
-                className="w-full rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
+              {error && (
+                <p
+                  role="alert"
+                  className="mt-4 rounded-lg border border-[var(--danger)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--danger)]"
+                >
+                  {error}
+                </p>
+              )}
+
+              <VincularProcessoForm
+                caseId={caso.id}
+                tribunalGroups={tribunalGroups}
               />
-              <Button type="submit" size="md">
-                Consultar
-              </Button>
-            </form>
-          </Card>
+            </Card>
+          </section>
         )}
 
-        <Card className="mt-6 border-[var(--primary)] bg-[var(--surface)] px-5 py-5">
-          <div className="flex items-center justify-between gap-4">
+        <section className="mt-8" aria-labelledby="ai-analysis-title">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+            Análise com IA
+          </p>
+          <Card className="mt-2 flex items-center justify-between gap-4 bg-[var(--surface)] px-5 py-4">
             <div>
-              <p className="font-semibold">Provas do caso</p>
+              <p id="ai-analysis-title" className="font-semibold">
+                Análise preliminar
+              </p>
               <p className="mt-0.5 text-sm text-[var(--muted)]">
-                Anexe contrato, print, e-mail ou PDF para compor o contexto do
-                caso.
+                Estrutura a narrativa, organiza a linha do tempo e aponta
+                lacunas para revisão do advogado, sem depender de processo
+                judicial vinculado.
               </p>
             </div>
-            <span className="rounded-lg bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)]">
-              pendente
-            </span>
-          </div>
-
-          <form
-            action={`/api/cases/${caso.id}/evidence`}
-            method="post"
-            encType="multipart/form-data"
-            className="mt-5 grid gap-3 sm:grid-cols-[1.1fr_1fr_auto]"
-          >
-            <input
-              name="file"
-              type="file"
-              required
-              className="w-full rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--muted)] file:mr-4 file:rounded-lg file:border-0 file:bg-[var(--primary)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[var(--primary-foreground)] hover:file:bg-[var(--primary-hover)]"
+            <AnalisarCasoButton
+              caseId={caso.id}
+              initialStatus={llmRuntimeState.status}
             />
-            <input
-              name="label"
-              type="text"
-              required
-              placeholder="Título da prova"
-              className="w-full rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
-            />
-            <Button type="submit" size="md" variant="secondary">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m21.4 11.6-8.5 8.5a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 1 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5" />
-              </svg>
-              Anexar prova
-            </Button>
-            <textarea
-              name="description"
-              rows={3}
-              placeholder="Descrição opcional"
-              className="sm:col-span-2 w-full rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]"
-            />
-          </form>
-        </Card>
-
-        {/* Próximo passo sempre visível (wizard, não ferramenta) */}
-        <Card className="mt-6 flex items-center justify-between gap-4 border-[var(--primary)] bg-[var(--surface)] px-5 py-4">
-          <div>
-            <p className="font-semibold">Análise preliminar</p>
-            <p className="mt-0.5 text-sm text-[var(--muted)]">
-              O JuriAI estrutura a narrativa, organiza a linha do tempo e aponta
-              lacunas para revisão do advogado.
-            </p>
-          </div>
-          <AnalisarCasoButton caseId={caso.id} configured={llmConfigured} />
-        </Card>
+          </Card>
+        </section>
 
         <div className="mt-8 grid gap-4">
           {isJudicial && (
@@ -259,12 +199,17 @@ export default async function CasoPage({
 
           <Section title="Provas" count={caso.evidence.length}>
             {caso.evidence.length === 0 ? (
-              <Empty text="Nenhuma prova ainda." />
+              <div className="px-5 pt-1">
+                <Empty text="Nenhuma prova ainda. Comece anexando a primeira." />
+              </div>
             ) : (
               caso.evidence.map((e) => (
                 <Row key={e.id} title={e.label} tag={e.strength} />
               ))
             )}
+            <div className="border-t border-[var(--border)] px-5 py-4 first:border-0">
+              <EvidenceUploadForm caseId={caso.id} />
+            </div>
           </Section>
 
           <Section title="Linha do tempo" count={caso.timeline.length}>
