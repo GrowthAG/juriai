@@ -1,0 +1,610 @@
+// JuriAI — schema v6 (Hierarquia, RBAC e Super Admin)
+
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Enums ---
+
+enum LegalDomain {
+  CIVIL
+  TRABALHISTA
+  PENAL
+  CONSUMIDOR
+  TRIBUTARIO
+  FAMILIA
+}
+
+enum WorkspaceKind {
+  MASTER    // conta agência (control plane): gestão de subcontas, sem casos
+  SUBCONTA  // escritório operacional (data plane): app jurídico, opera casos
+}
+
+enum Role {
+  WORKSPACE_ADMIN
+  CASE_MANAGER
+  LIMITED_USER
+}
+
+enum MembershipRole {
+  OWNER
+  LAWYER
+  INTERN
+  FINANCE
+  VIEWER
+}
+
+enum CaseStatus {
+  TRIAGEM
+  ANALISE
+  ESTRATEGIA
+  REDACAO
+  CONCLUIDO
+  ARQUIVADO
+}
+
+enum CaseType {
+  EXTRAJUDICIAL
+  JUDICIAL_ATIVO
+  JUDICIAL_PASSIVO
+  CONSULTIVO
+}
+
+enum PartyRole {
+  CLIENTE
+  CONTRAPARTE
+  TERCEIRO
+}
+
+enum PartyKind {
+  PF
+  PJ
+}
+
+enum EvidenceStrength {
+  FORTE
+  MEDIA
+  FRACA
+  NAO_AVALIADA
+}
+
+enum FactCertainty {
+  COMPROVADO
+  ALEGADO
+}
+
+enum GapType {
+  PERGUNTA_PENDENTE
+  PROVA_NECESSARIA
+  RISCO
+}
+
+enum DraftType {
+  NOTIFICACAO_EXTRAJUDICIAL
+  RESPOSTA_EXTRAJUDICIAL
+  PETICAO_INICIAL
+  CONTESTACAO
+  RECONVENCAO
+  ACORDO
+  PARECER
+  OUTRO
+}
+
+enum TemplateType {
+  PROPOSTA
+  CONTRATO_SERVICOS
+  PROCURACAO
+  ONBOARDING_CASO
+}
+
+enum ProposalStatus {
+  RASCUNHO
+  ENVIADA
+  ACEITA
+  REJEITADA
+}
+
+enum IngestionJobStatus {
+  PENDENTE
+  PROCESSANDO
+  CONCLUIDO
+  FALHOU
+}
+
+enum AuditAction {
+  ANALYZE
+  GENERATE_DRAFT
+  SUGGEST_STRATEGY
+  EXTRACT_EVIDENCE
+}
+
+enum AuditConfidence {
+  ALTA
+  MEDIA
+  BAIXA
+}
+
+enum TaskStatus {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDA
+}
+
+
+// --- Modelos ---
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  kind      WorkspaceKind @default(SUBCONTA)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activeDomains LegalDomain[]
+
+  firmVoiceCorpus  Json?
+  finetunedModelId String?
+  llmProvider      String?
+  llmRegion        String?
+  llmProjectId     String?
+  llmModel         String?
+
+  // Identidade visual do escritório (coletada no onboarding)
+  brandPrimaryColor   String?
+  brandSecondaryColor String?
+  logoPath            String?
+  letterheadPath      String?
+
+  // Qualificação coletada no onboarding
+  firmSize        String?
+  deadlineControl String?
+  mainBottleneck  String?
+
+  // Hierarquia de Contas
+  parentWorkspaceId String?
+  parentWorkspace   Workspace?  @relation("WorkspaceHierarchy", fields: [parentWorkspaceId], references: [id], onDelete: NoAction)
+  subWorkspaces     Workspace[] @relation("WorkspaceHierarchy")
+
+  users       User[]
+  memberships Membership[]
+  clients     Client[]
+  cases       Case[]
+  templates   Template[]
+  proposals   Proposal[]
+  contracts   ServiceContract[]
+  tasks       Task[]
+  publications LegalPublication[]
+  subscription WorkspaceSubscription?
+
+  // Impede subcontas irmãs com o mesmo nome sob o mesmo pai (NULL = raiz fica livre)
+  @@unique([parentWorkspaceId, name])
+}
+
+model User {
+  id           String    @id
+  email        String    @unique
+  name         String?
+  oab          String?
+  isSuperAdmin Boolean   @default(false) // Flag de Super Admin
+  role         Role      @default(LIMITED_USER) // Papel dentro do workspace
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  ownedCases   Case[]       @relation("CaseOwner")
+  assignedCases CaseMember[] // Casos em que o usuário é membro
+  memberships  Membership[]
+  auditReviews AuditEntry[] @relation("AuditReviewer")
+  assignedTasks Task[]      @relation("TaskAssignee")
+  createdTasks  Task[]      @relation("TaskCreator")
+  linkedPublications LegalPublication[] @relation("PublicationLinker")
+
+  @@index([workspaceId])
+}
+
+model Membership {
+  workspaceId String
+  userId      String
+  role        MembershipRole @default(VIEWER)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([workspaceId, userId])
+  @@index([userId])
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  name        String
+  document    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  kind        PartyKind @default(PJ)
+  email       String?
+  phone       String?
+  address     String?
+
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cases       Case[]
+  proposals   Proposal[]
+  contracts   ServiceContract[]
+  clientUsers ClientUser[]
+  @@index([workspaceId])
+  @@unique([workspaceId, document])
+}
+
+model ClientUser {
+  id        String   @id
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  @@index([clientId])
+}
+
+model Case {
+  id          String      @id @default(cuid())
+  title       String
+  clientName  String?
+  domain      LegalDomain
+  type        CaseType    @default(EXTRAJUDICIAL)
+  status      CaseStatus  @default(TRIAGEM)
+  summary     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  workspaceId String
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  ownerId String
+  owner   User   @relation("CaseOwner", fields: [ownerId], references: [id], onDelete: NoAction)
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  members   CaseMember[] // Tabela pivot para permissões de acesso ao caso
+  parties   Party[]
+  evidence  Evidence[]
+  ingestionJobs IngestionJob[]
+  timeline  TimelineEvent[]
+  courtProcesses CourtProcess[]
+  gaps      Gap[]
+  drafts    Draft[]
+  messages  ChatMessage[]
+  auditEntries AuditEntry[]
+  tasks     Task[]
+  publications LegalPublication[]
+
+  @@index([workspaceId, clientId])
+  @@index([ownerId])
+}
+
+// Tabela Pivot para associar usuários a casos (permissão para LIMITED_USER)
+model CaseMember {
+  createdAt DateTime @default(now())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([caseId, userId])
+  @@index([userId])
+}
+
+model Template {
+  id          String       @id @default(cuid())
+  name        String
+  type        TemplateType
+  content     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  @@index([workspaceId])
+}
+
+model Proposal {
+  id        String         @id @default(cuid())
+  title     String
+  status    ProposalStatus @default(RASCUNHO)
+  value     Decimal
+  scope     String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id])
+  generatedContractId String? @unique
+  generatedContract   ServiceContract?
+  @@index([workspaceId, clientId])
+}
+
+model ServiceContract {
+  id            String    @id @default(cuid())
+  title         String
+  value         Decimal
+  paymentMethod String
+  signedAt      DateTime?
+  filePath      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  clientId      String
+  client        Client    @relation(fields: [clientId], references: [id])
+  fromProposalId String?   @unique
+  fromProposal   Proposal? @relation(fields: [fromProposalId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  @@index([workspaceId, clientId])
+}
+
+model SubscriptionPlan {
+  id                   String   @id @default(cuid())
+  name                 String
+  description          String?
+  currency             String   @default("brl")
+  monthlyPriceCents    Int
+  yearlyPriceCents     Int?
+  maxWorkspaces        Int?
+  maxUsers             Int?
+  maxCases             Int?
+  active               Boolean  @default(true)
+  stripeProductId      String?
+  stripeMonthlyPriceId String?
+  stripeYearlyPriceId  String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  subscriptions WorkspaceSubscription[]
+}
+
+model WorkspaceSubscription {
+  id                   String   @id @default(cuid())
+  status               String   @default("trialing")
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  workspaceId          String   @unique
+  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  planId               String?
+  plan                 SubscriptionPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([planId])
+}
+
+model Party {
+  id       String    @id @default(cuid())
+  name     String
+  role     PartyRole
+  kind     PartyKind @default(PJ)
+  document String?
+  notes    String?
+  caseId   String
+  case     Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  @@index([caseId])
+}
+
+model Evidence {
+  id                 String           @id @default(cuid())
+  label              String
+  description        String?
+  storagePath        String?
+  mimeType           String?
+  strength           EvidenceStrength @default(NAO_AVALIADA)
+  analysis           String?
+  isSharedWithClient Boolean          @default(false) // Campo para o Portal do Cliente
+  createdAt          DateTime         @default(now())
+  caseId             String
+  case               Case             @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  ingestionJob       IngestionJob?
+  @@index([caseId])
+}
+
+model IngestionJob {
+  id              String            @id @default(cuid())
+  status          IngestionJobStatus @default(PENDENTE)
+  sourceFileName  String
+  sourceMimeType  String?
+  storagePath     String
+  extractionResult Json?
+  error           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  caseId          String
+  case            Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidenceId      String?           @unique
+  evidence        Evidence?         @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+
+  @@index([caseId])
+}
+
+model TimelineEvent {
+  id                 String        @id @default(cuid())
+  occurredAt         DateTime?
+  description        String
+  certainty          FactCertainty @default(ALEGADO)
+  source             String?
+  sourceRef          String?
+  needsValidation    Boolean       @default(false)
+  isSharedWithClient Boolean       @default(false) // Campo para o Portal do Cliente
+  createdAt          DateTime      @default(now())
+  caseId             String
+  case               Case          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  @@index([caseId])
+  @@index([caseId, source, sourceRef])
+}
+
+model CourtProcess {
+  id                  String   @id @default(cuid())
+  tribunal            String
+  alias               String
+  numeroProcesso      String
+  classeCodigo        Int?
+  classeNome          String?
+  orgaoJulgadorCodigo Int?
+  orgaoJulgadorNome   String?
+  grau                String?
+  nivelSigilo         Int?
+  dataAjuizamento     DateTime?
+  lastSyncedAt        DateTime?
+  latestMovementAt    DateTime?
+  movementCount       Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  caseId              String
+  case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  snapshots           CourtProcessSnapshot[]
+
+  @@index([caseId])
+  @@unique([caseId, tribunal, numeroProcesso])
+}
+
+model CourtProcessSnapshot {
+  id             String       @id @default(cuid())
+  fetchedAt      DateTime     @default(now())
+  total          Int
+  timedOut       Boolean      @default(false)
+  tookMs         Int?
+  payload        Json
+  courtProcessId String
+  courtProcess   CourtProcess @relation(fields: [courtProcessId], references: [id], onDelete: Cascade)
+
+  @@index([courtProcessId])
+}
+
+model Gap {
+  id          String   @id @default(cuid())
+  type        GapType
+  description String
+  resolved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  @@index([caseId])
+}
+
+// Publicação/intimação (DJEN) validada por um humano e vinculada a um caso.
+// Fase 3 do Monitoramento Jurídico. É o armazenamento próprio da publicação;
+// o TimelineEvent gerado no vínculo é só reflexo cronológico no caso.
+// Nunca guarda o `raw` da fonte: só a whitelist de campos normalizados.
+model LegalPublication {
+  id                   String    @id @default(cuid())
+  source               String    // "DJEN" (futuro: "DATAJUD")
+  externalId           String    // id da comunicação na fonte
+  sourceUrl            String
+  tribunal             String
+  numeroProcesso       String    // dígitos normalizados (CNJ)
+  tipo                 String
+  texto                String    // texto normalizado (sem raw)
+  dataDisponibilizacao DateTime?
+  dataPublicacao       DateTime?
+  destinatarios        Json
+  advogados            Json
+  contentHash          String    // sha256(source|externalId|numeroProcesso|texto)
+  linkedById           String?
+  linkedAt             DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  caseId String
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  linkedBy User? @relation("PublicationLinker", fields: [linkedById], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, source, externalId])
+  @@index([workspaceId, numeroProcesso])
+  @@index([caseId])
+  @@index([workspaceId, dataDisponibilizacao])
+  @@index([workspaceId, contentHash])
+}
+
+// Rastreabilidade de toda saída de IA (regra anti-alucinação #5). Append-only.
+model AuditEntry {
+  id             String          @id @default(cuid())
+  action         AuditAction
+  model          String
+  groundedOn     Json
+  confidence     AuditConfidence
+  unresolvedGaps Json
+  createdAt      DateTime        @default(now())
+
+  caseId String
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  reviewedById String?
+  reviewedBy   User?   @relation("AuditReviewer", fields: [reviewedById], references: [id], onDelete: NoAction)
+
+  @@index([caseId])
+}
+
+model Draft {
+  id                 String    @id @default(cuid())
+  type               DraftType @default(OUTRO)
+  title              String
+  version            Int       @default(1)
+  content            String
+  isSharedWithClient Boolean   @default(false) // Campo para o Portal do Cliente
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  caseId             String
+  case               Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  @@index([caseId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  @@index([caseId])
+}
+
+// Tarefa/prazo do escritório. Pode estar vinculada a um caso e a um advogado
+// responsável, mas ambos são opcionais (uma tarefa administrativa não precisa
+// de caso). É o "to-do" que o humano cria, complementando as Gaps que a IA gera.
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(PENDENTE)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  caseId String?
+  case   Case?   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  assignedToId String?
+  assignedTo   User?   @relation("TaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User?   @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status])
+  @@index([caseId])
+  @@index([assignedToId])
+}
