@@ -1,21 +1,24 @@
 @import "tailwindcss";
 
 /* ─── JuriAI · tokens de design ───────────────────────────────
-   Paleta calma e confiável: fundo bege-claro, primária azul-petróleo
-   profundo, alto contraste e alvos grandes (advogado, pouco tech). */
+   Marca oficial: Brutalismo Editorial. Base monocromática branco/grafite,
+   pontuada por uma única Action Blue. Sem sombra, cantos sóbrios (raio 8px, o
+   teto do guardrail anti-vibecode), profundidade por borda e tom. Símbolo:
+   gavel geométrico. */
 :root {
-  --background: #f7f6f3;
+  --background: #f8f9fa;
   --surface: #ffffff;
-  --foreground: #1c2433;
-  --muted: #5b6577;
-  --border: #e6e3dc;
-  --primary: #1f3a5f;
-  --primary-hover: #16304f;
+  --foreground: #111827;
+  --muted: #6b7280;
+  --border: #e9ecef;
+  --border-strong: #ced4da;
+  --primary: #0057d8;
+  --primary-hover: #0041a6;
   --primary-foreground: #ffffff;
-  --accent: #c8a24a;
+  --accent: #0057d8;
   --success: #1f7a52;
   --warning: #b4690e;
-  --danger: #b42318;
+  --danger: #ba1a1a;
   --radius: 8px;
 }
 
@@ -25,6 +28,7 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
@@ -32,11 +36,257 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
-  --font-sans: Arial, Helvetica, sans-serif;
+  /* Trio tipográfico: Inter (UI/corpo), Lora (títulos/editorial),
+     JetBrains Mono (IDs, prazos, números de processo). Carregadas via
+     next/font no layout; as variáveis abaixo recebem essas famílias. */
+  --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
+  --font-serif: var(--font-lora), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
   --radius-card: var(--radius);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Números tabulares em dados densos (prazos, valores, nº de processo). */
+.font-mono,
+[class*="tabular"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Site público · tilt sutil (prefixo `site-`) ──────────
+   Usado só no frame do product shot da Home. Movimento funcional e
+   discreto: tilt ≤ 2°. Desligado quando o usuário pede menos movimento ou
+   usa ponteiro grosso/touch. */
+.site-tilt {
+  position: relative;
+  perspective: 1400px;
+}
+
+.site-tilt-inner {
+  position: relative;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+  will-change: transform;
+}
+
+.site-reveal {
+  animation: site-reveal 0.5s ease both;
+}
+
+.site-progress {
+  width: 66%;
+  animation: site-progress 4.5s ease-in-out infinite;
+}
+
+.site-status-pulse {
+  animation: site-status-pulse 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-tilt-inner {
+    transform: none !important;
+    transition: none;
+  }
+
+  .site-reveal,
+  .site-progress,
+  .site-status-pulse {
+    animation: none !important;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .site-tilt-inner {
+    transform: none !important;
+  }
+}
+
+/* Reveal discreto no scroll (opacity + leve translateY). */
+@keyframes site-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes site-progress {
+  0%,
+  100% {
+    width: 62%;
+  }
+  50% {
+    width: 70%;
+  }
+}
+
+@keyframes site-status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+/* ─── Site público · indicador de atividade (telemetria discreta) ──
+   Adaptação da ideia de "sinais vivos": ponto de status e realce do item
+   ativo. Nunca fundo espacial, gradiente, estrela ou partícula. */
+.site-status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border-strong);
+  transition:
+    background 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.site-status-dot[data-active="true"] {
+  background: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+/* ─── Tooltip técnico ──────────────────────────────────────────────
+   Mecânica do social tooltip, sem a estética de rede social: fundo claro,
+   borda 1px, texto curto, sem bounce e sem sombra pesada. */
+.site-tooltip-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  outline: none;
+  cursor: help;
+  border-bottom: 1px dotted var(--border-strong);
+}
+
+.site-tooltip-trigger::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 30;
+  width: max-content;
+  max-width: 240px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-transform: none;
+  letter-spacing: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.site-tooltip-trigger:hover::after,
+.site-tooltip-trigger:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Dossiê estruturado em camadas ────────────────────────────────
+   Mecânica do folder hover, sem pasta cartoon: camadas sobrepostas que se
+   abrem no hover/focus, revelando a estrutura do caso. Sem amber, sem
+   gradiente, sem sombra teatral. */
+.site-doc-stack {
+  position: relative;
+  min-height: 184px;
+  perspective: 1200px;
+}
+
+.site-doc-layer {
+  position: absolute;
+  inset-inline: 0;
+  min-height: 56px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  transform-origin: bottom center;
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    background 200ms ease;
+}
+
+.site-doc-layer:nth-child(1) {
+  top: 0;
+  z-index: 5;
+}
+.site-doc-layer:nth-child(2) {
+  top: 26px;
+  z-index: 4;
+}
+.site-doc-layer:nth-child(3) {
+  top: 52px;
+  z-index: 3;
+}
+.site-doc-layer:nth-child(4) {
+  top: 78px;
+  z-index: 2;
+}
+.site-doc-layer:nth-child(5) {
+  top: 104px;
+  z-index: 1;
+}
+
+.site-doc-stack:hover .site-doc-layer:nth-child(1),
+.site-doc-stack:focus-within .site-doc-layer:nth-child(1) {
+  transform: translateY(-16px) rotateX(-3deg);
+}
+.site-doc-stack:hover .site-doc-layer:nth-child(2),
+.site-doc-stack:focus-within .site-doc-layer:nth-child(2) {
+  transform: translateY(-8px) rotateX(-2deg);
+}
+.site-doc-stack:hover .site-doc-layer:nth-child(4),
+.site-doc-stack:focus-within .site-doc-layer:nth-child(4) {
+  transform: translateY(8px);
+}
+.site-doc-stack:hover .site-doc-layer:nth-child(5),
+.site-doc-stack:focus-within .site-doc-layer:nth-child(5) {
+  transform: translateY(16px);
+}
+
+.site-doc-layer[data-active="true"] {
+  border-color: var(--primary);
+  background: var(--background);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-tooltip-trigger::after {
+    transition: none;
+  }
+
+  .site-doc-layer {
+    transition:
+      border-color 200ms ease,
+      background 200ms ease;
+  }
+
+  .site-doc-stack:hover .site-doc-layer,
+  .site-doc-stack:focus-within .site-doc-layer {
+    transform: none;
+  }
 }

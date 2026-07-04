@@ -1,8 +1,10 @@
-import js from "@eslint/js";
-import tsParser from "@typescript-eslint/parser";
 import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
 
 export default defineConfig([
+  ...nextVitals,
+  ...nextTs,
   globalIgnores([
     ".next/**",
     "out/**",
@@ -12,27 +14,4 @@ export default defineConfig([
     "playwright-report/**",
     "test-results/**",
   ]),
-  {
-    ...js.configs.recommended,
-    rules: {
-      ...js.configs.recommended.rules,
-      "no-undef": "off",
-    },
-  },
-  {
-    files: ["**/*.{ts,tsx}"],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-    },
-    rules: {
-      "no-unused-vars": "off",
-    },
-  },
 ]);
