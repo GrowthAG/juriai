@@ -4,6 +4,7 @@ import { getActorContext } from "@/lib/actor-context";
 import { prisma } from "@/lib/prisma";
 import {
   SUPPORTED_MODELS,
+  resolveAutomaticPolicyModel,
   resolveModelCandidates,
   resolveVertexRegionCandidates,
 } from "@/lib/llm-config";
@@ -330,10 +331,13 @@ async function resolveLlmRuntime(): Promise<LlmRuntimeResolution> {
   }
 
   // env só entra como default quando o workspace não define nada explícito.
+  // Se nem workspace nem env definirem modelo, a política automática decide
+  // (hoje resolve para MODEL, sem economic/balanced/max_quality ainda).
   const configuredProvider =
     workspaceLlm.llmProvider ??
     resolveProviderName(process.env.JURIAI_LLM_PROVIDER?.trim());
-  const model = workspaceLlm.llmModel ?? resolveModel(null);
+  const model =
+    workspaceLlm.llmModel ?? resolveModel(null) ?? resolveAutomaticPolicyModel();
 
   if (!configuredProvider || !model) {
     return {

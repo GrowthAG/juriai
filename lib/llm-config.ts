@@ -7,6 +7,20 @@
 export const MODEL = "claude-opus-4-7";
 export const SUPPORTED_MODELS = new Set([MODEL, "claude-sonnet-4-5"]);
 
+/* Router v2 (reduzido): única política ativa hoje é "automatic". Ela só
+   entra quando workspace e env não definem nenhum modelo — nesse caso, em
+   vez de falhar (missing_config), o runtime resolve para MODEL, o mesmo
+   valor já usado como default em todo o resto do arquivo. economic/balanced/
+   max_quality ainda não estão habilitadas (ver
+   docs/60-platform/01_ai_model_routing.md para o desenho completo). */
+export type LlmExecutionPolicy = "automatic";
+
+export const DEFAULT_LLM_POLICY: LlmExecutionPolicy = "automatic";
+
+export function resolveAutomaticPolicyModel(): string {
+  return MODEL;
+}
+
 export function resolveVertexRegionCandidates(
   region: string | null | undefined,
 ) {
