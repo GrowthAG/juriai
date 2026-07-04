@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getActorContext } from "@/lib/actor-context";
 import { getAccessibleCase, listAccessibleCases } from "@/lib/access";
-import { lookupDatajudProcess } from "@/lib/datajud";
+import { DatajudConfigError, lookupDatajudProcess } from "@/lib/datajud";
 import { prisma } from "@/lib/prisma";
 import type { CaseType, LegalDomain } from "@prisma/client";
 
@@ -104,7 +104,20 @@ export async function attachDatajudProcess(caseId: string, formData: FormData) {
 
   const tribunal = String(formData.get("tribunal") || "").trim();
   const numeroProcesso = String(formData.get("numeroProcesso") || "").trim();
-  const result = await lookupDatajudProcess({ tribunal, numeroProcesso });
+
+  let result;
+  try {
+    result = await lookupDatajudProcess({ tribunal, numeroProcesso });
+  } catch (error) {
+    if (error instanceof DatajudConfigError) {
+      redirect(
+        `/casos/${caseId}?error=${encodeURIComponent(
+          "Integração DataJud não configurada neste ambiente. Configure DATAJUD_API_KEY para vincular processos automaticamente.",
+        )}`,
+      );
+    }
+    throw error;
+  }
   const process = result.processos[0];
 
   if (!process) {
