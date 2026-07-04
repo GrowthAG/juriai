@@ -178,3 +178,7 @@ Rotas:
   diretório temporário do sistema.
 - Identity Platform ainda não está plugado. Esta camada de contexto é a ponte
   para trocar o hardcode sem espalhar a lógica pelo app.
+- `MembershipRole` (`Membership.role`: OWNER/LAWYER/INTERN/FINANCE/VIEWER) é
+  só um rótulo organizacional exibido no admin — não controla acesso. Quem
+  decide o que um usuário pode fazer é `User.role` (`Role`: WORKSPACE_ADMIN /
+  CASE_MANAGER / LIMITED_USER).

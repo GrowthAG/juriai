@@ -71,7 +71,9 @@ export default async function WorkspaceDetailPage({
       <section className="mt-8">
         <h2 className="text-lg font-semibold">Membros &amp; Acessos</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Quem entra neste escritório e o que pode fazer.
+          Quem entra neste escritório e o que pode fazer. &quot;Papel no
+          sistema&quot; controla o acesso; &quot;Função&quot; é só um rótulo
+          organizacional e não afeta permissões.
         </p>
 
         <Card className="mt-4 overflow-hidden">
@@ -80,7 +82,7 @@ export default async function WorkspaceDetailPage({
               <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
                 <th className="px-5 py-3 font-medium">Membro</th>
                 <th className="px-5 py-3 font-medium">Papel no sistema</th>
-                <th className="px-5 py-3 font-medium">Função</th>
+                <th className="px-5 py-3 font-medium">Função (rótulo)</th>
                 <th className="px-5 py-3 font-medium">Admin global</th>
               </tr>
             </thead>
@@ -140,7 +142,7 @@ export default async function WorkspaceDetailPage({
               />
               <Select
                 name="membershipRole"
-                label="Função no escritório (rótulo)"
+                label="Função no escritório (rótulo organizacional, não afeta permissões)"
                 options={MEMBERSHIP_OPTIONS}
               />
             </div>
