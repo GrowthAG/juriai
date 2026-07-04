@@ -2,14 +2,16 @@ import Anthropic from "@anthropic-ai/sdk";
 import AnthropicVertex from "@anthropic-ai/vertex-sdk";
 import { getActorContext } from "@/lib/actor-context";
 import { prisma } from "@/lib/prisma";
+import {
+  SUPPORTED_MODELS,
+  resolveModelCandidates,
+  resolveVertexRegionCandidates,
+} from "@/lib/llm-config";
 
 /* Cliente Claude para o motor jurídico do JuriAI.
  *
  * O runtime suporta apenas Claude direto e Claude no Vertex. A existência de
  * ADC local, sozinha, não torna o workspace pronto para executar análises. */
-
-const MODEL = "claude-opus-4-7";
-const SUPPORTED_MODELS = new Set([MODEL, "claude-sonnet-4-5"]);
 
 export type LlmRuntimeStatus =
   | "ready"
@@ -126,12 +128,6 @@ function buildVertexClient(region: string, projectId?: string | null) {
   }) as unknown as LlmClient;
 }
 
-function resolveVertexRegionCandidates(region: string | null | undefined) {
-  const preferred = region?.trim();
-  const candidates = [preferred, "us-east5", "europe-west4", "asia-southeast1", "us-central1"];
-  return candidates.filter((value, index, all): value is string => Boolean(value) && all.indexOf(value) === index);
-}
-
 function getVertexProjectId(input?: { projectId?: string | null }) {
   return (
     input?.projectId?.trim() ||
@@ -169,12 +165,6 @@ function buildDirectClient(): LlmClient {
 
 function resolveModel(overrideModel: string | null | undefined) {
   return overrideModel?.trim() || process.env.JURIAI_LLM_MODEL?.trim() || null;
-}
-
-function resolveModelCandidates(model: string | null | undefined) {
-  const preferred = model?.trim() || process.env.JURIAI_LLM_MODEL || MODEL;
-  const candidates = [preferred, "claude-opus-4-7", "claude-sonnet-4-5"];
-  return candidates.filter((value, index, all): value is string => Boolean(value) && all.indexOf(value) === index);
 }
 
 function resolveProviderName(value: string | null | undefined) {
