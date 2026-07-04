@@ -1,48 +1,37 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button, Card } from "@/components/ui";
-import { DOMAIN_LABEL } from "@/lib/case-labels";
+import { CASE_TYPE_LABEL, DOMAIN_LABEL } from "@/lib/case-labels";
+import { createCaseFromWizard } from "@/app/actions/cases";
 
-// Etapa 2 do wizard — placeholder visual funcional. Server component, sem
-// estado, sem API/IA/banco. A validacao da area usa a fonte canonica
-// (DOMAIN_LABEL), sem lista paralela: o slug de rota e a chave em minusculas.
+// Etapa 2 do wizard: contexto mínimo que cria o caso de verdade. Server
+// component; o submit chama a action createCaseFromWizard (adaptador da
+// createCase). A validacao da area usa a fonte canonica (DOMAIN_LABEL): o slug
+// de rota e a chave em minusculas.
 
-const STEPPER_STAGES = ["Área", "Contexto", "Partes", "Documentos", "Revisão"];
+const STEPPER_STAGES = ["Área", "Contexto", "Criação"];
 
-// Campos visuais da etapa 2 (placeholders, sem submit real).
-const CONTEXT_FIELDS: { label: string; placeholder: string }[] = [
-  {
-    label: "Resumo inicial",
-    placeholder:
-      "Descreva em poucas linhas o que aconteceu e o que o cliente busca.",
-  },
-  {
-    label: "Partes envolvidas",
-    placeholder: "Quem são as partes e qual o papel de cada uma no caso.",
-  },
-  {
-    label: "Documentos disponíveis",
-    placeholder: "Contratos, publicações, comprovantes já em mãos.",
-  },
-  {
-    label: "Prazos conhecidos",
-    placeholder: "Datas, vencimentos ou prazos processuais já identificados.",
-  },
-];
+const FORM_ID = "novo-caso-form";
+
+const fieldClass =
+  "w-full rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm outline-none focus:border-[var(--primary)]";
 
 const NEXT_STEPS: { label: string; active?: boolean }[] = [
   { label: "Informar contexto", active: true },
-  { label: "Vincular documentos" },
-  { label: "Revisar lacunas" },
-  { label: "Criar caso" },
+  { label: "Criar caso", active: true },
+  { label: "Anexar provas" },
+  { label: "Gerar análise para revisão" },
 ];
 
 export default async function NovoCasoContextoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ area: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { area } = await params;
+  const { error } = await searchParams;
   const key = area.toUpperCase();
   const label = DOMAIN_LABEL[key];
   if (!label) notFound();
@@ -50,9 +39,9 @@ export default async function NovoCasoContextoPage({
   const contextRows: { k: string; v: string; muted?: boolean }[] = [
     { k: "Área", v: label },
     { k: "Status", v: "em estruturação" },
-    { k: "Documentos", v: "pendente", muted: true },
-    { k: "Prazos", v: "pendente", muted: true },
-    { k: "Revisão", v: "obrigatória antes da criação" },
+    { k: "Provas", v: "após a criação", muted: true },
+    { k: "Prazos", v: "após a criação", muted: true },
+    { k: "Revisão", v: "obrigatória na análise" },
   ];
 
   return (
@@ -67,7 +56,8 @@ export default async function NovoCasoContextoPage({
             Etapa 2 · Contexto inicial
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Informe o contexto mínimo para preparar a estrutura do caso.
+            Informe o contexto mínimo para criar o caso. Provas e análise vêm
+            depois, já dentro do caso.
           </p>
 
           {/* Stepper do wizard — etapa 2 ativa */}
@@ -94,7 +84,7 @@ export default async function NovoCasoContextoPage({
             ))}
           </ol>
 
-          {/* Etapa 2 — Contexto do caso */}
+          {/* Etapa 2 — Contexto do caso (formulário real) */}
           <Card className="mt-6 p-5 sm:p-6">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="text-sm font-semibold text-[var(--foreground)]">
@@ -105,27 +95,86 @@ export default async function NovoCasoContextoPage({
               </span>
             </div>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Estes campos preparam a estrutura do dossiê. Nada é salvo nesta
-              etapa; a criação exige revisão.
+              Estes campos criam o caso. Você poderá editá-los e anexar provas
+              logo em seguida.
             </p>
 
-            <div className="mt-4 grid gap-4">
-              {CONTEXT_FIELDS.map((field) => (
-                <div key={field.label}>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-                    {field.label}
-                  </p>
-                  <div className="mt-1.5 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)]">
-                    {field.placeholder}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {error && (
+              <p
+                role="alert"
+                className="mt-4 rounded-[var(--radius-card)] border border-[var(--danger)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--danger)]"
+              >
+                {error}
+              </p>
+            )}
+
+            <form
+              id={FORM_ID}
+              action={createCaseFromWizard.bind(null, key)}
+              className="mt-4 grid gap-4"
+            >
+              <label className="grid gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                  Título do caso
+                </span>
+                <input
+                  name="title"
+                  type="text"
+                  required
+                  maxLength={200}
+                  autoFocus
+                  placeholder="Ex: Rescisão de contrato de prestação de serviços"
+                  className={fieldClass}
+                />
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                  Cliente
+                </span>
+                <input
+                  name="clientName"
+                  type="text"
+                  maxLength={200}
+                  placeholder="Cliente não informado"
+                  className={fieldClass}
+                />
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                  Tipo do caso
+                </span>
+                <select name="type" required defaultValue="" className={fieldClass}>
+                  <option value="" disabled>
+                    Selecione o tipo
+                  </option>
+                  {Object.entries(CASE_TYPE_LABEL).map(([value, typeLabel]) => (
+                    <option key={value} value={value}>
+                      {typeLabel}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                  Resumo inicial
+                </span>
+                <textarea
+                  name="summary"
+                  rows={4}
+                  maxLength={2000}
+                  placeholder="Descreva em poucas linhas o que aconteceu e o que o cliente busca."
+                  className={fieldClass}
+                />
+              </label>
+            </form>
           </Card>
 
           <p className="mt-4 text-xs leading-relaxed text-[var(--muted)]">
             A IA sugere a estrutura a partir da área e do conteúdo. O advogado
-            revisa e aprova; nenhuma criação avança sem revisão.
+            revisa e aprova; nenhuma análise avança sem revisão.
           </p>
 
           {/* Voltar para seleção de área */}
@@ -191,14 +240,15 @@ export default async function NovoCasoContextoPage({
         </aside>
       </div>
 
-      {/* Command bar inferior — visual/auxiliar, sem ação real (etapa futura). */}
+      {/* Command bar inferior — submit real do formulário da etapa 2. */}
       <div className="sticky bottom-0 border-t border-[var(--border)] bg-[var(--surface)] px-6 py-4">
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <div className="flex-1 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)]">
-            A entrada de contexto será habilitada em uma etapa futura do wizard.
+            Revise o contexto acima. O caso é criado com estes dados e pode ser
+            editado em seguida.
           </div>
-          <Button size="md" disabled>
-            Continuar (etapa futura)
+          <Button type="submit" form={FORM_ID} size="md">
+            Criar caso
           </Button>
         </div>
       </div>
