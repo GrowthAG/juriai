@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Button, Card } from "@/components/ui";
-import { loginAsEmail } from "@/app/actions/auth";
+import { loginAsEmail, loginWithGoogle } from "@/app/actions/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,19 @@ export default async function LoginPage({
                 </p>
               )}
 
-              <form action={loginAsEmail} className="mt-7 grid gap-5">
+              <form action={loginWithGoogle} className="mt-7">
+                <Button type="submit" className="w-full">
+                  Entrar com Google
+                </Button>
+              </form>
+
+              <div className="mt-6 flex items-center gap-3 text-xs text-[var(--muted)]">
+                <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
+                ou
+                <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
+              </div>
+
+              <form action={loginAsEmail} className="mt-6 grid gap-5">
                 <div className="grid gap-2">
                   <label
                     htmlFor="email"

@@ -1,9 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { getActorContext } from "@/lib/actor-context";
 import { clearSession, setSession } from "@/lib/session";
+import { findAuthUserByEmail, resolvePostLoginPath } from "@/lib/auth-user";
+import { signIn as authSignIn, signOut as authSignOut } from "@/lib/auth";
 
 /* Login de desenvolvimento por e-mail (sem senha, ver lib/session.ts).
    O destino final depende da camada do usuário: Console JuriAI ou Escritório. */
@@ -25,23 +26,7 @@ export async function loginAsEmail(formData: FormData) {
   // Garante o usuário bootstrap antes da primeira autenticação local.
   await getActorContext();
 
-  const rows = await prisma.$queryRaw<
-    Array<{
-      id: string;
-      isSuperAdmin: boolean;
-      workspaceKind: "MASTER" | "SUBCONTA";
-    }>
-  >`
-    SELECT
-      u."id",
-      u."isSuperAdmin",
-      w."kind" AS "workspaceKind"
-    FROM "User" u
-    JOIN "Workspace" w ON w."id" = u."workspaceId"
-    WHERE LOWER(u."email") = ${email}
-    LIMIT 1
-  `;
-  const user = rows[0];
+  const user = await findAuthUserByEmail(email);
 
   if (!user) {
     redirect(
@@ -52,13 +37,19 @@ export async function loginAsEmail(formData: FormData) {
   }
 
   await setSession(user.id);
-  if (user.isSuperAdmin || user.workspaceKind === "MASTER") {
-    redirect("/admin");
-  }
-  redirect("/workspace");
+  redirect(resolvePostLoginPath(user));
+}
+
+// Ponte para o Auth.js: dispara o handshake OAuth do Google. A resolução do
+// usuário e o setSession() acontecem no callback signIn (ver lib/auth.ts).
+export async function loginWithGoogle() {
+  await authSignIn("google");
 }
 
 export async function logout() {
+  // Limpa também o cookie de sessão próprio do Auth.js (se existir), sem
+  // deixar que ele controle o redirect — quem decide o destino é o JuriAI.
+  await authSignOut({ redirect: false });
   await clearSession();
   redirect("/login");
 }
