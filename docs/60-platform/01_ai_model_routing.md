@@ -6,12 +6,14 @@ Este documento é a fonte única de referência sobre **qual modelo de IA faz o
 quê no JuriAI, por quê, com que evidência e com que nível de confiança**.
 
 Ele existe porque hoje há quatro superfícies diferentes decidindo "qual
-modelo roda" sem nenhum documento que as amarre: a constante hardcoded em
-`lib/llm.ts`, as colunas de override em `Workspace` (schema/DB), o plano
-de feature `plans/legal-analysis-v032.md` (ainda não implementado) e o
-`model:` fixado no frontmatter dos subagentes de `juriai-dev/agents/`. Este
-arquivo não substitui nenhum desses — ele documenta o estado real de cada um
-e força qualquer mudança futura a atualizar esta matriz junto.
+modelo roda" sem nenhum documento que as amarre: a configuração declarada em
+`lib/llm-config.ts` (validada por `lib/llm-registry.ts` e consumida através
+do seam de tarefa em `lib/llm-router.ts`), as colunas de override em
+`Workspace` (schema/DB), o plano de feature `plans/legal-analysis-v032.md`
+(ainda não implementado) e o `model:` fixado no frontmatter dos subagentes de
+`juriai-dev/agents/`. Este arquivo não substitui nenhum desses — ele
+documenta o estado real de cada um e força qualquer mudança futura a
+atualizar esta matriz junto.
 
 Este documento é **só documentação**. Ele não altera runtime, schema, `.env`,
 migrations, patches ou deploy. Qualquer promoção do que está aqui para código
@@ -57,9 +59,9 @@ ferramenta de trabalho, não de produto.
 
 | Executor recomendado | Modelo | Tarefa | Por que é ideal | Evidência | Por que não os outros | Confiança | Status |
 |---|---|---|---|---|---|---|---|
-| App runtime — Google Vertex | `claude-opus-4-7` | Análise de caso (`analyzeCaseWithClaude`), extração principal DJEN | Único modelo com `output_config.json_schema` + `thinking: "adaptive"` já integrado ao contrato anti-alucinação do JuriAI | `lib/llm.ts:11` (`const MODEL`), `plans/legal-analysis-v032.md:11` (linha "Extração Principal", ATIVO) | Sonnet 4.5 é o fallback declarado, não o padrão; modelos MaaS não têm esse parâmetro validado no schema atual | ALTA | ATIVO |
-| App runtime — Google Vertex / Anthropic direto | `claude-sonnet-4-5` | Fallback de extração quando Opus 4.7 não está disponível na região | Está na allowlist `SUPPORTED_MODELS` como segunda opção, já testado nos smoke tests | `lib/llm.ts:12`, `plans/legal-analysis-v032.md:13` (linha "Fallback Extração", ATIVO) | Não é o default porque o produto foi calibrado com Opus 4.7 como principal | ALTA | ATIVO |
-| App runtime — Anthropic direto (`ANTHROPIC_API_KEY`) | mesmo modelo do provider ativo | Fallback de **infraestrutura** quando Vertex falha por erro de serviceability (região/publisher) | Já implementado como fallback automático em `analyzeCaseWithClaude` | `lib/llm.ts:630-643` (bloco de fallback para `anthropic-direct`), `SETUP.md:88-92` | Não é escolha de modelo, é escolha de canal de acesso ao mesmo modelo | ALTA | ATIVO |
+| App runtime — Google Vertex | `claude-opus-4-7` | Análise de caso (`analyzeCaseWithClaude`, via `lib/llm-router.ts`), extração principal DJEN | Único modelo com `output_config.json_schema` + `thinking: "adaptive"` já integrado ao contrato anti-alucinação do JuriAI | `lib/llm-config.ts:7` (`const MODEL`), `plans/legal-analysis-v032.md:11` (linha "Extração Principal", ATIVO) | Sonnet 4.5 é o fallback declarado, não o padrão; modelos MaaS não têm esse parâmetro validado no schema atual | ALTA | ATIVO |
+| App runtime — Google Vertex / Anthropic direto | `claude-sonnet-4-5` | Fallback de extração quando Opus 4.7 não está disponível na região | Está na allowlist `SUPPORTED_MODELS` como segunda opção, já testado nos smoke tests | `lib/llm-config.ts:8`, `plans/legal-analysis-v032.md:13` (linha "Fallback Extração", ATIVO) | Não é o default porque o produto foi calibrado com Opus 4.7 como principal | ALTA | ATIVO |
+| App runtime — Anthropic direto (`ANTHROPIC_API_KEY`) | mesmo modelo do provider ativo | Fallback de **infraestrutura** quando Vertex falha por erro de serviceability (região/publisher) | Já implementado como fallback automático em `analyzeCaseWithClaude` | `lib/llm.ts:644-657` (bloco de fallback para `anthropic-direct`), `SETUP.md:88-92` | Não é escolha de modelo, é escolha de canal de acesso ao mesmo modelo | ALTA | ATIVO |
 | Claude Code — engenharia geral | Sonnet 5 | Implementação de código, revisão, tarefas do dia a dia no repo | Modelo padrão do Claude Code local hoje | Observado no ambiente local do usuário (sessão atual) | Opus 4.8 é mais caro/lento para tarefas rotineiras; Haiku 4.5 é rápido demais para reasoning complexo de código | MEDIA | ATIVO (uso local, não versionado em arquivo) |
 | Claude Code — subagentes de raciocínio jurídico/arquitetural | Opus 4.8 (alias `opus`) | `analista-caso`, `pesquisador`, `redator`, `jurista-persona`, `estrategista`, `auditor-provas` (plugin `plugin-juriai`, raiz do projeto) | Tarefas de maior profundidade analítica e menor tolerância a erro (auditoria de provas, estratégia, redação) | `plugin-juriai/agents/analista-caso.md:4`, `pesquisador.md:4`, `redator.md:4`, `jurista-persona.md:4`, `estrategista.md:4`, `auditor-provas.md:4` (todos `model: opus`) | Sonnet seria mais barato mas o plugin já optou por opus para essas roles; não é decisão deste documento, só o registro do que já está configurado | MEDIA | ATIVO |
 | Claude Code — humanização de texto | Sonnet (alias `sonnet`) | `humanizer` (plugin `plugin-juriai`, raiz do projeto) | Tarefa de reescrita/tom, não de raciocínio jurídico profundo | `plugin-juriai/agents/humanizer.md:4` (`model: sonnet`) | Opus seria custo desnecessário para reescrita de tom | MEDIA | ATIVO |
@@ -69,17 +71,17 @@ ferramenta de trabalho, não de produto.
 ## 4. Modelos ativos agora
 
 ### `claude-opus-4-7` (App runtime — produção)
-- **Onde:** `lib/llm.ts:11` — `const MODEL = "claude-opus-4-7"`.
-- **Papel:** modelo padrão de análise de caso via Vertex/GCP.
+- **Onde:** `lib/llm-config.ts:7` — `const MODEL = "claude-opus-4-7"`.
+- **Papel:** modelo padrão de análise de caso via Vertex/GCP, e modelo da política `automatic` do Router v2 (ver seção 8).
 - **Confiança:** ALTA — é o modelo em uso ativo, validado por smoke test (`plans/legal-analysis-v032.md:11`).
 
 ### `claude-sonnet-4-5` (App runtime — produção, fallback)
-- **Onde:** `lib/llm.ts:12` — segundo item de `SUPPORTED_MODELS`.
-- **Papel:** fallback de extração quando o Opus 4.7 não está disponível na região configurada (`resolveModelCandidates`, `lib/llm.ts:174-178`).
+- **Onde:** `lib/llm-config.ts:8` — segundo item de `SUPPORTED_MODELS`.
+- **Papel:** fallback de extração quando o Opus 4.7 não está disponível na região configurada (`resolveModelCandidates`, `lib/llm-config.ts:41-48`).
 - **Confiança:** ALTA — também validado por smoke test (`plans/legal-analysis-v032.md:13`).
 
 ### Claude direto via `ANTHROPIC_API_KEY` (App runtime — fallback de infraestrutura)
-- **Onde:** `lib/llm.ts:161-168` (`buildDirectClient`), acionado em `lib/llm.ts:630-643` quando o Vertex falha por erro de serviceability.
+- **Onde:** `lib/llm.ts:164-171` (`buildDirectClient`), acionado em `lib/llm.ts:644-657` quando o Vertex falha por erro de serviceability.
 - **Papel:** não é uma escolha de modelo diferente — é um canal alternativo (API direta da Anthropic) para o mesmo modelo, usado quando o Vertex está indisponível na região.
 - **Configuração:** `SETUP.md:88-92`.
 - **Confiança:** ALTA — mecanismo simples e já testado.
@@ -111,14 +113,25 @@ verde (`scripts/ai-smoke/`) antes de qualquer uso com dado de caso real.
 
 ## 7. Riscos de hardcode e drift
 
-- `lib/llm.ts:11` define `MODEL = "claude-opus-4-7"` como literal sem alias. Se a Anthropic descontinuar esse snapshot, produção quebra até alguém editar o código e reimplantar.
+- `lib/llm-config.ts:7` define `MODEL = "claude-opus-4-7"` como literal sem alias. Se a Anthropic descontinuar esse snapshot, produção quebra até alguém editar o código e reimplantar.
 - IDs datados (`claude-opus-4-7`) e nomes de marketing ("Opus 4.8" visto no Claude Code local) não têm mapeamento explícito em nenhum lugar do repo — fácil confundir "o mais novo disponível" com "o que está de fato rodando em produção".
-- `SUPPORTED_MODELS` (`lib/llm.ts:12`) é uma allowlist fixa no código: adicionar um modelo novo exige deploy, não config. Isso torna o override `llmModel` por workspace (`app/admin/subcontas/[id]/page.tsx:230-233`) ilusório para qualquer ID fora da allowlist — cai em `unsupported_model` (`lib/llm.ts:329-335`).
-- A escolha de modelo está fragmentada em três lugares que podem divergir sem aviso: a constante no código, as env vars (`JURIAI_LLM_MODEL`, `JURIAI_LLM_PROVIDER`) e a coluna no banco (`Workspace.llmModel`, `prisma/schema.prisma:151-154`).
-- Este próprio documento pode ficar desatualizado se o código mudar e ninguém atualizar a matriz — por isso a seção 8 recomenda promover o estado "ATIVO" para uma fonte declarativa única quando isso virar prioridade de engenharia.
+- `SUPPORTED_MODELS` (`lib/llm-config.ts:8`) é uma allowlist fixa no código: adicionar um modelo novo exige deploy, não config. Isso torna o override `llmModel` por workspace (`app/admin/subcontas/[id]/page.tsx:230-233`) ilusório para qualquer ID fora da allowlist — cai em `unsupported_model` (`lib/llm.ts:350-355`, validado via `lib/llm-registry.ts`).
+- A escolha de modelo hoje segue uma ordem de precedência explícita e centralizada (workspace → env → política `automatic`, ver seção 8) em vez de fragmentada — mas os três níveis (coluna no banco `Workspace.llmModel`/`prisma/schema.prisma:151-154`, env vars `JURIAI_LLM_MODEL`/`JURIAI_LLM_PROVIDER`, e o código) continuam sendo superfícies fisicamente separadas, que só um destes arquivos (`lib/llm.ts`) sabe compor — mudar a ordem exige ler `lib/llm.ts` para confirmar, não é óbvio de fora.
+- Este próprio documento pode ficar desatualizado se o código mudar e ninguém atualizar a matriz — já aconteceu uma vez (ver histórico do arquivo) entre a extração para `lib/llm-config.ts` e esta revisão.
 
-## 8. Próxima fase
+## 8. Router de execução — estado atual e próxima fase
 
-**Fase atual (este documento):** matriz em Markdown, sem risco de runtime. Serve como spec viva e ponto de partida para qualquer decisão futura de modelo.
+**Já implementado** (fora do escopo original deste documento, que era só a matriz — ver histórico de commits `54cc2d3`, `a4ca03c`, `0297e36`, `e8f42a0`, `c528d2e`, `60445f4`):
 
-**Fase futura (fora do escopo deste documento):** promover as linhas "ATIVO" da seção 3 para uma fonte declarativa única em código (por exemplo `lib/llm-config.ts` ou um registro no banco), da qual `SUPPORTED_MODELS` e a ordem de fallback em `lib/llm.ts` seriam derivados, eliminando a fragmentação descrita na seção 7. Essa fase mexe no runtime de IA de produção e deve seguir o fluxo `spec → build → review` do plugin `juriai-dev` (ver `AGENTS.md`, na raiz do projeto), com gates (`npm run lint`, `npx tsc --noEmit`, `check-schema-sync.sh`, `npm run test:e2e`) — não deve ser feita como edição ad hoc a partir deste documento.
+- **Fonte declarativa central** (`lib/llm-config.ts`): `MODEL`, `SUPPORTED_MODELS`, listas de candidatos de modelo/região — extraídas de `lib/llm.ts`, sem mudança de comportamento na extração em si.
+- **Registry de validação** (`lib/llm-registry.ts`): `validateWorkspaceLlmConfig` é a mesma função usada tanto na gravação do formulário admin (`app/actions/admin.ts`) quanto na resolução de runtime (`lib/llm.ts`) — um valor de workspace explícito e inválido sempre dá erro distinto (`unsupported_model`), nunca cai silenciosamente para env/default.
+- **Router v1** (`lib/llm-router.ts`): ponto único de "qual IA roda essa tarefa" para `case-analysis`. `app/actions/analyze.ts` não fala mais direto com `analyzeCaseWithClaude`/`classifyLlmError`/`getLlmRuntimeState` — fala com `getLlmRouteState`/`routeCaseAnalysis`. A decisão de modelo/provider/fallback em si continua 100% dentro de `lib/llm.ts`, agora atrás desse seam.
+- **Router v2, reduzido — só a política `automatic`** (`lib/llm-config.ts` + `lib/llm.ts`): quando nem o workspace nem a env var (`JURIAI_LLM_MODEL`) definem um modelo, o runtime resolve para `MODEL` (`claude-opus-4-7`) em vez de falhar com `missing_config`. O tipo `LlmExecutionPolicy` em `lib/llm-config.ts` tem hoje **um único membro**: `"automatic"`.
+- **`economic`, `balanced` e `max_quality` NÃO estão habilitadas.** Não existem no tipo `LlmExecutionPolicy`, não há env var de seleção de política, não há mapeamento modelo-por-política além do automático. Qualquer menção a essas políticas em conversas/specs anteriores é intenção de produto ainda não implementada.
+- **O override técnico por workspace continua existindo e continua vencendo.** `Workspace.llmProvider`/`llmModel` (formulário em `app/admin/subcontas/[id]/page.tsx`) seguem sendo a primeira fonte de verdade, sem nenhuma mudança de comportamento — a política `automatic` só entra quando workspace **e** env estão vazios (algo que antes sempre resultava em `missing_config`).
+
+**Ainda em aberto:**
+
+- Abrir `economic`/`balanced`/`max_quality` exigiria, no mínimo, um mapeamento política→modelo em código (fácil) e uma forma de escolher a política — hoje só dá pra ser um env var global (`JURIAI_LLM_POLICY`, ainda não implementado), não uma escolha por workspace, porque isso exige uma coluna nova em `Workspace` (schema), fora do escopo de qualquer fase feita até aqui.
+- Com só 2 modelos reais na allowlist (ambos Claude), uma política de 4 rótulos naturalmente colapsa em poucos modelos distintos — isso é limitação de quantos modelos existem hoje (ver seção 5), não do desenho da política.
+- Qualquer uma dessas mudanças mexe no runtime de IA de produção e deve seguir o fluxo `spec → build → review` do plugin `juriai-dev` (ver `AGENTS.md`, na raiz do projeto), com gates (`npm run lint`, `npx tsc --noEmit`, `check-schema-sync.sh`, `npm run test:e2e`) — não deve ser feita como edição ad hoc a partir deste documento.
