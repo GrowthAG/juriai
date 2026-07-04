@@ -6,11 +6,16 @@ import { analyzeCase } from "@/app/actions/analyze";
 import type { LlmFailureStatus, LlmRuntimeStatus } from "@/lib/llm";
 
 export const AI_STATUS_MESSAGES: Record<LlmFailureStatus, string> = {
-  missing_config: "A IA ainda não foi configurada para este workspace.",
-  invalid_credentials: "A configuração de acesso à IA precisa ser atualizada.",
-  unsupported_model: "A configuração de IA não é compatível com esta análise.",
-  quota_exceeded: "O limite de uso da IA foi atingido neste momento.",
-  unavailable: "A análise por IA está temporariamente indisponível.",
+  missing_config:
+    "A IA ainda não foi configurada para este escritório. Peça a um administrador para configurar o provider em Escritórios → Avançado → Integração de IA.",
+  invalid_credentials:
+    "A credencial de acesso à IA expirou ou foi revogada. Peça a um administrador para atualizá-la.",
+  unsupported_model:
+    "O modelo de IA configurado para este escritório não é suportado ou não está disponível nesta região. Peça a um administrador para revisar em Escritórios → Avançado → Integração de IA.",
+  quota_exceeded:
+    "O limite de uso da IA foi atingido. Tente novamente mais tarde ou peça a um administrador para verificar o plano.",
+  unavailable:
+    "A análise por IA está temporariamente indisponível. Tente novamente em alguns minutos.",
 };
 
 export function getAnalysisButtonState(
