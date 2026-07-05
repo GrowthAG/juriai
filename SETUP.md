@@ -174,6 +174,11 @@ Rotas:
   `JURIAI_WORKSPACE_ID=dev-workspace`, `JURIAI_ACTOR_ID=dev-user`,
   `JURIAI_WORKSPACE_ROLE=WORKSPACE_ADMIN`,
   `JURIAI_MEMBERSHIP_ROLE=OWNER`.
+- O bypass de dev (contexto sintético de super admin, guard de rota e botão de
+  login sem senha) exige `NODE_ENV=development` **e**
+  `JURIAI_ALLOW_DEV_BYPASS="true"` ao mesmo tempo — defina essa segunda
+  variável no `.env` local para manter o fluxo de dev funcionando. Sem ela,
+  nenhum dos três bypasses é liberado, mesmo em `NODE_ENV=development`.
 - Uploads ficam em `JURIAI_UPLOAD_DIR` quando definido; sem isso, o app usa o
   diretório temporário do sistema.
 - Identity Platform ainda não está plugado. Esta camada de contexto é a ponte

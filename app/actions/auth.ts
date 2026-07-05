@@ -5,13 +5,14 @@ import { getActorContext } from "@/lib/actor-context";
 import { clearSession, setSession } from "@/lib/session";
 import { findAuthUserByEmail, resolvePostLoginPath } from "@/lib/auth-user";
 import { signIn as authSignIn, signOut as authSignOut } from "@/lib/auth";
+import { isDevBypassEnabled } from "@/lib/dev-bypass";
 
 /* Login de desenvolvimento por e-mail (sem senha, ver lib/session.ts).
    O destino final depende da camada do usuário: Console JuriAI ou Escritório. */
 export async function loginAsEmail(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
 
-  if (process.env.NODE_ENV !== "development") {
+  if (!isDevBypassEnabled()) {
     redirect(
       `/login?error=${encodeURIComponent(
         "Login de desenvolvimento está desabilitado neste ambiente.",

@@ -3,12 +3,16 @@ import {
   SESSION_COOKIE,
   verifySessionToken,
 } from "@/lib/session-token";
+import { isDevBypassEnabled, isLocalhostHost } from "@/lib/dev-bypass";
 
 export async function proxy(request: NextRequest) {
-  // Em development, o bootstrap por variáveis JURIAI_* (ver lib/actor-context.ts)
-  // provê identidade sem login. O guard só faz sentido fora de development, onde
-  // getActorContext também recusa contexto sintético. Manter os dois alinhados.
-  if (process.env.NODE_ENV === "development") return NextResponse.next();
+  // O bootstrap por variáveis JURIAI_* (ver lib/actor-context.ts) provê
+  // identidade sem login, mas só quando o bypass de dev está explicitamente
+  // autorizado (NODE_ENV=development + JURIAI_ALLOW_DEV_BYPASS=true) e a
+  // requisição parece vir de localhost. Fora disso, o guard normal roda.
+  if (isDevBypassEnabled() && isLocalhostHost(request.headers.get("host"))) {
+    return NextResponse.next();
+  }
 
   const sessionUserId = await verifySessionToken(
     request.cookies.get(SESSION_COOKIE)?.value,

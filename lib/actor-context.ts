@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUserId } from "@/lib/session";
+import { isDevBypassEnabled } from "@/lib/dev-bypass";
 import type { MembershipRole, Role, WorkspaceKind } from "@prisma/client";
 
 type ActorContext = {
@@ -15,7 +16,7 @@ type ActorContext = {
 };
 
 const DEFAULT_CONTEXT: ActorContext | null =
-  process.env.NODE_ENV === "development"
+  isDevBypassEnabled()
     ? {
         workspaceId: process.env.JURIAI_WORKSPACE_ID ?? "dev-workspace",
         workspaceName:
@@ -41,8 +42,10 @@ const DEFAULT_CONTEXT: ActorContext | null =
     : null;
 
 async function seedActorContext(context: ActorContext) {
-  if (process.env.NODE_ENV !== "development") {
-    throw new Error("Seed de contexto disponível apenas em development.");
+  if (!isDevBypassEnabled()) {
+    throw new Error(
+      "Seed de contexto disponível apenas com bypass de dev explicitamente autorizado.",
+    );
   }
 
   await prisma.$executeRawUnsafe(
