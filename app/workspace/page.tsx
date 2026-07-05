@@ -52,6 +52,13 @@ export default async function WorkspacePage() {
     redirect("/admin");
   }
 
+  // LIMITED_USER não tem visão agregada do escritório (mesma regra de
+  // canAccessAllCases em lib/access.ts) — vai direto para a lista de casos,
+  // que já filtra por acesso individual (ownerId ou CaseMember).
+  if (ctx.workspaceRole === "LIMITED_USER") {
+    redirect("/workspace/casos");
+  }
+
   const wid = ctx.workspaceId;
 
   const [

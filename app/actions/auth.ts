@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getActorContext } from "@/lib/actor-context";
-import { clearSession, setSession } from "@/lib/session";
+import { clearImpersonator, clearSession, setSession } from "@/lib/session";
 import { findAuthUserByEmail, resolvePostLoginPath } from "@/lib/auth-user";
 import { signIn as authSignIn, signOut as authSignOut } from "@/lib/auth";
 import { isDevBypassEnabled } from "@/lib/dev-bypass";
@@ -38,6 +38,10 @@ export async function loginAsEmail(formData: FormData) {
   }
 
   await setSession(user.id);
+  // Um login novo nunca deve herdar impersonation de uma sessão anterior no
+  // mesmo navegador (ex.: alguém fechou a aba sem clicar em "Sair" durante
+  // uma impersonation ativa).
+  await clearImpersonator();
   redirect(resolvePostLoginPath(user));
 }
 
@@ -52,5 +56,6 @@ export async function logout() {
   // deixar que ele controle o redirect — quem decide o destino é o JuriAI.
   await authSignOut({ redirect: false });
   await clearSession();
+  await clearImpersonator();
   redirect("/login");
 }
