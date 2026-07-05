@@ -1,0 +1,28 @@
+{
+  "googleVertex": {
+    "provider": "google-vertex",
+    "project": "GOOGLE_CLOUD_PROJECT_ID",
+    "model": "GOOGLE_MODEL_ID",
+    "region": "VERTEX_REGION"
+  },
+  "googleMaasKimi": {
+    "provider": "google-maas",
+    "project": "GOOGLE_CLOUD_PROJECT_ID",
+    "publisher": "KIMI_PUBLISHER_ID",
+    "model": "KIMI_MODEL_ID",
+    "region": "VERTEX_REGION"
+  },
+  "googleMaasGlm": {
+    "provider": "google-maas",
+    "project": "GOOGLE_CLOUD_PROJECT_ID",
+    "publisher": "GLM_PUBLISHER_ID",
+    "model": "GLM_MODEL_ID",
+    "region": "VERTEX_REGION"
+  },
+  "awsBedrock": {
+    "provider": "aws-bedrock",
+    "model": "BEDROCK_MODEL_ID",
+    "region": "AWS_REGION",
+    "format": "anthropic"
+  }
+}
