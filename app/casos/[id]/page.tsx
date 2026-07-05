@@ -4,6 +4,7 @@ import { Button, ButtonLink, Card } from "@/components/ui";
 import { DeleteCaseButton } from "@/components/DeleteCaseButton";
 import { AnalisarCasoButton } from "@/components/AnalisarCasoButton";
 import { EvidenceUploadForm } from "@/components/EvidenceUploadForm";
+import { StrengthBadge } from "@/components/CaseBadges";
 import { VincularProcessoForm } from "@/components/VincularProcessoForm";
 import { getLlmRuntimeState } from "@/lib/llm";
 import { tribunalGroupsForDomain } from "@/lib/tribunais";
@@ -204,7 +205,12 @@ export default async function CasoPage({
               </div>
             ) : (
               caso.evidence.map((e) => (
-                <Row key={e.id} title={e.label} tag={e.strength} />
+                <EvidenceRow
+                  key={e.id}
+                  label={e.label}
+                  strength={e.strength}
+                  mimeType={e.mimeType}
+                />
               ))
             )}
             <div className="border-t border-[var(--border)] px-5 py-4 first:border-0">
@@ -253,6 +259,31 @@ function Section({
       </div>
       <div className="divide-y divide-[var(--border)]">{children}</div>
     </Card>
+  );
+}
+
+// Estrutura própria (não o Row genérico) para já reservar o espaço à direita
+// para futuras ações de editar/excluir metadados da prova — sem implementá-
+// las ainda, já que isso exige novas server actions (fora do patch mínimo).
+function EvidenceRow({
+  label,
+  strength,
+  mimeType,
+}: {
+  label: string;
+  strength: string;
+  mimeType: string | null;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-5 py-3">
+      <div className="min-w-0">
+        <p className="truncate text-sm">{label}</p>
+        {mimeType && (
+          <p className="text-xs text-[var(--muted)]">{mimeType}</p>
+        )}
+      </div>
+      <StrengthBadge strength={strength} />
+    </div>
   );
 }
 

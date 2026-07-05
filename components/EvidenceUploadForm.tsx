@@ -3,13 +3,24 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui";
 
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function EvidenceUploadForm({ caseId }: { caseId: string }) {
   const inputFileRef = useRef<HTMLInputElement>(null);
-  const [fileName, setFileName] = useState("Nenhum arquivo selecionado");
+  const [file, setFile] = useState<{ name: string; size: number } | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    setFileName(file ? file.name : "Nenhum arquivo selecionado");
+    const selected = event.target.files?.[0];
+    setFile(selected ? { name: selected.name, size: selected.size } : null);
+  };
+
+  const handleRemove = () => {
+    if (inputFileRef.current) inputFileRef.current.value = "";
+    setFile(null);
   };
 
   return (
@@ -19,26 +30,51 @@ export function EvidenceUploadForm({ caseId }: { caseId: string }) {
       encType="multipart/form-data"
       className="mt-4 grid gap-3"
     >
-      <div className="flex gap-3">
-        <input
-          name="file"
-          type="file"
-          required
-          className="hidden"
-          ref={inputFileRef}
-          onChange={handleFileChange}
-        />
+      <input
+        name="file"
+        type="file"
+        required
+        className="hidden"
+        ref={inputFileRef}
+        onChange={handleFileChange}
+      />
+
+      {/* Estado: arquivo selecionado, ainda não salvo — visualmente distinto
+         do dropzone vazio, sem se confundir com uma prova já salva na lista
+         acima (que usa StrengthBadge, não este card). */}
+      {file ? (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--primary)] bg-[var(--surface)] px-4 py-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-[var(--foreground)]">
+              {file.name}
+            </p>
+            <p className="text-xs text-[var(--muted)]">
+              {formatFileSize(file.size)} · pronto para salvar
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleRemove}
+            className="shrink-0 text-sm text-[var(--muted)] hover:text-[var(--danger,#b91c1c)]"
+          >
+            Remover
+          </button>
+        </div>
+      ) : (
         <button
           type="button"
           onClick={() => inputFileRef.current?.click()}
-          className="h-10 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--primary)] transition-colors hover:border-[var(--primary-hover)] hover:bg-[var(--background)]"
+          className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-6 text-center transition-colors hover:border-[var(--primary)]"
         >
-          Escolher arquivo
+          <span className="text-sm font-semibold text-[var(--primary)]">
+            Clique para escolher um arquivo
+          </span>
+          <span className="text-xs text-[var(--muted)]">
+            PDF, imagem ou documento da prova
+          </span>
         </button>
-        <div className="flex h-10 flex-1 items-center truncate rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 text-sm text-[var(--muted)]">
-          {fileName}
-        </div>
-      </div>
+      )}
+
       <input
         name="label"
         type="text"
@@ -53,7 +89,7 @@ export function EvidenceUploadForm({ caseId }: { caseId: string }) {
         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm outline-none focus:border-[var(--primary)]"
       />
       <div className="flex justify-end">
-        <Button type="submit" size="md">
+        <Button type="submit" size="md" disabled={!file}>
           Salvar Prova
         </Button>
       </div>

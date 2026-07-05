@@ -123,9 +123,13 @@ export default async function NovoCasoContextoPage({
                   required
                   maxLength={200}
                   autoFocus
-                  placeholder="Ex: Rescisão de contrato de prestação de serviços"
+                  placeholder="Ex: Rescisão contratual — Onboard S.A."
                   className={fieldClass}
                 />
+                <span className="text-xs text-[var(--muted)]">
+                  Nome objetivo (assunto — parte envolvida), não a narrativa em
+                  primeira pessoa.
+                </span>
               </label>
 
               <label className="grid gap-1.5">

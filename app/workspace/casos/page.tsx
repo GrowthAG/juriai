@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ButtonLink, Card } from "@/components/ui";
+import { DeleteCaseButton } from "@/components/DeleteCaseButton";
 import { StatusBadge, TypeBadge } from "@/components/CaseBadges";
 import { getActorContext } from "@/lib/actor-context";
 import { listAccessibleCases } from "@/lib/access";
@@ -60,7 +61,8 @@ export default async function CasosIndexPage() {
                 <th className="px-6 py-3 font-medium">Área</th>
                 <th className="px-6 py-3 font-medium">Tipo</th>
                 <th className="px-6 py-3 font-medium">Status</th>
-                <th className="px-6 py-3 font-medium text-right">Atualizado</th>
+                <th className="px-6 py-3 font-medium">Atualizado</th>
+                <th className="px-6 py-3 text-right font-medium">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -89,8 +91,19 @@ export default async function CasosIndexPage() {
                   <td className="px-6 py-3">
                     <StatusBadge status={c.status} />
                   </td>
-                  <td className="px-6 py-3 text-right text-[var(--muted)]">
+                  <td className="px-6 py-3 text-[var(--muted)]">
                     {relativeDays(c.updatedAt)}
+                  </td>
+                  <td className="px-6 py-3">
+                    <div className="flex items-center justify-end gap-3">
+                      <Link
+                        href={`/casos/${c.id}/editar`}
+                        className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
+                      >
+                        Editar
+                      </Link>
+                      <DeleteCaseButton id={c.id} />
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -69,6 +69,10 @@ export default async function EditarCasoPage({
                 defaultValue={caso.title}
                 className={fieldClass}
               />
+              <span className="text-xs text-[var(--muted)]">
+                Nome objetivo (assunto — parte envolvida), não a narrativa em
+                primeira pessoa.
+              </span>
             </label>
 
             <label className="grid gap-1.5">
