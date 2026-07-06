@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getActorContext } from "@/lib/actor-context";
 import { getAccessibleCase, listAccessibleCases } from "@/lib/access";
-import { DatajudConfigError, lookupDatajudProcess } from "@/lib/datajud";
+import {
+  DatajudConfigError,
+  DatajudInputError,
+  DatajudUpstreamError,
+  lookupDatajudProcess,
+} from "@/lib/datajud";
 import { prisma } from "@/lib/prisma";
 import type { CaseType, LegalDomain } from "@prisma/client";
 
@@ -115,6 +120,16 @@ export async function attachDatajudProcess(caseId: string, formData: FormData) {
           "Integração DataJud não configurada neste ambiente. Configure DATAJUD_API_KEY para vincular processos automaticamente.",
         )}`,
       );
+    }
+    if (error instanceof DatajudInputError) {
+      redirect(`/casos/${caseId}?error=${encodeURIComponent(error.message)}`);
+    }
+    if (error instanceof DatajudUpstreamError) {
+      const message =
+        error.status === 504
+          ? "O DataJud não respondeu a tempo. Tente novamente em instantes."
+          : "O DataJud está indisponível no momento. Tente novamente em instantes.";
+      redirect(`/casos/${caseId}?error=${encodeURIComponent(message)}`);
     }
     throw error;
   }

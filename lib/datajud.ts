@@ -199,6 +199,10 @@ export const DATAJUD_TRIBUNALS = {
 const DATAJUD_BASE_URL =
   process.env.DATAJUD_BASE_URL ?? "https://api-publica.datajud.cnj.jus.br";
 
+// O CNJ é upstream de terceiros fora do nosso controle; sem prazo próprio, uma
+// instabilidade lá trava a consulta e derruba a página do caso inteira.
+const DATAJUD_TIMEOUT_MS = 8000;
+
 export function normalizeProcessNumber(value: string) {
   return value.replace(/\D/g, "");
 }
@@ -241,21 +245,41 @@ export async function lookupDatajudProcess(params: {
   }
 
   const alias = DATAJUD_TRIBUNALS[tribunal];
-  const response = await fetch(`${DATAJUD_BASE_URL}/${alias}/_search`, {
-    method: "POST",
-    headers: {
-      Authorization: `APIKey ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      query: {
-        match: {
-          numeroProcesso,
-        },
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DATAJUD_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(`${DATAJUD_BASE_URL}/${alias}/_search`, {
+      method: "POST",
+      headers: {
+        Authorization: `APIKey ${apiKey}`,
+        "Content-Type": "application/json",
       },
-    }),
-    cache: "no-store",
-  });
+      body: JSON.stringify({
+        query: {
+          match: {
+            numeroProcesso,
+          },
+        },
+      }),
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new DatajudUpstreamError(
+        504,
+        `O DataJud não respondeu em ${DATAJUD_TIMEOUT_MS}ms.`,
+      );
+    }
+    throw new DatajudUpstreamError(
+      502,
+      error instanceof Error ? error.message : "Falha de rede ao consultar o DataJud.",
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     const detail = await response.text();
