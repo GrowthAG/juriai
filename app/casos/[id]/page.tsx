@@ -4,6 +4,7 @@ import { Button, ButtonLink, Card } from "@/components/ui";
 import { DeleteCaseButton } from "@/components/DeleteCaseButton";
 import { AnalisarCasoButton } from "@/components/AnalisarCasoButton";
 import { EvidenceUploadForm } from "@/components/EvidenceUploadForm";
+import { GenerateDraftForm } from "@/components/GenerateDraftForm";
 import { StrengthBadge } from "@/components/CaseBadges";
 import { VincularProcessoForm } from "@/components/VincularProcessoForm";
 import { getLlmRuntimeState } from "@/lib/llm";
@@ -133,6 +134,50 @@ export default async function CasoPage({
               caseId={caso.id}
               initialStatus={llmRuntimeState.status}
             />
+          </Card>
+        </section>
+
+        <section className="mt-8" aria-labelledby="drafts-title">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+            Redação assistida
+          </p>
+          <Card className="mt-2 overflow-hidden">
+            <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] px-5 py-4">
+              <div>
+                <h2 id="drafts-title" className="font-semibold">
+                  Gerar peça ou documento
+                </h2>
+                <p className="mt-0.5 text-sm text-[var(--muted)]">
+                  A minuta é gerada para revisão do advogado e salva como
+                  rascunho do caso.
+                </p>
+              </div>
+              <span className="rounded-lg bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)]">
+                Draft
+              </span>
+            </div>
+
+            <div className="px-5 py-4">
+              <GenerateDraftForm
+                caseId={caso.id}
+                caseType={caso.type}
+                initialStatus={llmRuntimeState.status}
+              />
+            </div>
+
+            <div className="flex items-center justify-between border-t border-[var(--border)] px-5 py-3">
+              <h3 className="text-sm font-semibold">Rascunhos do caso</h3>
+              <span className="text-sm text-[var(--muted)]">
+                {caso.drafts.length}
+              </span>
+            </div>
+            {caso.drafts.length === 0 ? (
+              <Empty text="Nenhum rascunho gerado ainda." />
+            ) : (
+              caso.drafts.map((draft) => (
+                <DraftRow key={draft.id} draft={draft} />
+              ))
+            )}
           </Card>
         </section>
 
@@ -302,6 +347,69 @@ function Row({ title, tag }: { title: string; tag?: string }) {
 
 function Empty({ text }: { text: string }) {
   return <p className="px-5 py-4 text-sm text-[var(--muted)]">{text}</p>;
+}
+
+function DraftRow({
+  draft,
+}: {
+  draft: {
+    id: string;
+    type: string;
+    title: string;
+    content: string;
+    version: number;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}) {
+  return (
+    <div className="border-t border-[var(--border)] px-5 py-4 first:border-0">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">
+            {draftTypeLabel(draft.type)}
+          </p>
+          <p className="mt-1 truncate text-sm text-[var(--muted)]">
+            {draft.title}
+          </p>
+        </div>
+        <div className="shrink-0 text-right text-xs text-[var(--muted)]">
+          <p>v{draft.version}</p>
+          <p>Atualizado em {formatDate(draft.updatedAt)}</p>
+        </div>
+      </div>
+      <details className="mt-3">
+        <summary className="cursor-pointer text-xs text-[var(--muted)]">
+          Prévia do conteúdo
+        </summary>
+        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--foreground)]">
+          {previewText(draft.content, 420)}
+        </p>
+      </details>
+    </div>
+  );
+}
+
+function draftTypeLabel(value: string) {
+  const label = DRAFT_TYPE_LABELS[value as keyof typeof DRAFT_TYPE_LABELS];
+  return label ?? value;
+}
+
+const DRAFT_TYPE_LABELS = {
+  NOTIFICACAO_EXTRAJUDICIAL: "Notificação extrajudicial",
+  RESPOSTA_EXTRAJUDICIAL: "Resposta extrajudicial",
+  PETICAO_INICIAL: "Petição inicial",
+  CONTESTACAO: "Contestação",
+  RECONVENCAO: "Reconvenção",
+  ACORDO: "Acordo",
+  PARECER: "Parecer",
+  OUTRO: "Outro",
+} as const;
+
+function previewText(value: string, maxLength: number) {
+  const normalized = value.trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength).trimEnd()}…`;
 }
 
 function formatDate(value: Date | null) {

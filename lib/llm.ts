@@ -36,6 +36,13 @@ export type LlmFailureStatus = Exclude<LlmRuntimeStatus, "ready">;
 
 type LlmProviderKind = "anthropic-vertex" | "anthropic-direct";
 
+type JsonSchema = {
+  type: "object";
+  additionalProperties: boolean;
+  properties: Record<string, unknown>;
+  required: readonly string[];
+};
+
 type LlmClient = {
   messages: {
     create: (params: {
@@ -46,7 +53,7 @@ type LlmClient = {
       output_config: {
         format: {
           type: "json_schema";
-          schema: typeof SCHEMA;
+          schema: JsonSchema;
         };
       };
       messages: Array<{
@@ -118,6 +125,45 @@ export type AnalyzeResult = {
     type: "PERGUNTA_PENDENTE" | "PROVA_NECESSARIA" | "RISCO";
     description: string;
   }>;
+  confidence: "ALTA" | "MEDIA" | "BAIXA";
+  groundedOn: string[];
+  unresolvedGaps: string[];
+};
+
+export type DraftGenerationInput = {
+  title: string;
+  draftTypeLabel: string;
+  domainLabel: string;
+  caseTypeLabel: string;
+  workspaceName: string;
+  clientName: string;
+  summary: string | null;
+  instructions: string | null;
+  evidence: Array<{
+    label: string;
+    description: string | null;
+    analysis: string | null;
+  }>;
+  timeline: Array<{
+    description: string;
+    certainty: "COMPROVADO" | "ALEGADO";
+  }>;
+  gaps: Array<{
+    type: "PERGUNTA_PENDENTE" | "PROVA_NECESSARIA" | "RISCO";
+    description: string;
+    resolved: boolean;
+  }>;
+  parties: Array<{
+    name: string;
+    role: string;
+    kind: string;
+    notes: string | null;
+  }>;
+};
+
+export type DraftGenerationResult = {
+  title: string;
+  content: string;
   confidence: "ALTA" | "MEDIA" | "BAIXA";
   groundedOn: string[];
   unresolvedGaps: string[];
@@ -486,6 +532,52 @@ ${input.summary?.trim() || "(sem resumo informado)"}`;
   return { result, model: response.model };
 }
 
+async function runDraftGeneration(
+  provider: LlmProviderConfig,
+  input: DraftGenerationInput,
+): Promise<{ result: DraftGenerationResult; model: string }> {
+  const userContent = `Gere uma minuta para revisão do advogado.
+
+Regras:
+- Produza uma minuta para revisão do advogado.
+- Não declare que o documento está pronto para envio.
+- Aponte lacunas quando faltarem dados.
+- Use apenas os fatos fornecidos no caso, provas, timeline e resumo.
+- Não invente fatos, artigos, jurisprudência, prazos, valores ou pedidos não suportados.
+- Se houver lacunas, mantenha placeholders explícitos como [inserir ...].
+- O texto final deve ser útil como rascunho interno, não como peça final.
+
+Contexto estruturado do caso:
+${JSON.stringify(input, null, 2)}`;
+
+  const response = await provider.client.messages.create({
+    model: provider.model,
+    max_tokens: 16000,
+    thinking: { type: "adaptive" },
+    system: DRAFT_SYSTEM,
+    output_config: { format: { type: "json_schema", schema: DRAFT_SCHEMA } },
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  if (response.stop_reason === "refusal") {
+    throw new Error("A geração do rascunho foi recusada pelo modelo.");
+  }
+
+  const textBlock = response.content.find(
+    (b): b is Anthropic.TextBlock => b.type === "text",
+  );
+  if (!textBlock) throw new Error("Resposta da IA sem conteúdo de texto.");
+
+  let result: DraftGenerationResult;
+  try {
+    result = JSON.parse(textBlock.text) as DraftGenerationResult;
+  } catch {
+    throw new Error("Não foi possível interpretar o rascunho como JSON.");
+  }
+
+  return { result, model: response.model };
+}
+
 async function runVertexAnalysisWithFallbacks(
   workspaceConfig: WorkspaceLlmConfig,
   input: AnalyzeInput,
@@ -680,3 +772,149 @@ export async function analyzeCaseWithClaude(
     throw error;
   }
 }
+
+export async function generateDraftWithClaude(
+  input: DraftGenerationInput,
+): Promise<{ result: DraftGenerationResult; model: string }> {
+  const debugId = Math.random().toString(36).substring(2, 8);
+  const runtime = await resolveLlmRuntime();
+  const provider = runtime.provider;
+  const workspaceConfig = runtime.workspaceConfig;
+
+  console.log("[JuriAI LLM DEBUG]", {
+    at: "generateDraftWithClaude",
+    debugId,
+    providerKind: provider?.kind ?? null,
+    workspaceConfigSource: workspaceConfig ? "database" : "environment",
+    model: provider?.model ?? null,
+    workspaceId: workspaceConfig?.workspaceId ?? null,
+    hasAnthropicKey: hasAnthropicApiKey(),
+    timestamp: new Date().toISOString(),
+  });
+
+  if (!provider) {
+    throw new LlmRuntimeError(
+      runtime.state.status,
+      "O runtime de IA não está pronto para gerar o rascunho.",
+    );
+  }
+
+  try {
+    if (provider.kind === "anthropic-vertex" && workspaceConfig) {
+      return await runVertexDraftGenerationWithFallbacks(workspaceConfig, input);
+    }
+
+    return await runDraftGeneration(provider, input);
+  } catch (error) {
+    if (
+      provider.kind === "anthropic-vertex" &&
+      hasAnthropicApiKey() &&
+      isVertexServiceabilityError(error)
+    ) {
+      const fallback: LlmProviderConfig = {
+        kind: "anthropic-direct",
+        label: "Claude direto",
+        model: provider.model,
+        client: buildDirectClient(),
+      };
+
+      return await runDraftGeneration(fallback, input);
+    }
+
+    if (provider.kind === "anthropic-vertex" && isVertexServiceabilityError(error)) {
+      const safeError = {
+        name: error instanceof Error ? error.name : "UnknownError",
+        message: error instanceof Error ? error.message : String(error),
+        status: (error as Record<string, unknown>).status ?? null,
+        code: (error as Record<string, unknown>).code ?? null,
+      };
+      console.error("[JuriAI LLM ERROR DEBUG]", {
+        at: "generateDraftWithClaude.catch",
+        debugId,
+        providerKind: provider.kind,
+        model: provider.model,
+        error: safeError,
+        timestamp: new Date().toISOString(),
+      });
+      throw new LlmRuntimeError(
+        "unsupported_model",
+        "O modelo configurado não está disponível nesta região.",
+      );
+    }
+
+    throw error;
+  }
+}
+
+async function runVertexDraftGenerationWithFallbacks(
+  workspaceConfig: WorkspaceLlmConfig,
+  input: DraftGenerationInput,
+) {
+  const projectId = getVertexProjectId({
+    projectId: workspaceConfig.llmProjectId,
+  });
+  const regions = resolveVertexRegionCandidates(workspaceConfig.llmRegion);
+  const models = resolveModelCandidates(workspaceConfig.llmModel);
+
+  let lastError: unknown = null;
+
+  for (const model of models) {
+    for (const region of regions) {
+      const provider: LlmProviderConfig = {
+        kind: "anthropic-vertex",
+        label: `Claude no Vertex (${region})`,
+        model,
+        client: buildVertexClient(region, projectId),
+      };
+
+      try {
+        const result = await runDraftGeneration(provider, input);
+        await persistSuccessfulVertexConfig(
+          workspaceConfig.workspaceId,
+          region,
+          model,
+        );
+        return result;
+      } catch (error) {
+        lastError = error;
+        if (!isVertexServiceabilityError(error)) {
+          throw error;
+        }
+      }
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+  throw new Error("Falha ao gerar o rascunho no Vertex.");
+}
+
+const DRAFT_SYSTEM = `Você é um redator jurídico do JuriAI, apoio técnico a advogados brasileiros.
+Sua função é produzir uma minuta para revisão do advogado, não um documento final.
+
+REGRAS ANTI-ALUCINAÇÃO (inquebráveis):
+1. NUNCA invente fatos, jurisprudência, números de artigo, súmulas, prazos, valores ou pedidos.
+2. Use apenas os fatos fornecidos no caso, provas, timeline e resumo.
+3. Não declare que o documento está pronto para envio, protocolo ou assinatura.
+4. Se algo faltar, exponha isso claramente como lacuna ou placeholder, por exemplo [inserir fundamento jurídico aplicável].
+5. A minuta deve ser útil para revisão humana, com estrutura limpa e sóbria.
+6. Se houver lacunas relevantes, elas devem aparecer também em unresolvedGaps.
+7. groundedOn deve listar apenas as bases factuais usadas.
+8. confidence deve refletir a qualidade do contexto, sem exagero.
+
+Responda em português do Brasil. Seja específico e sóbrio, sem superlativo, sem inventar.
+Nunca use travessão nem traço (o caractere "—") como pontuação: prefira vírgula, dois-pontos ou ponto.`;
+
+const DRAFT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    title: { type: "string" },
+    content: { type: "string" },
+    confidence: { type: "string", enum: ["ALTA", "MEDIA", "BAIXA"] },
+    groundedOn: { type: "array", items: { type: "string" } },
+    unresolvedGaps: { type: "array", items: { type: "string" } },
+  },
+  required: ["title", "content", "confidence", "groundedOn", "unresolvedGaps"],
+} as const;
