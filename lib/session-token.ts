@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { isDevBypassEnabled } from "@/lib/dev-bypass";
 
 export const SESSION_COOKIE = "juriai_session";
 export const IMPERSONATOR_COOKIE = "juriai_impersonator";
@@ -99,7 +100,10 @@ function getSessionSecret() {
     return configured;
   }
 
-  return process.env.NODE_ENV === "development" ? DEVELOPMENT_SECRET : null;
+  // Mesma trava dupla dos outros bypasses de dev (ver lib/dev-bypass.ts):
+  // NODE_ENV=development sozinho não deve liberar um segredo hardcoded e
+  // público no repositório para assinar sessões.
+  return isDevBypassEnabled() ? DEVELOPMENT_SECRET : null;
 }
 
 async function sign(value: string, secret: string) {
