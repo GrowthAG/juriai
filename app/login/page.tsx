@@ -110,7 +110,7 @@ export default async function LoginPage({
             </Card>
 
             {/* Ambiente local — bloco discreto, alinhado à largura do card */}
-            {process.env.NODE_ENV === "development" && (
+            {process.env.NODE_ENV === "development" && process.env.JURIAI_ALLOW_DEV_BYPASS === "true" && (
               <div className="mt-5 border-t border-[var(--border)] pt-4">
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted)]">
                   Ambiente local
