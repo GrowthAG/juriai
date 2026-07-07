@@ -26,6 +26,10 @@ export default async function LoginPage({
 }) {
   const { error } = await searchParams;
 
+  const showDevLogin =
+    process.env.NODE_ENV === "development" &&
+    process.env.JURIAI_ALLOW_DEV_BYPASS === "true";
+
   return (
     // w-full flex-1: o <body> do root layout é `flex`; sem isto o main encolhe
     // para o conteúdo e a tela fica presa à esquerda (não tocamos no layout).
@@ -72,45 +76,49 @@ export default async function LoginPage({
                 </Button>
               </form>
 
-              <div className="mt-6 flex items-center gap-3 text-xs text-[var(--muted)]">
-                <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
-                ou
-                <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
-              </div>
-
-              <form action={loginAsEmail} className="mt-6 grid gap-5">
-                <div className="grid gap-2">
-                  <label
-                    htmlFor="email"
-                    className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]"
-                  >
-                    E-mail
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    autoFocus
-                    placeholder="voce@escritorio.com.br"
-                    className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[var(--primary)]"
-                  />
+              {showDevLogin && (
+            <>
+            <div className="mt-6 flex items-center gap-3 text-xs text-[var(--muted)]">
+                  <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
+                  ou
+                  <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
                 </div>
 
-                <Button type="submit" className="w-full">
-                  Entrar
-                </Button>
-              </form>
+                <form action={loginAsEmail} className="mt-6 grid gap-5">
+                  <div className="grid gap-2">
+                    <label
+                      htmlFor="email"
+                      className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]"
+                    >
+                      E-mail
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      autoFocus
+                      placeholder="voce@escritorio.com.br"
+                      className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[var(--primary)]"
+                    />
+                  </div>
 
-              <p className="mt-5 text-xs leading-relaxed text-[var(--muted)]">
-                Permissões, papel e workspace são aplicados automaticamente após
-                a autenticação.
-              </p>
+                  <Button type="submit" className="w-full">
+                    Entrar
+                  </Button>
+                </form>
+
+                <p className="mt-5 text-xs leading-relaxed text-[var(--muted)]">
+                  Permissões, papel e workspace são aplicados automaticamente após
+                  a autenticação.
+                </p>
+            </>
+          )}
             </Card>
 
             {/* Ambiente local — bloco discreto, alinhado à largura do card */}
-            {process.env.NODE_ENV === "development" && process.env.JURIAI_ALLOW_DEV_BYPASS === "true" && (
+            {showDevLogin && (
               <div className="mt-5 border-t border-[var(--border)] pt-4">
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted)]">
                   Ambiente local
