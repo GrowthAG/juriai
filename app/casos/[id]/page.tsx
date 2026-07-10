@@ -38,6 +38,24 @@ export default async function CasoPage({
   const llmRuntimeState = await getLlmRuntimeState();
   if (!caso) notFound();
 
+  // Provas cujo job detectou partes do documento que não batem com o caso.
+  const contextMismatchByEvidenceId = new Set<string>();
+  for (const job of ingestionJobs) {
+    if (
+      !job.evidenceId ||
+      !job.extractionResult ||
+      typeof job.extractionResult !== "object"
+    ) {
+      continue;
+    }
+    const result = job.extractionResult as {
+      contextCheck?: { matched?: boolean };
+    };
+    if (result.contextCheck?.matched === false) {
+      contextMismatchByEvidenceId.add(job.evidenceId);
+    }
+  }
+
   const isJudicial = TIPOS_JUDICIAIS.has(caso.type);
   const tribunalGroups = tribunalGroupsForDomain(caso.domain);
 
@@ -255,6 +273,7 @@ export default async function CasoPage({
                   label={e.label}
                   strength={e.strength}
                   mimeType={e.mimeType}
+                  contextMismatch={contextMismatchByEvidenceId.has(e.id)}
                 />
               ))
             )}
@@ -314,10 +333,12 @@ function EvidenceRow({
   label,
   strength,
   mimeType,
+  contextMismatch = false,
 }: {
   label: string;
   strength: string;
   mimeType: string | null;
+  contextMismatch?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-3 px-5 py-3">
@@ -325,6 +346,12 @@ function EvidenceRow({
         <p className="truncate text-sm">{label}</p>
         {mimeType && (
           <p className="text-xs text-[var(--muted)]">{mimeType}</p>
+        )}
+        {contextMismatch && (
+          <p className="mt-1.5 text-xs leading-snug text-[var(--warning)]">
+            As partes citadas neste documento não batem com as partes deste
+            caso. Revise se o arquivo é do caso certo.
+          </p>
         )}
       </div>
       <StrengthBadge strength={strength} />
