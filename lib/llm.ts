@@ -1,10 +1,14 @@
 import Anthropic from "@anthropic-ai/sdk";
 import AnthropicVertex from "@anthropic-ai/vertex-sdk";
 import { getActorContext } from "@/lib/actor-context";
+import { buildGeminiVertexClient } from "@/lib/gemini-vertex";
 import { prisma } from "@/lib/prisma";
 import {
+  GEMINI_MODELS,
   SUPPORTED_MODELS,
   resolveAutomaticPolicyModel,
+  resolveGeminiModelCandidates,
+  resolveGeminiRegionCandidates,
   resolveModelCandidates,
   resolveVertexRegionCandidates,
 } from "@/lib/llm-config";
@@ -15,10 +19,11 @@ import {
   type WorkspaceLlmRegistryConfig,
 } from "@/lib/llm-registry";
 
-/* Cliente Claude para o motor jurídico do JuriAI.
+/* Runtime de IA do JuriAI.
  *
- * O runtime suporta apenas Claude direto e Claude no Vertex. A existência de
- * ADC local, sozinha, não torna o workspace pronto para executar análises. */
+ * Providers: Claude no Vertex, Claude direto (API key opcional) e Gemini no
+ * Vertex (Google for Startups / ADC). A existência de ADC local, sozinha, não
+ * torna o workspace pronto: faltam provider/model/region/project válidos. */
 
 export type LlmRuntimeStatus =
   | "ready"
@@ -34,7 +39,10 @@ export type LlmRuntimeState = {
 
 export type LlmFailureStatus = Exclude<LlmRuntimeStatus, "ready">;
 
-type LlmProviderKind = "anthropic-vertex" | "anthropic-direct";
+type LlmProviderKind =
+  | "anthropic-vertex"
+  | "anthropic-direct"
+  | "google-vertex-gemini";
 
 type JsonSchema = {
   type: "object";
@@ -230,6 +238,21 @@ function buildDirectClient(): LlmClient {
   return new Anthropic({ apiKey }) as unknown as LlmClient;
 }
 
+function buildGeminiClientForConfig(input?: {
+  region?: string | null;
+  projectId?: string | null;
+}): LlmClient {
+  const region = input?.region?.trim();
+  const projectId = getVertexProjectId(input);
+  if (!region || !projectId) {
+    throw new LlmRuntimeError(
+      "missing_config",
+      "A configuração do Gemini Vertex está incompleta.",
+    );
+  }
+  return buildGeminiVertexClient(region, projectId) as unknown as LlmClient;
+}
+
 function resolveModel(overrideModel: string | null | undefined) {
   return overrideModel?.trim() || process.env.JURIAI_LLM_MODEL?.trim() || null;
 }
@@ -277,13 +300,18 @@ function readErrorText(error: unknown) {
 
 function isVertexServiceabilityError(error: unknown) {
   const message = readErrorText(error);
+  const status = readErrorStatus(error);
   return (
+    status === 404 ||
     message.includes("publisher model") ||
     message.includes("publisher") ||
     message.includes("not serviceable in region") ||
     message.includes("is not serviceable") ||
     message.includes("failed_precondition") ||
-    message.includes("serviceable in region")
+    message.includes("serviceable in region") ||
+    message.includes("not_found") ||
+    message.includes("was not found") ||
+    message.includes("does not have access")
   );
 }
 
@@ -458,6 +486,26 @@ async function resolveLlmRuntime(): Promise<LlmRuntimeResolution> {
     };
   }
 
+  if (provider === "google-vertex-gemini") {
+    if (!GEMINI_MODELS.has(model)) {
+      return {
+        state: { status: "unsupported_model" },
+        provider: null,
+        workspaceConfig,
+      };
+    }
+    return {
+      state: { status: "ready" },
+      provider: {
+        kind: "google-vertex-gemini",
+        label: "Gemini no Vertex",
+        model,
+        client: buildGeminiClientForConfig({ region, projectId }),
+      },
+      workspaceConfig,
+    };
+  }
+
   return {
     state: { status: "ready" },
     provider: {
@@ -484,13 +532,16 @@ async function persistSuccessfulVertexConfig(
   workspaceId: string | undefined,
   region: string,
   model: string,
+  provider: LlmProviderKind = "anthropic-vertex",
 ) {
   if (!workspaceId) return;
+  // Não persiste anthropic-direct: política do produto prioriza Google/Vertex.
+  if (provider === "anthropic-direct") return;
 
   try {
     await prisma.workspace.update({
       where: { id: workspaceId },
-      data: { llmRegion: region, llmModel: model, llmProvider: "anthropic-vertex" },
+      data: { llmRegion: region, llmModel: model, llmProvider: provider },
     });
   } catch {
     // Se a persistência falhar, seguimos com a configuração funcional desta execução.
@@ -632,6 +683,84 @@ async function runVertexAnalysisWithFallbacks(
   throw new Error("Falha ao executar a análise no Vertex.");
 }
 
+async function runGeminiAnalysisWithFallbacks(
+  workspaceConfig: WorkspaceLlmConfig,
+  input: AnalyzeInput,
+) {
+  const projectId = getVertexProjectId({
+    projectId: workspaceConfig.llmProjectId,
+  });
+  const regions = resolveGeminiRegionCandidates(workspaceConfig.llmRegion);
+  const models = resolveGeminiModelCandidates(workspaceConfig.llmModel);
+  let lastError: unknown = null;
+
+  for (const model of models) {
+    for (const region of regions) {
+      const provider: LlmProviderConfig = {
+        kind: "google-vertex-gemini",
+        label: `Gemini no Vertex (${region})`,
+        model,
+        client: buildGeminiClientForConfig({ region, projectId }),
+      };
+      try {
+        const result = await runAnalysis(provider, input);
+        await persistSuccessfulVertexConfig(
+          workspaceConfig.workspaceId,
+          region,
+          model,
+          "google-vertex-gemini",
+        );
+        return result;
+      } catch (error) {
+        lastError = error;
+        if (!isVertexServiceabilityError(error)) throw error;
+      }
+    }
+  }
+
+  if (lastError instanceof Error) throw lastError;
+  throw new Error("Falha ao executar a análise no Gemini Vertex.");
+}
+
+async function runGeminiDraftGenerationWithFallbacks(
+  workspaceConfig: WorkspaceLlmConfig,
+  input: DraftGenerationInput,
+) {
+  const projectId = getVertexProjectId({
+    projectId: workspaceConfig.llmProjectId,
+  });
+  const regions = resolveGeminiRegionCandidates(workspaceConfig.llmRegion);
+  const models = resolveGeminiModelCandidates(workspaceConfig.llmModel);
+  let lastError: unknown = null;
+
+  for (const model of models) {
+    for (const region of regions) {
+      const provider: LlmProviderConfig = {
+        kind: "google-vertex-gemini",
+        label: `Gemini no Vertex (${region})`,
+        model,
+        client: buildGeminiClientForConfig({ region, projectId }),
+      };
+      try {
+        const result = await runDraftGeneration(provider, input);
+        await persistSuccessfulVertexConfig(
+          workspaceConfig.workspaceId,
+          region,
+          model,
+          "google-vertex-gemini",
+        );
+        return result;
+      } catch (error) {
+        lastError = error;
+        if (!isVertexServiceabilityError(error)) throw error;
+      }
+    }
+  }
+
+  if (lastError instanceof Error) throw lastError;
+  throw new Error("Falha ao gerar o rascunho no Gemini Vertex.");
+}
+
 const SYSTEM = `Você é um analista jurídico do JuriAI, apoio técnico a advogados cíveis B2B brasileiros.
 Sua função é mapear o caso a partir da narrativa, SEM redigir peça e SEM dar conselho conclusivo.
 
@@ -717,6 +846,9 @@ export async function analyzeCaseWithClaude(
     if (provider.kind === "anthropic-vertex" && workspaceConfig) {
       return await runVertexAnalysisWithFallbacks(workspaceConfig, input);
     }
+    if (provider.kind === "google-vertex-gemini" && workspaceConfig) {
+      return await runGeminiAnalysisWithFallbacks(workspaceConfig, input);
+    }
 
     return await runAnalysis(provider, input);
   } catch (error) {
@@ -735,7 +867,11 @@ export async function analyzeCaseWithClaude(
       return await runAnalysis(fallback, input);
     }
 
-    if (provider.kind === "anthropic-vertex" && isVertexServiceabilityError(error)) {
+    if (
+      (provider.kind === "anthropic-vertex" ||
+        provider.kind === "google-vertex-gemini") &&
+      isVertexServiceabilityError(error)
+    ) {
       throw new LlmRuntimeError(
         "unsupported_model",
         "O modelo configurado não está disponível nesta região.",
@@ -764,6 +900,9 @@ export async function generateDraftWithClaude(
     if (provider.kind === "anthropic-vertex" && workspaceConfig) {
       return await runVertexDraftGenerationWithFallbacks(workspaceConfig, input);
     }
+    if (provider.kind === "google-vertex-gemini" && workspaceConfig) {
+      return await runGeminiDraftGenerationWithFallbacks(workspaceConfig, input);
+    }
 
     return await runDraftGeneration(provider, input);
   } catch (error) {
@@ -782,7 +921,11 @@ export async function generateDraftWithClaude(
       return await runDraftGeneration(fallback, input);
     }
 
-    if (provider.kind === "anthropic-vertex" && isVertexServiceabilityError(error)) {
+    if (
+      (provider.kind === "anthropic-vertex" ||
+        provider.kind === "google-vertex-gemini") &&
+      isVertexServiceabilityError(error)
+    ) {
       throw new LlmRuntimeError(
         "unsupported_model",
         "O modelo configurado não está disponível nesta região.",
@@ -991,6 +1134,12 @@ export async function craftCopilotReply(
   }
 
   try {
+    if (provider.kind === "google-vertex-gemini" && runtime.workspaceConfig) {
+      return await runGeminiCopilotWithFallbacks(
+        runtime.workspaceConfig,
+        input,
+      );
+    }
     return await runCopilotReply(provider, input);
   } catch (error) {
     if (
@@ -1006,8 +1155,57 @@ export async function craftCopilotReply(
       };
       return await runCopilotReply(fallback, input);
     }
+    if (
+      (provider.kind === "anthropic-vertex" ||
+        provider.kind === "google-vertex-gemini") &&
+      isVertexServiceabilityError(error)
+    ) {
+      throw new LlmRuntimeError(
+        "unsupported_model",
+        "O modelo configurado não está disponível nesta região.",
+      );
+    }
     throw error;
   }
+}
+
+async function runGeminiCopilotWithFallbacks(
+  workspaceConfig: WorkspaceLlmConfig,
+  input: CopilotReplyInput,
+) {
+  const projectId = getVertexProjectId({
+    projectId: workspaceConfig.llmProjectId,
+  });
+  const regions = resolveGeminiRegionCandidates(workspaceConfig.llmRegion);
+  const models = resolveGeminiModelCandidates(workspaceConfig.llmModel);
+  let lastError: unknown = null;
+
+  for (const model of models) {
+    for (const region of regions) {
+      const provider: LlmProviderConfig = {
+        kind: "google-vertex-gemini",
+        label: `Gemini no Vertex (${region})`,
+        model,
+        client: buildGeminiClientForConfig({ region, projectId }),
+      };
+      try {
+        const result = await runCopilotReply(provider, input);
+        await persistSuccessfulVertexConfig(
+          workspaceConfig.workspaceId,
+          region,
+          model,
+          "google-vertex-gemini",
+        );
+        return result;
+      } catch (error) {
+        lastError = error;
+        if (!isVertexServiceabilityError(error)) throw error;
+      }
+    }
+  }
+
+  if (lastError instanceof Error) throw lastError;
+  throw new Error("Falha ao responder no Gemini Vertex.");
 }
 
 /* ---------------------------------------------------------------------------
@@ -1255,6 +1453,12 @@ export async function extractDocumentFacts(
   }
 
   try {
+    if (provider.kind === "google-vertex-gemini" && runtime.workspaceConfig) {
+      return await runGeminiExtractionWithFallbacks(
+        runtime.workspaceConfig,
+        input,
+      );
+    }
     return await runExtraction(provider, input);
   } catch (error) {
     if (
@@ -1270,6 +1474,55 @@ export async function extractDocumentFacts(
       };
       return await runExtraction(fallback, input);
     }
+    if (
+      (provider.kind === "anthropic-vertex" ||
+        provider.kind === "google-vertex-gemini") &&
+      isVertexServiceabilityError(error)
+    ) {
+      throw new LlmRuntimeError(
+        "unsupported_model",
+        "O modelo configurado não está disponível nesta região.",
+      );
+    }
     throw error;
   }
+}
+
+async function runGeminiExtractionWithFallbacks(
+  workspaceConfig: WorkspaceLlmConfig,
+  input: DocumentExtractionInput,
+) {
+  const projectId = getVertexProjectId({
+    projectId: workspaceConfig.llmProjectId,
+  });
+  const regions = resolveGeminiRegionCandidates(workspaceConfig.llmRegion);
+  const models = resolveGeminiModelCandidates(workspaceConfig.llmModel);
+  let lastError: unknown = null;
+
+  for (const model of models) {
+    for (const region of regions) {
+      const provider: LlmProviderConfig = {
+        kind: "google-vertex-gemini",
+        label: `Gemini no Vertex (${region})`,
+        model,
+        client: buildGeminiClientForConfig({ region, projectId }),
+      };
+      try {
+        const result = await runExtraction(provider, input);
+        await persistSuccessfulVertexConfig(
+          workspaceConfig.workspaceId,
+          region,
+          model,
+          "google-vertex-gemini",
+        );
+        return result;
+      } catch (error) {
+        lastError = error;
+        if (!isVertexServiceabilityError(error)) throw error;
+      }
+    }
+  }
+
+  if (lastError instanceof Error) throw lastError;
+  throw new Error("Falha ao extrair documento no Gemini Vertex.");
 }
