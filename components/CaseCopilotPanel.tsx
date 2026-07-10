@@ -8,6 +8,7 @@ import { generateCaseDraft } from "@/app/actions/drafts";
 import { appendChatMessage, generateCopilotReply } from "@/app/actions/chat";
 import { AI_STATUS_MESSAGES } from "@/components/AnalisarCasoButton";
 import { Button } from "@/components/ui";
+import { hasMinimumDraftContext } from "@/lib/draft-context";
 import type { LlmRuntimeStatus } from "@/lib/llm";
 
 type CopilotMessage = {
@@ -314,6 +315,15 @@ export function CaseCopilotPanel({
             },
           ]);
           router.refresh();
+          return;
+        }
+        if (result.status === "insufficient_context") {
+          appendMessages([
+            {
+              role: "assistant",
+              text: result.message,
+            },
+          ]);
           return;
         }
         setStatus(result.status);
@@ -623,25 +633,4 @@ function looksLikeDraftRequest(value: string) {
   );
 }
 
-function hasMinimumDraftContext({
-  conversationNotes,
-  evidenceCount,
-  timelineCount,
-  gapCount,
-}: {
-  conversationNotes: string[];
-  evidenceCount: number;
-  timelineCount: number;
-  gapCount: number;
-}) {
-  const notes = conversationNotes
-    .map((note) => note.trim())
-    .filter((note) => note.length > 8);
-  const combinedLength = notes.join(" ").length;
 
-  if (notes.length >= 3) return true;
-  if (combinedLength >= 180) return true;
-  if (evidenceCount > 0 && notes.length >= 1) return true;
-  if ((timelineCount > 0 || gapCount > 0) && notes.length >= 1) return true;
-  return false;
-}

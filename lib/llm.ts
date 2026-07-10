@@ -115,7 +115,6 @@ export type AnalyzeInput = {
   typeLabel: string;
   summary: string | null;
   evidenceLabels: string[];
-  debugId?: string; // Temporarily added for debugging
 };
 
 export type AnalyzeResult = {
@@ -592,18 +591,6 @@ async function runVertexAnalysisWithFallbacks(
 
   for (const model of models) {
     for (const region of regions) {
-      // BEGIN: TEMPORARY LOGGING FOR DEBUGGING VERTEX ATTEMPTS
-      console.log("[JuriAI LLM DEBUG]", {
-        at: "runVertexAnalysisWithFallbacks.attempt",
-        debugId: input.debugId ?? "N/A", // Use debugId from input
-        attemptedProvider: "anthropic-vertex",
-        projectId: projectId ?? null,
-        location: region,
-        model: model,
-        timestamp: new Date().toISOString(),
-      });
-      // END: TEMPORARY LOGGING FOR DEBUGGING VERTEX ATTEMPTS
-
       const provider: LlmProviderConfig = {
         kind: "anthropic-vertex",
         label: `Claude no Vertex (${region})`,
@@ -700,21 +687,9 @@ const SCHEMA = {
 export async function analyzeCaseWithClaude(
   input: AnalyzeInput,
 ): Promise<{ result: AnalyzeResult; model: string }> {
-  const debugId = input.debugId ?? Math.random().toString(36).substring(2, 8);
   const runtime = await resolveLlmRuntime();
   const provider = runtime.provider;
   const workspaceConfig = runtime.workspaceConfig;
-
-  console.log("[JuriAI LLM DEBUG]", {
-    at: "analyzeCaseWithClaude",
-    debugId,
-    providerKind: provider?.kind ?? null,
-    workspaceConfigSource: workspaceConfig ? "database" : "environment",
-    model: provider?.model ?? null,
-    workspaceId: workspaceConfig?.workspaceId ?? null,
-    hasAnthropicKey: hasAnthropicApiKey(),
-    timestamp: new Date().toISOString(),
-  });
 
   if (!provider) {
     throw new LlmRuntimeError(
@@ -725,10 +700,7 @@ export async function analyzeCaseWithClaude(
 
   try {
     if (provider.kind === "anthropic-vertex" && workspaceConfig) {
-      return await runVertexAnalysisWithFallbacks(workspaceConfig, {
-        ...input,
-        debugId,
-      });
+      return await runVertexAnalysisWithFallbacks(workspaceConfig, input);
     }
 
     return await runAnalysis(provider, input);
@@ -749,20 +721,6 @@ export async function analyzeCaseWithClaude(
     }
 
     if (provider.kind === "anthropic-vertex" && isVertexServiceabilityError(error)) {
-      const safeError = {
-        name: error instanceof Error ? error.name : "UnknownError",
-        message: error instanceof Error ? error.message : String(error),
-        status: (error as Record<string, unknown>).status ?? null,
-        code: (error as Record<string, unknown>).code ?? null,
-      };
-      console.error("[JuriAI LLM ERROR DEBUG]", {
-        at: "analyzeCaseWithClaude.catch",
-        debugId,
-        providerKind: provider.kind,
-        model: provider.model,
-        error: safeError,
-        timestamp: new Date().toISOString(),
-      });
       throw new LlmRuntimeError(
         "unsupported_model",
         "O modelo configurado não está disponível nesta região.",
@@ -776,21 +734,9 @@ export async function analyzeCaseWithClaude(
 export async function generateDraftWithClaude(
   input: DraftGenerationInput,
 ): Promise<{ result: DraftGenerationResult; model: string }> {
-  const debugId = Math.random().toString(36).substring(2, 8);
   const runtime = await resolveLlmRuntime();
   const provider = runtime.provider;
   const workspaceConfig = runtime.workspaceConfig;
-
-  console.log("[JuriAI LLM DEBUG]", {
-    at: "generateDraftWithClaude",
-    debugId,
-    providerKind: provider?.kind ?? null,
-    workspaceConfigSource: workspaceConfig ? "database" : "environment",
-    model: provider?.model ?? null,
-    workspaceId: workspaceConfig?.workspaceId ?? null,
-    hasAnthropicKey: hasAnthropicApiKey(),
-    timestamp: new Date().toISOString(),
-  });
 
   if (!provider) {
     throw new LlmRuntimeError(
@@ -822,20 +768,6 @@ export async function generateDraftWithClaude(
     }
 
     if (provider.kind === "anthropic-vertex" && isVertexServiceabilityError(error)) {
-      const safeError = {
-        name: error instanceof Error ? error.name : "UnknownError",
-        message: error instanceof Error ? error.message : String(error),
-        status: (error as Record<string, unknown>).status ?? null,
-        code: (error as Record<string, unknown>).code ?? null,
-      };
-      console.error("[JuriAI LLM ERROR DEBUG]", {
-        at: "generateDraftWithClaude.catch",
-        debugId,
-        providerKind: provider.kind,
-        model: provider.model,
-        error: safeError,
-        timestamp: new Date().toISOString(),
-      });
       throw new LlmRuntimeError(
         "unsupported_model",
         "O modelo configurado não está disponível nesta região.",
@@ -918,3 +850,147 @@ const DRAFT_SCHEMA = {
   },
   required: ["title", "content", "confidence", "groundedOn", "unresolvedGaps"],
 } as const;
+
+/* ---------------------------------------------------------------------------
+ * Copiloto conversacional: conduz a conversa do caso. Não decide analisar
+ * nem redigir (isso fica no CaseCopilotPanel). Anti-alucinação: só usa o
+ * contexto do caso e o histórico enviados.
+ * ------------------------------------------------------------------------- */
+
+const COPILOT_SYSTEM = `Você é o assistente de conversa do JuriAI, apoio técnico a advogados cíveis B2B brasileiros, dentro da conversa de um caso específico já aberto.
+
+Seu papel aqui é só conduzir a conversa: entender o que o advogado descreveu e perguntar o que falta para avançar. Você NÃO decide analisar o caso nem redigir peça nesta resposta, isso já é decidido por outra parte do sistema, fora do que você escreve.
+
+REGRAS ANTI-ALUCINAÇÃO (inquebráveis):
+1. Nunca invente fatos, provas, prazos ou valores que não estejam no contexto do caso ou na conversa abaixo.
+2. Não presuma pagamento, entrega, aceite, inadimplemento ou rescisão sem prova documental já registrada no caso.
+3. Não afirme que uma peça foi redigida, enviada ou está pronta: isso é sempre feito por outra etapa do sistema, nunca por esta resposta.
+4. Se o contexto do caso já lista lacunas pendentes, priorize perguntar por elas antes de qualquer outra coisa.
+5. Seja específico e breve: de 1 a 3 frases, tom profissional e direto, sem repetir saudação (ela já aconteceu antes desta resposta).
+
+Responda em português do Brasil. Nunca use travessão nem o caractere "—": prefira vírgula, dois-pontos ou ponto.
+Responda apenas com a próxima mensagem do assistente nesta conversa, sem repetir o que o advogado já disse.`;
+
+const COPILOT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    reply: { type: "string" },
+  },
+  required: ["reply"],
+} as const;
+
+export type CopilotReplyInput = {
+  caseTitle: string;
+  domainLabel: string;
+  typeLabel: string;
+  statusLabel: string;
+  evidenceCount: number;
+  timelineCount: number;
+  gapCount: number;
+  gapPrompts: string[];
+  history: Array<{ role: "user" | "assistant"; text: string }>;
+  latestMessage: string;
+  attachedDocument?: { label: string; analysis: string };
+};
+
+async function runCopilotReply(
+  provider: LlmProviderConfig,
+  input: CopilotReplyInput,
+): Promise<{ result: { reply: string }; model: string }> {
+  const transcript = input.history
+    .map((m) => `${m.role === "user" ? "Advogado" : "Assistente"}: ${m.text}`)
+    .join("\n");
+
+  const gaps =
+    input.gapPrompts.length > 0
+      ? input.gapPrompts.map((g) => `- ${g}`).join("\n")
+      : "(nenhuma lacuna registrada ainda)";
+
+  const attachedBlock = input.attachedDocument
+    ? `
+
+Documento que o advogado acabou de anexar nesta mensagem ("${input.attachedDocument.label}"), já lido:
+${input.attachedDocument.analysis}
+
+Comente o que esse documento traz de relevante para o caso e o próximo passo, usando apenas o que está transcrito acima. Não invente cláusula, valor ou data que não esteja no texto.`
+    : "";
+
+  const userContent = `Contexto do caso:
+Título: ${input.caseTitle}
+Área: ${input.domainLabel}
+Tipo: ${input.typeLabel}
+Status: ${input.statusLabel}
+Provas anexadas: ${input.evidenceCount}
+Fatos na linha do tempo: ${input.timelineCount}
+Lacunas pendentes (${input.gapCount}):
+${gaps}
+
+Conversa até agora:
+${transcript || "(início da conversa)"}
+
+Nova mensagem do advogado:
+${input.latestMessage}${attachedBlock}
+
+Responda como a próxima mensagem do assistente nesta conversa.`;
+
+  const response = await provider.client.messages.create({
+    model: provider.model,
+    max_tokens: 16000,
+    thinking: { type: "adaptive" },
+    system: COPILOT_SYSTEM,
+    output_config: { format: { type: "json_schema", schema: COPILOT_SCHEMA } },
+    messages: [{ role: "user", content: userContent }],
+  });
+
+  if (response.stop_reason === "refusal") {
+    throw new Error("A resposta foi recusada pelo modelo.");
+  }
+
+  const textBlock = response.content.find(
+    (b): b is Anthropic.TextBlock => b.type === "text",
+  );
+  if (!textBlock) throw new Error("Resposta da IA sem conteúdo de texto.");
+
+  let result: { reply: string };
+  try {
+    result = JSON.parse(textBlock.text) as { reply: string };
+  } catch {
+    throw new Error("Não foi possível interpretar a resposta da IA.");
+  }
+
+  return { result, model: response.model };
+}
+
+export async function craftCopilotReply(
+  input: CopilotReplyInput,
+): Promise<{ result: { reply: string }; model: string }> {
+  const runtime = await resolveLlmRuntime();
+  const provider = runtime.provider;
+
+  if (!provider) {
+    throw new LlmRuntimeError(
+      runtime.state.status,
+      "O runtime de IA não está pronto para responder.",
+    );
+  }
+
+  try {
+    return await runCopilotReply(provider, input);
+  } catch (error) {
+    if (
+      provider.kind === "anthropic-vertex" &&
+      hasAnthropicApiKey() &&
+      isVertexServiceabilityError(error)
+    ) {
+      const fallback: LlmProviderConfig = {
+        kind: "anthropic-direct",
+        label: "Claude direto",
+        model: provider.model,
+        client: buildDirectClient(),
+      };
+      return await runCopilotReply(fallback, input);
+    }
+    throw error;
+  }
+}
