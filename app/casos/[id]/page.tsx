@@ -3,11 +3,14 @@ import { notFound } from "next/navigation";
 import { Button, ButtonLink, Card } from "@/components/ui";
 import { DeleteCaseButton } from "@/components/DeleteCaseButton";
 import { AnalisarCasoButton } from "@/components/AnalisarCasoButton";
+import { CaseCopilotPanel } from "@/components/CaseCopilotPanel";
 import { EvidenceUploadForm } from "@/components/EvidenceUploadForm";
 import { GenerateDraftForm } from "@/components/GenerateDraftForm";
 import { StrengthBadge } from "@/components/CaseBadges";
 import { VincularProcessoForm } from "@/components/VincularProcessoForm";
+import { getActorContext } from "@/lib/actor-context";
 import { getLlmRuntimeState } from "@/lib/llm";
+import { prisma } from "@/lib/prisma";
 import { tribunalGroupsForDomain } from "@/lib/tribunais";
 import { CASE_TYPE_LABEL, DOMAIN_LABEL, GAP_LABEL } from "@/lib/case-labels";
 import {
@@ -37,6 +40,15 @@ export default async function CasoPage({
   const courtProcesses = await listCaseCourtProcesses(id);
   const llmRuntimeState = await getLlmRuntimeState();
   if (!caso) notFound();
+
+  const actor = await getActorContext();
+  // Histórico do copiloto (tabela ChatMessage já existente).
+  const chatMessages = await prisma.chatMessage.findMany({
+    where: { caseId: caso.id },
+    orderBy: { createdAt: "asc" },
+    take: 50,
+    select: { role: true, content: true },
+  });
 
   // Provas cujo job detectou partes do documento que não batem com o caso.
   const contextMismatchByEvidenceId = new Set<string>();
@@ -153,6 +165,34 @@ export default async function CasoPage({
               initialStatus={llmRuntimeState.status}
             />
           </Card>
+        </section>
+
+        <section className="mt-8" aria-labelledby="case-copilot-title">
+          <p
+            id="case-copilot-title"
+            className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]"
+          >
+            Copiloto do caso
+          </p>
+          <div className="mt-2">
+            <CaseCopilotPanel
+              caseId={caso.id}
+              caseTitle={caso.title}
+              clientName={caso.clientName ?? null}
+              actorName={actor.actorName}
+              caseType={caso.type}
+              initialStatus={llmRuntimeState.status}
+              timelineCount={caso.timeline.length}
+              gapCount={caso.gaps.length}
+              gapPrompts={caso.gaps.slice(0, 3).map((gap) => gap.description)}
+              evidenceCount={caso.evidence.length}
+              isJudicial={isJudicial}
+              courtProcessCount={courtProcesses.length}
+              draftCount={caso.drafts.length}
+              pendingDraftCount={0}
+              initialMessages={chatMessages}
+            />
+          </div>
         </section>
 
         <section className="mt-8" aria-labelledby="drafts-title">
