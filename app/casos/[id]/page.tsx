@@ -443,6 +443,14 @@ function DraftRow({
         <div className="shrink-0 text-right text-xs text-[var(--muted)]">
           <p>v{draft.version}</p>
           <p>Atualizado em {formatDate(draft.updatedAt)}</p>
+          <p className="mt-2">
+            <a
+              href={`/api/drafts/${draft.id}/export`}
+              className="font-semibold text-[var(--primary)] hover:underline"
+            >
+              Baixar PDF
+            </a>
+          </p>
         </div>
       </div>
       <details className="mt-3">
