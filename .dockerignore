@@ -1,0 +1,43 @@
+# Dependencies & build output
+node_modules
+node_modules_BROKEN_*
+.next
+out
+build
+coverage
+playwright-report
+test-results
+
+# Git / IDE
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+*.md
+!docs/staging-runbook.md
+!docs/deploy-checklist.md
+
+# Env & secrets (never bake into image)
+.env
+.env.*
+!.env.example
+**/*.pem
+**/credentials*.json
+**/service-account*.json
+
+# Local tooling / binaries
+cloud-sql-proxy
+*.log
+npm-debug.log*
+.DS_Store
+
+# Tests & local one-off scripts (not needed at runtime)
+e2e
+scripts/dev-recreate-almeida-smoke.mjs
+scripts/probe-datajud.mjs
+scripts/_tmp*
+
+# Optional large / non-runtime paths
+docs/design
+**/*.map
