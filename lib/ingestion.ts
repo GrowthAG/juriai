@@ -146,13 +146,88 @@ function composeAnalysis(ex: DocumentExtractionResult): string {
   return parts.join("\n\n");
 }
 
+// ── Context check (partes do documento vs partes do caso) ─────────────────
+// Aviso não bloqueante: só sinaliza possível prova de outro contexto.
+
+const NAME_TOKEN_STOPWORDS = new Set([
+  "ltda",
+  "ltd",
+  "me",
+  "epp",
+  "eireli",
+  "sa",
+  "s/a",
+  "cia",
+  "de",
+  "da",
+  "do",
+  "das",
+  "dos",
+  "e",
+  "the",
+  "inc",
+  "corp",
+]);
+
+export type ContextCheck = {
+  matched: boolean;
+  extractedNames: string[];
+  caseNames: string[];
+};
+
+export function nameTokens(name: string): string[] {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((token) => token.length >= 3 && !NAME_TOKEN_STOPWORDS.has(token));
+}
+
+export function hasNameTokenOverlap(
+  extractedNames: string[],
+  caseNames: string[],
+): boolean {
+  const caseTokens = new Set<string>();
+  for (const name of caseNames) {
+    for (const token of nameTokens(name)) {
+      caseTokens.add(token);
+    }
+  }
+  if (caseTokens.size === 0) return false;
+
+  for (const name of extractedNames) {
+    for (const token of nameTokens(name)) {
+      if (caseTokens.has(token)) return true;
+    }
+  }
+  return false;
+}
+
+export function buildContextCheck(
+  extractedParties: Array<{ name: string }>,
+  caseParties: Array<{ name: string }>,
+): ContextCheck | null {
+  if (extractedParties.length === 0) return null;
+  if (caseParties.length === 0) return null;
+
+  const extractedNames = extractedParties.map((party) => party.name);
+  const caseNames = caseParties.map((party) => party.name);
+  return {
+    matched: hasNameTokenOverlap(extractedNames, caseNames),
+    extractedNames,
+    caseNames,
+  };
+}
+
 // ── Processamento ────────────────────────────────────────────────────────
 
 export async function processIngestionJob(jobId: string) {
   const job = await prisma.ingestionJob.findUnique({
     where: { id: jobId },
     include: {
-      case: { include: { client: true } },
+      case: { include: { client: true, parties: true } },
       evidence: true,
     },
   });
@@ -321,6 +396,23 @@ export async function processIngestionJob(jobId: string) {
         gapsForResult = gaps;
       }
 
+      // Partes do caso para comparar: cadastradas + CLIENTE desta execução.
+      const casePartiesForCheck: Array<{ name: string }> = [];
+      const seen = new Set<string>();
+      for (const party of job.case.parties) {
+        if (!seen.has(party.name)) {
+          seen.add(party.name);
+          casePartiesForCheck.push({ name: party.name });
+        }
+      }
+      if (!seen.has(clientParty.name)) {
+        casePartiesForCheck.push({ name: clientParty.name });
+      }
+
+      const contextCheck = extraction
+        ? buildContextCheck(extraction.parties, casePartiesForCheck)
+        : null;
+
       // extractionResult: modo + mapa útil.
       // parties aqui continua sendo a CLIENTE do caso (legado), não as partes
       // extraídas do documento (essas vão em Evidence.analysis via composeAnalysis).
@@ -335,10 +427,10 @@ export async function processIngestionJob(jobId: string) {
             kind: clientParty.kind,
           },
         ],
-        // Partes lidas do documento (base futura para W2; sem flag de mismatch).
         extractedParties: extraction?.parties ?? [],
         timelineEvents: timelineForResult,
         suggestedGaps: gapsForResult,
+        ...(contextCheck ? { contextCheck } : {}),
       };
 
       await tx.ingestionJob.update({

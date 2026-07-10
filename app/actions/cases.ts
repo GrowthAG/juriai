@@ -29,31 +29,22 @@ export async function listCaseIngestionJobs(caseId: string) {
   const caso = await getAccessibleCase(caseId);
   if (!caso) return [];
 
-  return prisma.$queryRaw<
-    Array<{
-      id: string;
-      status: string;
-      sourceFileName: string;
-      sourceMimeType: string | null;
-      storagePath: string;
-      createdAt: Date;
-      updatedAt: Date;
-      error: string | null;
-    }>
-  >`
-    SELECT
-      "id",
-      "status"::text,
-      "sourceFileName",
-      "sourceMimeType",
-      "storagePath",
-      "createdAt",
-      "updatedAt",
-      "error"
-    FROM "IngestionJob"
-    WHERE "caseId" = ${caseId}
-    ORDER BY "createdAt" DESC
-  `;
+  return prisma.ingestionJob.findMany({
+    where: { caseId },
+    select: {
+      id: true,
+      status: true,
+      sourceFileName: true,
+      sourceMimeType: true,
+      storagePath: true,
+      createdAt: true,
+      updatedAt: true,
+      error: true,
+      evidenceId: true,
+      extractionResult: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
 }
 
 export async function listCaseCourtProcesses(caseId: string) {
