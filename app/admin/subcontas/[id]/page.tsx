@@ -27,6 +27,7 @@ const AI_PROVIDER_OPTIONS = [
   ["inherit", "Herdar da plataforma"],
   ["anthropic-vertex", "Claude no Vertex"],
   ["anthropic-direct", "Claude direto"],
+  ["google-vertex-gemini", "Gemini no Vertex"],
 ];
 
 export default async function WorkspaceDetailPage({
@@ -231,14 +232,14 @@ export default async function WorkspaceDetailPage({
               <Field
                 name="llmModel"
                 label="Modelo"
-                placeholder="claude-opus-4-7"
+                placeholder="gemini-2.5-pro ou claude-opus-4-7"
                 defaultValue={workspace.llmModel ?? ""}
               />
               <div className="grid gap-3 md:grid-cols-2">
                 <Field
                   name="llmRegion"
                   label="Região Vertex"
-                  placeholder="us-east5"
+                  placeholder="us-central1 (Gemini) ou us-east5 (Claude)"
                   defaultValue={workspace.llmRegion ?? ""}
                 />
                 <Field

@@ -122,7 +122,7 @@ export function GenerateDraftForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4">
+    <form method="post" onSubmit={handleSubmit} className="grid gap-4">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,260px)_1fr]">
         <label className="grid gap-1.5">
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">

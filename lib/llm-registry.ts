@@ -1,8 +1,13 @@
-import { SUPPORTED_MODELS } from "@/lib/llm-config";
+import {
+  CLAUDE_MODELS,
+  GEMINI_MODELS,
+  SUPPORTED_MODELS,
+} from "@/lib/llm-config";
 
 export const SUPPORTED_LLM_PROVIDERS = [
   "anthropic-vertex",
   "anthropic-direct",
+  "google-vertex-gemini",
 ] as const;
 
 export type SupportedLlmProvider = (typeof SUPPORTED_LLM_PROVIDERS)[number];
@@ -14,9 +19,14 @@ export type WorkspaceLlmRegistryConfig = {
 
 export { SUPPORTED_MODELS as SUPPORTED_LLM_MODELS };
 
+function modelsForProvider(provider: SupportedLlmProvider): Set<string> {
+  if (provider === "google-vertex-gemini") return GEMINI_MODELS;
+  return CLAUDE_MODELS;
+}
+
 const SUPPORTED_LLM_COMBINATIONS = new Set(
   SUPPORTED_LLM_PROVIDERS.flatMap((provider) =>
-    [...SUPPORTED_MODELS].map((model) => `${provider}:${model}`),
+    [...modelsForProvider(provider)].map((model) => `${provider}:${model}`),
   ),
 );
 
