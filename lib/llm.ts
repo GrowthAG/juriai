@@ -115,7 +115,6 @@ export type AnalyzeInput = {
   typeLabel: string;
   summary: string | null;
   evidenceLabels: string[];
-  debugId?: string; // Temporarily added for debugging
 };
 
 export type AnalyzeResult = {
@@ -592,18 +591,6 @@ async function runVertexAnalysisWithFallbacks(
 
   for (const model of models) {
     for (const region of regions) {
-      // BEGIN: TEMPORARY LOGGING FOR DEBUGGING VERTEX ATTEMPTS
-      console.log("[JuriAI LLM DEBUG]", {
-        at: "runVertexAnalysisWithFallbacks.attempt",
-        debugId: input.debugId ?? "N/A", // Use debugId from input
-        attemptedProvider: "anthropic-vertex",
-        projectId: projectId ?? null,
-        location: region,
-        model: model,
-        timestamp: new Date().toISOString(),
-      });
-      // END: TEMPORARY LOGGING FOR DEBUGGING VERTEX ATTEMPTS
-
       const provider: LlmProviderConfig = {
         kind: "anthropic-vertex",
         label: `Claude no Vertex (${region})`,
@@ -700,21 +687,9 @@ const SCHEMA = {
 export async function analyzeCaseWithClaude(
   input: AnalyzeInput,
 ): Promise<{ result: AnalyzeResult; model: string }> {
-  const debugId = input.debugId ?? Math.random().toString(36).substring(2, 8);
   const runtime = await resolveLlmRuntime();
   const provider = runtime.provider;
   const workspaceConfig = runtime.workspaceConfig;
-
-  console.log("[JuriAI LLM DEBUG]", {
-    at: "analyzeCaseWithClaude",
-    debugId,
-    providerKind: provider?.kind ?? null,
-    workspaceConfigSource: workspaceConfig ? "database" : "environment",
-    model: provider?.model ?? null,
-    workspaceId: workspaceConfig?.workspaceId ?? null,
-    hasAnthropicKey: hasAnthropicApiKey(),
-    timestamp: new Date().toISOString(),
-  });
 
   if (!provider) {
     throw new LlmRuntimeError(
@@ -725,10 +700,7 @@ export async function analyzeCaseWithClaude(
 
   try {
     if (provider.kind === "anthropic-vertex" && workspaceConfig) {
-      return await runVertexAnalysisWithFallbacks(workspaceConfig, {
-        ...input,
-        debugId,
-      });
+      return await runVertexAnalysisWithFallbacks(workspaceConfig, input);
     }
 
     return await runAnalysis(provider, input);
@@ -749,20 +721,6 @@ export async function analyzeCaseWithClaude(
     }
 
     if (provider.kind === "anthropic-vertex" && isVertexServiceabilityError(error)) {
-      const safeError = {
-        name: error instanceof Error ? error.name : "UnknownError",
-        message: error instanceof Error ? error.message : String(error),
-        status: (error as Record<string, unknown>).status ?? null,
-        code: (error as Record<string, unknown>).code ?? null,
-      };
-      console.error("[JuriAI LLM ERROR DEBUG]", {
-        at: "analyzeCaseWithClaude.catch",
-        debugId,
-        providerKind: provider.kind,
-        model: provider.model,
-        error: safeError,
-        timestamp: new Date().toISOString(),
-      });
       throw new LlmRuntimeError(
         "unsupported_model",
         "O modelo configurado não está disponível nesta região.",
@@ -776,21 +734,9 @@ export async function analyzeCaseWithClaude(
 export async function generateDraftWithClaude(
   input: DraftGenerationInput,
 ): Promise<{ result: DraftGenerationResult; model: string }> {
-  const debugId = Math.random().toString(36).substring(2, 8);
   const runtime = await resolveLlmRuntime();
   const provider = runtime.provider;
   const workspaceConfig = runtime.workspaceConfig;
-
-  console.log("[JuriAI LLM DEBUG]", {
-    at: "generateDraftWithClaude",
-    debugId,
-    providerKind: provider?.kind ?? null,
-    workspaceConfigSource: workspaceConfig ? "database" : "environment",
-    model: provider?.model ?? null,
-    workspaceId: workspaceConfig?.workspaceId ?? null,
-    hasAnthropicKey: hasAnthropicApiKey(),
-    timestamp: new Date().toISOString(),
-  });
 
   if (!provider) {
     throw new LlmRuntimeError(
@@ -822,20 +768,6 @@ export async function generateDraftWithClaude(
     }
 
     if (provider.kind === "anthropic-vertex" && isVertexServiceabilityError(error)) {
-      const safeError = {
-        name: error instanceof Error ? error.name : "UnknownError",
-        message: error instanceof Error ? error.message : String(error),
-        status: (error as Record<string, unknown>).status ?? null,
-        code: (error as Record<string, unknown>).code ?? null,
-      };
-      console.error("[JuriAI LLM ERROR DEBUG]", {
-        at: "generateDraftWithClaude.catch",
-        debugId,
-        providerKind: provider.kind,
-        model: provider.model,
-        error: safeError,
-        timestamp: new Date().toISOString(),
-      });
       throw new LlmRuntimeError(
         "unsupported_model",
         "O modelo configurado não está disponível nesta região.",
