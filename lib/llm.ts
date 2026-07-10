@@ -43,6 +43,21 @@ type JsonSchema = {
   required: readonly string[];
 };
 
+// Conteúdo de mensagem: string (uso comum) ou blocos, para enviar documento
+// ou imagem ao modelo na extração de provas. O Claude lê PDF e imagem nativos.
+type LlmContentBlock =
+  | { type: "text"; text: string }
+  | {
+      type: "document";
+      source: { type: "base64"; media_type: string; data: string };
+    }
+  | {
+      type: "image";
+      source: { type: "base64"; media_type: string; data: string };
+    };
+
+type LlmMessageContent = string | LlmContentBlock[];
+
 type LlmClient = {
   messages: {
     create: (params: {
@@ -58,7 +73,7 @@ type LlmClient = {
       };
       messages: Array<{
         role: "user";
-        content: string;
+        content: LlmMessageContent;
       }>;
     }) => Promise<{
       content: Array<{ type: string; text?: string }>;
@@ -990,6 +1005,270 @@ export async function craftCopilotReply(
         client: buildDirectClient(),
       };
       return await runCopilotReply(fallback, input);
+    }
+    throw error;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Extração de documentos (ingestão real de provas): o Claude lê o PDF ou a
+ * imagem e devolve um mapa fiel do documento (tipo, resumo, cláusulas com
+ * número, datas, valores, fatos para a linha do tempo e lacunas). Isso
+ * alimenta Evidence.analysis e a análise do caso. Transcrição, nunca invenção.
+ * ------------------------------------------------------------------------- */
+
+const EXTRACT_SYSTEM = `Você é o analista de documentos do JuriAI. Recebe UM documento de um caso jurídico e extrai dele, com fidelidade absoluta, os elementos úteis para a análise e a redação de peças.
+
+REGRAS (inquebráveis):
+1. Só registre o que estiver de fato no documento. Nunca invente cláusula, data, valor, parte, artigo ou fato.
+2. Transcreva números de cláusula, datas e valores exatamente como aparecem. Se algo estiver ilegível ou ausente, não preencha: registre a limitação.
+3. Se o documento for ilegível (escaneado ruim, vazio, sem texto extraível), marque unreadable=true e devolva o resto vazio.
+4. Não conclua juridicamente nem opine. Você só mapeia o que o documento diz.
+5. keyClauses: cláusulas relevantes, com a referência (ex.: "Cláusula 3.2") e um resumo fiel do conteúdo.
+6. timeline: fatos datados que o documento comprova ou menciona. certainty = COMPROVADO quando o próprio documento é a prova do fato; ALEGADO quando ele apenas menciona algo de terceiro sem comprovar.
+7. gaps: o que falta para a análise, ancorado no documento (ex.: comprovante citado mas não anexo).
+8. suggestedStrength: força probatória sugerida do documento (FORTE, MEDIA, FRACA), como sugestão para o advogado validar. Na dúvida, NAO_AVALIADA.
+9. groundedOn: em que trechos você se baseou.
+
+Responda em português do Brasil. Nunca use travessão nem o caractere "—": prefira vírgula, dois-pontos ou ponto.`;
+
+const EXTRACT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    unreadable: { type: "boolean" },
+    documentType: { type: "string" },
+    summary: { type: "string" },
+    parties: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          name: { type: "string" },
+          role: { type: "string" },
+        },
+        required: ["name", "role"],
+      },
+    },
+    keyClauses: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          reference: { type: "string" },
+          content: { type: "string" },
+        },
+        required: ["reference", "content"],
+      },
+    },
+    values: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          amount: { type: "string" },
+          description: { type: "string" },
+        },
+        required: ["amount", "description"],
+      },
+    },
+    timeline: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          date: { type: "string" },
+          description: { type: "string" },
+          certainty: { type: "string", enum: ["COMPROVADO", "ALEGADO"] },
+        },
+        required: ["date", "description", "certainty"],
+      },
+    },
+    gaps: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          type: {
+            type: "string",
+            enum: ["PERGUNTA_PENDENTE", "PROVA_NECESSARIA", "RISCO"],
+          },
+          description: { type: "string" },
+        },
+        required: ["type", "description"],
+      },
+    },
+    suggestedStrength: {
+      type: "string",
+      enum: ["FORTE", "MEDIA", "FRACA", "NAO_AVALIADA"],
+    },
+    confidence: { type: "string", enum: ["ALTA", "MEDIA", "BAIXA"] },
+    groundedOn: { type: "array", items: { type: "string" } },
+  },
+  required: [
+    "unreadable",
+    "documentType",
+    "summary",
+    "parties",
+    "keyClauses",
+    "values",
+    "timeline",
+    "gaps",
+    "suggestedStrength",
+    "confidence",
+    "groundedOn",
+  ],
+} as const;
+
+export type DocumentExtractionResult = {
+  unreadable: boolean;
+  documentType: string;
+  summary: string;
+  parties: Array<{ name: string; role: string }>;
+  keyClauses: Array<{ reference: string; content: string }>;
+  values: Array<{ amount: string; description: string }>;
+  timeline: Array<{
+    date: string;
+    description: string;
+    certainty: "COMPROVADO" | "ALEGADO";
+  }>;
+  gaps: Array<{
+    type: "PERGUNTA_PENDENTE" | "PROVA_NECESSARIA" | "RISCO";
+    description: string;
+  }>;
+  suggestedStrength: "FORTE" | "MEDIA" | "FRACA" | "NAO_AVALIADA";
+  confidence: "ALTA" | "MEDIA" | "BAIXA";
+  groundedOn: string[];
+};
+
+export type DocumentExtractionInput = {
+  fileBase64: string;
+  mediaType: string;
+  fileName: string;
+  label: string;
+  description: string | null;
+  caseTitle: string;
+  domainLabel: string;
+};
+
+function buildExtractionContent(
+  input: DocumentExtractionInput,
+): LlmContentBlock[] {
+  const instruction: LlmContentBlock = {
+    type: "text",
+    text: `Extraia o mapa fiel deste documento.
+
+Caso: ${input.caseTitle}
+Área: ${input.domainLabel}
+Título dado à prova: ${input.label}
+Descrição informada: ${input.description?.trim() || "(sem descrição)"}
+Nome do arquivo: ${input.fileName}`,
+  };
+
+  if (input.mediaType === "application/pdf") {
+    return [
+      instruction,
+      {
+        type: "document",
+        source: {
+          type: "base64",
+          media_type: "application/pdf",
+          data: input.fileBase64,
+        },
+      },
+    ];
+  }
+
+  if (input.mediaType.startsWith("image/")) {
+    return [
+      instruction,
+      {
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: input.mediaType,
+          data: input.fileBase64,
+        },
+      },
+    ];
+  }
+
+  const decoded = Buffer.from(input.fileBase64, "base64").toString("utf-8");
+  return [
+    {
+      type: "text",
+      text: `${instruction.type === "text" ? instruction.text : ""}\n\nCONTEÚDO DO DOCUMENTO:\n${decoded}`,
+    },
+  ];
+}
+
+async function runExtraction(
+  provider: LlmProviderConfig,
+  input: DocumentExtractionInput,
+): Promise<{ result: DocumentExtractionResult; model: string }> {
+  const response = await provider.client.messages.create({
+    model: provider.model,
+    max_tokens: 16000,
+    thinking: { type: "adaptive" },
+    system: EXTRACT_SYSTEM,
+    output_config: { format: { type: "json_schema", schema: EXTRACT_SCHEMA } },
+    messages: [{ role: "user", content: buildExtractionContent(input) }],
+  });
+
+  if (response.stop_reason === "refusal") {
+    throw new Error("A extração do documento foi recusada pelo modelo.");
+  }
+
+  const textBlock = response.content.find(
+    (b): b is Anthropic.TextBlock => b.type === "text",
+  );
+  if (!textBlock) throw new Error("Resposta da IA sem conteúdo de texto.");
+
+  let result: DocumentExtractionResult;
+  try {
+    result = JSON.parse(textBlock.text) as DocumentExtractionResult;
+  } catch {
+    throw new Error("Não foi possível interpretar a extração como JSON.");
+  }
+
+  return { result, model: response.model };
+}
+
+/* Extrai o mapa de um documento via Claude (Vertex ou direto). Fallback
+   vertex → API direta em erro de serviceability, como nas demais chamadas. */
+export async function extractDocumentFacts(
+  input: DocumentExtractionInput,
+): Promise<{ result: DocumentExtractionResult; model: string }> {
+  const runtime = await resolveLlmRuntime();
+  const provider = runtime.provider;
+
+  if (!provider) {
+    throw new LlmRuntimeError(
+      runtime.state.status,
+      "O runtime de IA não está pronto para extrair o documento.",
+    );
+  }
+
+  try {
+    return await runExtraction(provider, input);
+  } catch (error) {
+    if (
+      provider.kind === "anthropic-vertex" &&
+      hasAnthropicApiKey() &&
+      isVertexServiceabilityError(error)
+    ) {
+      const fallback: LlmProviderConfig = {
+        kind: "anthropic-direct",
+        label: "Claude direto",
+        model: provider.model,
+        client: buildDirectClient(),
+      };
+      return await runExtraction(fallback, input);
     }
     throw error;
   }

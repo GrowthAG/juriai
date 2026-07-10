@@ -1,5 +1,19 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
+import { extname } from "node:path";
 import { prisma } from "@/lib/prisma";
+import {
+  extractDocumentFacts,
+  type DocumentExtractionResult,
+} from "@/lib/llm";
+import { DOMAIN_LABEL } from "@/lib/case-labels";
+
+// Teto de tamanho para mandar o arquivo ao modelo. Acima disso, cai para o
+// caminho ingênuo (texto), para não estourar custo/limite da API.
+const MAX_EXTRACTION_BYTES = 20 * 1024 * 1024;
+
+// ── Caminho ingênuo (fallback) ───────────────────────────────────────────
+// Mantido para arquivos que não dá para ler pelo modelo (muito grandes) ou
+// quando a extração falha. Faz o melhor esforço com texto puro.
 
 function extractText(buffer: Buffer) {
   const text = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
@@ -72,47 +86,76 @@ function detectGaps(text: string) {
 }
 
 function parseDateFromBrazilian(dateText: string) {
-  const [day, month, year] = dateText.split("/");
+  const match = /(\d{2})\/(\d{2})\/(\d{4})/.exec(dateText);
+  if (!match) return null;
+  const [, day, month, year] = match;
   const parsed = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-export async function processIngestionJob(jobId: string) {
-  const jobs = await prisma.$queryRaw<
-    Array<{
-      id: string;
-      status: string;
-      sourceFileName: string;
-      sourceMimeType: string | null;
-      storagePath: string;
-      extractionResult: unknown | null;
-      error: string | null;
-      caseId: string;
-      clientName: string | null;
-      clientKind: string | null;
-      clientDocument: string | null;
-    }>
-  >`
-    SELECT
-      j."id",
-      j."status"::text AS "status",
-      j."sourceFileName",
-      j."sourceMimeType",
-      j."storagePath",
-      j."extractionResult",
-      j."error",
-      j."caseId",
-      c."clientName",
-      cl."kind"::text AS "clientKind",
-      cl."document" AS "clientDocument"
-    FROM "IngestionJob" j
-    JOIN "Case" c ON c."id" = j."caseId"
-    LEFT JOIN "Client" cl ON cl."id" = c."clientId"
-    WHERE j."id" = ${jobId}
-    LIMIT 1
-  `;
+function resolveMediaType(mimeType: string | null, fileName: string): string {
+  const declared = mimeType?.trim().toLowerCase();
+  if (declared) return declared;
 
-  const job = jobs[0];
+  const ext = extname(fileName).toLowerCase();
+  if (ext === ".pdf") return "application/pdf";
+  if (ext === ".png") return "image/png";
+  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
+  if (ext === ".webp") return "image/webp";
+  if (ext === ".gif") return "image/gif";
+  if (ext === ".txt") return "text/plain";
+  if (ext === ".md") return "text/markdown";
+  return "application/octet-stream";
+}
+
+function canModelRead(mediaType: string): boolean {
+  return (
+    mediaType === "application/pdf" ||
+    mediaType.startsWith("image/") ||
+    mediaType.startsWith("text/")
+  );
+}
+
+// Monta o texto de Evidence.analysis a partir do mapa extraído. Texto corrido
+// e legível, que é o que o prompt de redação lê no bloco [PROVAS].
+function composeAnalysis(ex: DocumentExtractionResult): string {
+  const parts: string[] = [];
+  if (ex.documentType.trim()) {
+    parts.push(`Tipo de documento: ${ex.documentType.trim()}`);
+  }
+  if (ex.summary.trim()) parts.push(ex.summary.trim());
+
+  if (ex.parties.length > 0) {
+    parts.push(
+      "Partes identificadas no documento:\n" +
+        ex.parties.map((p) => `- ${p.name} (${p.role})`).join("\n"),
+    );
+  }
+  if (ex.keyClauses.length > 0) {
+    parts.push(
+      "Cláusulas relevantes:\n" +
+        ex.keyClauses.map((c) => `- ${c.reference}: ${c.content}`).join("\n"),
+    );
+  }
+  if (ex.values.length > 0) {
+    parts.push(
+      "Valores:\n" +
+        ex.values.map((v) => `- ${v.amount}: ${v.description}`).join("\n"),
+    );
+  }
+  return parts.join("\n\n");
+}
+
+// ── Processamento ────────────────────────────────────────────────────────
+
+export async function processIngestionJob(jobId: string) {
+  const job = await prisma.ingestionJob.findUnique({
+    where: { id: jobId },
+    include: {
+      case: { include: { client: true } },
+      evidence: true,
+    },
+  });
 
   if (!job) {
     return { ok: false as const, error: "Job not found" };
@@ -127,70 +170,164 @@ export async function processIngestionJob(jobId: string) {
     };
   }
 
-  await prisma.$executeRaw`
-    UPDATE "IngestionJob"
-    SET "status" = 'PROCESSANDO',
-        "updatedAt" = NOW()
-    WHERE "id" = ${job.id}
-  `;
+  await prisma.ingestionJob.update({
+    where: { id: job.id },
+    data: { status: "PROCESSANDO" },
+  });
 
   try {
-    const buffer = await readFile(job.storagePath);
-    const text = extractText(buffer);
-    const timeline = text ? detectTimeline(text) : [];
-    const gaps = text ? detectGaps(text) : [];
+    const mediaType = resolveMediaType(job.sourceMimeType, job.sourceFileName);
+    const fileStat = await stat(job.storagePath);
+
+    // Tenta a leitura real pelo modelo (PDF, imagem, texto). Se não der,
+    // usa o caminho ingênuo como rede de segurança.
+    let extraction: DocumentExtractionResult | null = null;
+    let model = "";
+    if (canModelRead(mediaType) && fileStat.size <= MAX_EXTRACTION_BYTES) {
+      try {
+        const buffer = await readFile(job.storagePath);
+        const response = await extractDocumentFacts({
+          fileBase64: buffer.toString("base64"),
+          mediaType,
+          fileName: job.sourceFileName,
+          label: job.evidence?.label ?? job.sourceFileName,
+          description: job.evidence?.description ?? null,
+          caseTitle: job.case.title,
+          domainLabel: DOMAIN_LABEL[job.case.domain] ?? job.case.domain,
+        });
+        if (!response.result.unreadable) {
+          extraction = response.result;
+          model = response.model;
+        }
+      } catch (error) {
+        console.error(
+          "[JuriAI] Extração pelo modelo falhou, tentando caminho ingênuo:",
+          error,
+        );
+      }
+    }
+
     const extractionResult = await prisma.$transaction(async (tx) => {
+      // Mantém a parte CLIENTE do caso atualizada (comportamento anterior).
       const existingClientParty = await tx.party.findFirst({
-        where: {
-          caseId: job.caseId,
-          role: "CLIENTE",
-        },
+        where: { caseId: job.caseId, role: "CLIENTE" },
       });
+      const clientName = job.case.clientName ?? job.case.client?.name ?? null;
+      const clientKind = job.case.client?.kind ?? null;
+      const clientDocument = job.case.client?.document ?? null;
 
       const clientParty = existingClientParty
         ? await tx.party.update({
             where: { id: existingClientParty.id },
             data: {
-              name: job.clientName ?? "Cliente não informado",
-              kind: (job.clientKind as "PF" | "PJ" | null) ?? "PJ",
-              document: job.clientDocument,
+              name: clientName ?? "Cliente não informado",
+              kind: clientKind ?? "PJ",
+              document: clientDocument,
             },
           })
         : await tx.party.create({
             data: {
-              name: job.clientName ?? "Cliente não informado",
+              name: clientName ?? "Cliente não informado",
               role: "CLIENTE",
-              kind: (job.clientKind as "PF" | "PJ" | null) ?? "PJ",
-              document: job.clientDocument,
+              kind: clientKind ?? "PJ",
+              document: clientDocument,
               caseId: job.caseId,
             },
           });
 
-      for (const item of timeline) {
-        const occurredAt = parseDateFromBrazilian(item.occurredAt);
-        await tx.timelineEvent.create({
+      let timelineForResult: Array<{ date: string; description: string }> = [];
+      let gapsForResult: Array<{ type: string; description: string }> = [];
+
+      if (extraction) {
+        // Caminho rico: preenche a análise da prova e usa timeline/gaps reais.
+        if (job.evidenceId) {
+          await tx.evidence.update({
+            where: { id: job.evidenceId },
+            data: {
+              analysis: composeAnalysis(extraction) || null,
+              strength: extraction.suggestedStrength,
+            },
+          });
+        }
+
+        for (const item of extraction.timeline) {
+          await tx.timelineEvent.create({
+            data: {
+              caseId: job.caseId,
+              occurredAt: parseDateFromBrazilian(item.date),
+              description: item.description.slice(0, 500),
+              certainty: item.certainty,
+            },
+          });
+        }
+
+        for (const gap of extraction.gaps) {
+          await tx.gap.create({
+            data: {
+              caseId: job.caseId,
+              type: gap.type,
+              description: gap.description,
+            },
+          });
+        }
+
+        await tx.auditEntry.create({
           data: {
+            action: "EXTRACT_EVIDENCE",
+            model: model || "desconhecido",
+            groundedOn: extraction.groundedOn,
+            confidence: extraction.confidence,
+            unresolvedGaps: extraction.gaps.map((g) => g.description),
             caseId: job.caseId,
-            occurredAt,
-            description: item.description,
-            certainty: "ALEGADO",
+            reviewedById: null,
           },
         });
+
+        timelineForResult = extraction.timeline.map((t) => ({
+          date: t.date,
+          description: t.description,
+        }));
+        gapsForResult = extraction.gaps;
+      } else {
+        // Caminho ingênuo (fallback): texto puro + heurísticas.
+        const buffer = await readFile(job.storagePath);
+        const text = extractText(buffer);
+        const timeline = text ? detectTimeline(text) : [];
+        const gaps = text ? detectGaps(text) : [];
+
+        for (const item of timeline) {
+          await tx.timelineEvent.create({
+            data: {
+              caseId: job.caseId,
+              occurredAt: parseDateFromBrazilian(item.occurredAt),
+              description: item.description,
+              certainty: "ALEGADO",
+            },
+          });
+        }
+        for (const gap of gaps) {
+          await tx.gap.create({
+            data: {
+              caseId: job.caseId,
+              type: gap.type,
+              description: gap.description,
+            },
+          });
+        }
+        timelineForResult = timeline.map((t) => ({
+          date: t.occurredAt,
+          description: t.description,
+        }));
+        gapsForResult = gaps;
       }
 
-      for (const gap of gaps) {
-        await tx.gap.create({
-          data: {
-            caseId: job.caseId,
-            type: gap.type,
-            description: gap.description,
-          },
-        });
-      }
-
+      // extractionResult: modo + mapa útil.
+      // parties aqui continua sendo a CLIENTE do caso (legado), não as partes
+      // extraídas do documento (essas vão em Evidence.analysis via composeAnalysis).
       const result = {
         sourceFileName: job.sourceFileName,
-        textExtracted: Boolean(text),
+        mode: extraction ? "modelo" : "texto",
+        documentType: extraction?.documentType ?? null,
         parties: [
           {
             name: clientParty.name,
@@ -198,37 +335,44 @@ export async function processIngestionJob(jobId: string) {
             kind: clientParty.kind,
           },
         ],
-        timelineEvents: timeline,
-        suggestedGaps: gaps,
+        // Partes lidas do documento (base futura para W2; sem flag de mismatch).
+        extractedParties: extraction?.parties ?? [],
+        timelineEvents: timelineForResult,
+        suggestedGaps: gapsForResult,
       };
 
-      await tx.$executeRaw`
-        UPDATE "IngestionJob"
-        SET
-          "status" = 'CONCLUIDO',
-          "extractionResult" = ${JSON.stringify(result)}::jsonb,
-          "error" = NULL,
-          "updatedAt" = NOW()
-        WHERE "id" = ${job.id}
-      `;
+      await tx.ingestionJob.update({
+        where: { id: job.id },
+        data: {
+          status: "CONCLUIDO",
+          extractionResult: result,
+          error: null,
+        },
+      });
 
       return result;
     });
 
-    return { ok: true as const, jobId: job.id, caseId: job.caseId, extractionResult };
+    return {
+      ok: true as const,
+      jobId: job.id,
+      caseId: job.caseId,
+      extractionResult,
+    };
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Falha ao processar arquivo";
 
-    await prisma.$executeRaw`
-      UPDATE "IngestionJob"
-      SET
-        "status" = 'FALHOU',
-        "error" = ${message},
-        "updatedAt" = NOW()
-      WHERE "id" = ${job.id}
-    `;
+    await prisma.ingestionJob.update({
+      where: { id: job.id },
+      data: { status: "FALHOU", error: message },
+    });
 
-    return { ok: false as const, error: message, jobId: job.id, caseId: job.caseId };
+    return {
+      ok: false as const,
+      error: message,
+      jobId: job.id,
+      caseId: job.caseId,
+    };
   }
 }
