@@ -10,12 +10,17 @@ import {
   type LlmFailureStatus,
 } from "@/lib/llm";
 import { CASE_TYPE_LABEL, DOMAIN_LABEL } from "@/lib/case-labels";
+import {
+  hasMinimumDraftContext,
+  INSUFFICIENT_DRAFT_CONTEXT_MESSAGE,
+} from "@/lib/draft-context";
 import { prisma } from "@/lib/prisma";
 import type { DraftType } from "@prisma/client";
 
 type DraftGenerationActionResult =
   | { ok: true; draftId: string; version: number }
-  | { ok: false; status: LlmFailureStatus; message?: string };
+  | { ok: false; status: LlmFailureStatus; message?: string }
+  | { ok: false; status: "insufficient_context"; message: string };
 
 const DRAFT_TYPE_OPTIONS = [
   "NOTIFICACAO_EXTRAJUDICIAL",
@@ -72,17 +77,40 @@ export async function generateCaseDraft(
     throw new Error("Caso não encontrado");
   }
 
-  const runtimeState = await getLlmRuntimeState();
-  if (runtimeState.status !== "ready") {
-    return { ok: false, status: runtimeState.status };
-  }
-
   const typeInput = String(formData.get("type") || "").trim();
   if (!isDraftType(typeInput)) {
     throw new Error("Selecione um tipo de peça válido.");
   }
 
   const instructions = String(formData.get("instructions") || "").trim();
+  // Mesmo critério do copiloto (lib/draft-context): bypass de UI não contorna
+  // a regra de ouro "analisar antes de redigir".
+  const conversationNotes = instructions
+    ? instructions
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+    : [];
+  if (
+    !hasMinimumDraftContext({
+      conversationNotes,
+      evidenceCount: caso.evidence.length,
+      timelineCount: caso.timeline.length,
+      gapCount: caso.gaps.length,
+    })
+  ) {
+    return {
+      ok: false,
+      status: "insufficient_context",
+      message: INSUFFICIENT_DRAFT_CONTEXT_MESSAGE,
+    };
+  }
+
+  const runtimeState = await getLlmRuntimeState();
+  if (runtimeState.status !== "ready") {
+    return { ok: false, status: runtimeState.status };
+  }
+
   const workspace = await prisma.workspace.findUnique({
     where: { id: caso.workspaceId },
     select: { name: true },

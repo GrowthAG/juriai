@@ -103,6 +103,11 @@ export function GenerateDraftForm({
           return;
         }
 
+        if (result.status === "insufficient_context") {
+          setMessage(result.message);
+          return;
+        }
+
         setStatus(result.status);
         setMessage(
           result.message ?? AI_STATUS_MESSAGES[result.status],
