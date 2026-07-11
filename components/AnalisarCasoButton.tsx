@@ -31,19 +31,34 @@ export function getAnalysisButtonState(
 export function AnalisarCasoButton({
   caseId,
   initialStatus,
+  layout = "inline",
 }: {
   caseId: string;
   initialStatus: LlmRuntimeStatus;
+  /** stack = botão full-width na lateral do dossiê */
+  layout?: "inline" | "stack";
 }) {
   const [status, setStatus] = useState<LlmRuntimeStatus>(initialStatus);
   const [isPending, startTransition] = useTransition();
   const buttonState = getAnalysisButtonState(status, isPending);
+  const isStack = layout === "stack";
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div
+      className={
+        isStack
+          ? "flex w-full flex-col items-stretch gap-1.5"
+          : "flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end"
+      }
+    >
       <Button
         size="md"
         disabled={buttonState.disabled}
+        className={
+          isStack
+            ? "w-full whitespace-nowrap"
+            : "w-full whitespace-nowrap sm:w-auto"
+        }
         onClick={() => {
           startTransition(async () => {
             try {
@@ -55,10 +70,16 @@ export function AnalisarCasoButton({
           });
         }}
       >
-        {isPending ? "Gerando análise..." : "Gerar análise para revisão"}
+        {isPending ? "Analisando..." : "Gerar análise"}
       </Button>
       {buttonState.message && (
-        <span className="max-w-xs text-right text-xs text-[var(--danger,#b91c1c)]">
+        <span
+          className={
+            isStack
+              ? "text-left text-xs leading-snug text-[var(--danger,#b91c1c)]"
+              : "max-w-xs text-right text-xs text-[var(--danger,#b91c1c)]"
+          }
+        >
           {buttonState.message}
         </span>
       )}

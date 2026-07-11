@@ -28,7 +28,7 @@ export function EvidenceUploadForm({ caseId }: { caseId: string }) {
       action={`/api/cases/${caseId}/evidence`}
       method="post"
       encType="multipart/form-data"
-      className="mt-4 grid gap-3"
+      className="grid gap-3"
     >
       <input
         name="file"

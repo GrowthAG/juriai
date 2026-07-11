@@ -122,9 +122,9 @@ export function GenerateDraftForm({
   }
 
   return (
-    <form method="post" onSubmit={handleSubmit} className="grid gap-4">
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,260px)_1fr]">
-        <label className="grid gap-1.5">
+    <form method="post" onSubmit={handleSubmit} className="grid gap-3">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,12rem)_1fr]">
+        <label className="grid gap-1">
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
             Tipo de peça
           </span>
@@ -132,7 +132,7 @@ export function GenerateDraftForm({
             name="type"
             value={selectedType}
             onChange={(event) => setSelectedType(event.target.value as DraftType)}
-            className="h-11 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-3 text-sm outline-none focus:border-[var(--primary)]"
+            className="h-11 w-full rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-3 text-sm outline-none focus:border-[var(--primary)]"
           >
             {DRAFT_TYPE_OPTIONS.map((option) => (
               <option key={option} value={option}>
@@ -142,13 +142,13 @@ export function GenerateDraftForm({
           </select>
         </label>
 
-        <label className="grid gap-1.5">
+        <label className="grid gap-1">
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
             Instruções para a minuta
           </span>
           <textarea
             name="instructions"
-            rows={4}
+            rows={3}
             value={instructions}
             onChange={(event) => setInstructions(event.target.value)}
             placeholder="Ex: foque nos fatos comprovados, destaque lacunas e mantenha tom objetivo."
@@ -159,8 +159,8 @@ export function GenerateDraftForm({
 
       <p className="text-xs text-[var(--muted)]">{hint}</p>
 
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-h-[1.25rem] text-xs text-[var(--muted)]">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-h-[1.25rem] min-w-0 flex-1 text-xs leading-relaxed text-[var(--muted)]">
           {message ? (
             <span className={status === "ready" ? "text-[var(--foreground)]" : "text-[var(--danger,#b91c1c)]"}>
               {message}
@@ -168,12 +168,17 @@ export function GenerateDraftForm({
           ) : statusMessage ? (
             <span className="text-[var(--danger,#b91c1c)]">{statusMessage}</span>
           ) : (
-            <span>O rascunho será salvo no caso e ficará disponível para revisão.</span>
+            <span>Salvo no dossiê para revisão e download em PDF.</span>
           )}
         </div>
 
-        <Button type="submit" size="md" disabled={buttonDisabled}>
-          {isPending ? "Gerando rascunho..." : "Gerar peça ou documento"}
+        <Button
+          type="submit"
+          size="md"
+          disabled={buttonDisabled}
+          className="w-full shrink-0 whitespace-nowrap sm:w-auto"
+        >
+          {isPending ? "Gerando..." : "Gerar rascunho"}
         </Button>
       </div>
     </form>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button, ButtonLink, Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { DeleteCaseButton } from "@/components/DeleteCaseButton";
 import { AnalisarCasoButton } from "@/components/AnalisarCasoButton";
 import { CaseCopilotPanel } from "@/components/CaseCopilotPanel";
@@ -70,185 +70,186 @@ export default async function CasoPage({
 
   const isJudicial = TIPOS_JUDICIAIS.has(caso.type);
   const tribunalGroups = tribunalGroupsForDomain(caso.domain);
+  // Rascunhos ainda não têm status de revisão no schema: contam como pendentes
+  // de revisão humana enquanto existirem no caso.
+  const pendingDraftCount = caso.drafts.length;
+  const suggestedNextStep = nextSuggestedStep({
+    evidenceCount: caso.evidence.length,
+    timelineCount: caso.timeline.length,
+    gapCount: caso.gaps.length,
+    draftCount: caso.drafts.length,
+  });
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
-        <Link
-          href="/workspace/casos"
-          className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
-        >
-          ← Casos
-        </Link>
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <Link
+        href="/workspace/casos"
+        className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
+      >
+        ← Casos
+      </Link>
 
-        <div className="mt-4 flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-0.5 text-xs font-medium text-[var(--muted)]">
-                {CASE_TYPE_LABEL[caso.type] ?? caso.type}
+      {/* Cabeçalho operacional: ações secundárias ficam fora do eixo principal */}
+      <header className="mt-3 flex flex-col gap-3 border-b border-[var(--border)] pb-4 sm:mt-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-0.5 text-xs font-medium text-[var(--muted)]">
+              {CASE_TYPE_LABEL[caso.type] ?? caso.type}
+            </span>
+            {!isJudicial && (
+              <span className="text-xs text-[var(--muted)]">
+                Fora dos tribunais
               </span>
-              {!isJudicial && (
-                <span className="text-xs text-[var(--muted)]">
-                  Fora dos tribunais
-                </span>
-              )}
-            </div>
-            <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight">
-              {caso.title}
-            </h1>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              {caso.clientName ?? "Cliente não informado"} · {DOMAIN_LABEL[caso.domain]}
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-4">
-            <ButtonLink href={`/casos/${caso.id}/editar`} variant="secondary" size="md">
-              Editar
-            </ButtonLink>
-            <DeleteCaseButton id={caso.id} />
-          </div>
-        </div>
-        {caso.summary && (
-          <p className="mt-2 text-[var(--muted)]">{caso.summary}</p>
-        )}
-
-        {isJudicial && (
-          <section className="mt-6" aria-labelledby="court-process-title">
-            <Card className="border-[var(--primary)] bg-[var(--surface)] px-5 py-5">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p id="court-process-title" className="font-semibold">
-                    Vincular processo judicial
-                  </p>
-                  <p className="mt-0.5 text-sm text-[var(--muted)]">
-                    Consulte o DataJud/CNJ pelo número único e importe as
-                    movimentações como timeline pendente de validação nos autos.
-                  </p>
-                </div>
-                <span className="rounded-lg bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)]">
-                  CNJ
-                </span>
-              </div>
-
-              {error && (
-                <p
-                  role="alert"
-                  className="mt-4 rounded-lg border border-[var(--danger)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--danger)]"
-                >
-                  {error}
-                </p>
-              )}
-
-              <VincularProcessoForm
-                caseId={caso.id}
-                tribunalGroups={tribunalGroups}
-              />
-            </Card>
-          </section>
-        )}
-
-        <section className="mt-8" aria-labelledby="ai-analysis-title">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
-            Análise com IA
-          </p>
-          <Card className="mt-2 flex items-center justify-between gap-4 bg-[var(--surface)] px-5 py-4">
-            <div>
-              <p id="ai-analysis-title" className="font-semibold">
-                Análise preliminar
-              </p>
-              <p className="mt-0.5 text-sm text-[var(--muted)]">
-                Estrutura a narrativa, organiza a linha do tempo e aponta
-                lacunas para revisão do advogado, sem depender de processo
-                judicial vinculado.
-              </p>
-            </div>
-            <AnalisarCasoButton
-              caseId={caso.id}
-              initialStatus={llmRuntimeState.status}
-            />
-          </Card>
-        </section>
-
-        <section className="mt-8" aria-labelledby="case-copilot-title">
-          <p
-            id="case-copilot-title"
-            className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]"
-          >
-            Copiloto do caso
-          </p>
-          <div className="mt-2">
-            <CaseCopilotPanel
-              caseId={caso.id}
-              caseTitle={caso.title}
-              clientName={caso.clientName ?? null}
-              actorName={actor.actorName}
-              caseType={caso.type}
-              initialStatus={llmRuntimeState.status}
-              timelineCount={caso.timeline.length}
-              gapCount={caso.gaps.length}
-              gapPrompts={caso.gaps.slice(0, 3).map((gap) => gap.description)}
-              evidenceCount={caso.evidence.length}
-              isJudicial={isJudicial}
-              courtProcessCount={courtProcesses.length}
-              draftCount={caso.drafts.length}
-              pendingDraftCount={0}
-              initialMessages={chatMessages}
-            />
-          </div>
-        </section>
-
-        <section className="mt-8" aria-labelledby="drafts-title">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
-            Redação assistida
-          </p>
-          <Card className="mt-2 overflow-hidden">
-            <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] px-5 py-4">
-              <div>
-                <h2 id="drafts-title" className="font-semibold">
-                  Gerar peça ou documento
-                </h2>
-                <p className="mt-0.5 text-sm text-[var(--muted)]">
-                  A minuta é gerada para revisão do advogado e salva como
-                  rascunho do caso.
-                </p>
-              </div>
-              <span className="rounded-lg bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)]">
-                Draft
-              </span>
-            </div>
-
-            <div className="px-5 py-4">
-              <GenerateDraftForm
-                caseId={caso.id}
-                caseType={caso.type}
-                initialStatus={llmRuntimeState.status}
-              />
-            </div>
-
-            <div className="flex items-center justify-between border-t border-[var(--border)] px-5 py-3">
-              <h3 className="text-sm font-semibold">Rascunhos do caso</h3>
-              <span className="text-sm text-[var(--muted)]">
-                {caso.drafts.length}
-              </span>
-            </div>
-            {caso.drafts.length === 0 ? (
-              <Empty text="Nenhum rascunho gerado ainda." />
-            ) : (
-              caso.drafts.map((draft) => (
-                <DraftRow key={draft.id} draft={draft} />
-              ))
             )}
-          </Card>
-        </section>
+            <span className="text-xs text-[var(--muted)]">
+              {DOMAIN_LABEL[caso.domain]}
+            </span>
+          </div>
+          <h1 className="mt-2 font-serif text-xl font-semibold tracking-tight sm:text-2xl">
+            {caso.title}
+          </h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            {caso.clientName ?? "Cliente não informado"}
+          </p>
+          {caso.summary && (
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[var(--muted)]">
+              {caso.summary}
+            </p>
+          )}
+        </div>
+        <details className="relative shrink-0 self-start sm:self-auto">
+          <summary className="cursor-pointer select-none text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)]">
+            Mais
+          </summary>
+          <div className="absolute right-auto z-20 mt-2 w-44 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] p-2 shadow-sm sm:right-0">
+            <Link
+              href={`/casos/${caso.id}/editar`}
+              className="block rounded px-2 py-1.5 text-sm text-[var(--foreground)] hover:bg-[var(--background)]"
+            >
+              Editar caso
+            </Link>
+            <DeleteCaseButton
+              id={caso.id}
+              className="block px-2 py-1.5 text-left text-sm"
+            />
+          </div>
+        </details>
+      </header>
 
-        <div className="mt-8 grid gap-4">
+      {/*
+        Desktop: 2 colunas — dossiê à esquerda, assistente sticky à direita.
+        Mobile: 1 coluna — assistente logo após o header (ordem lógica de ação).
+      */}
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start xl:grid-cols-[minmax(0,1fr)_minmax(22rem,26rem)]">
+        {/* Coluna lateral: estado + análise + conversa */}
+        <aside className="order-1 flex flex-col gap-4 lg:order-2 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start">
+          <Card className="px-4 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
+              Assistente do caso
+            </p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Converse aqui. Gere a análise do dossiê quando houver base
+              documental. Rascunhos ficam na coluna principal.
+            </p>
+            <p className="mt-3 rounded border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-xs leading-snug text-[var(--foreground)]">
+              Próximo passo sugerido: {suggestedNextStep}
+            </p>
+
+            <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs sm:grid-cols-4 lg:grid-cols-2">
+              <Stat label="Provas" value={caso.evidence.length} />
+              <Stat label="Fatos" value={caso.timeline.length} />
+              <Stat label="Lacunas" value={caso.gaps.length} />
+              <Stat label="Rascunhos" value={caso.drafts.length} />
+            </dl>
+
+            <div className="mt-4 border-t border-[var(--border)] pt-3">
+              <p className="text-xs font-medium text-[var(--foreground)]">
+                Análise do dossiê
+              </p>
+              <p className="mt-0.5 text-xs text-[var(--muted)]">
+                Atualiza linha do tempo e lacunas a partir das provas.
+              </p>
+              <div className="mt-2">
+                <AnalisarCasoButton
+                  caseId={caso.id}
+                  initialStatus={llmRuntimeState.status}
+                  layout="stack"
+                />
+              </div>
+            </div>
+          </Card>
+
+          <div className="flex min-h-[22rem] flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
+              Conversa
+            </p>
+            <div className="min-h-0 flex-1 lg:max-h-[calc(100vh-16rem)]">
+              <CaseCopilotPanel
+                caseId={caso.id}
+                caseTitle={caso.title}
+                clientName={caso.clientName ?? null}
+                actorName={actor.actorName}
+                initialStatus={llmRuntimeState.status}
+                timelineCount={caso.timeline.length}
+                gapCount={caso.gaps.length}
+                gapPrompts={caso.gaps.slice(0, 3).map((gap) => gap.description)}
+                evidenceCount={caso.evidence.length}
+                isJudicial={isJudicial}
+                courtProcessCount={courtProcesses.length}
+                draftCount={caso.drafts.length}
+                pendingDraftCount={pendingDraftCount}
+                initialMessages={chatMessages}
+                compact
+              />
+            </div>
+          </div>
+        </aside>
+
+        {/* Coluna principal: conteúdo do dossiê */}
+        <div className="order-2 flex min-w-0 flex-col gap-5 lg:order-1">
           {isJudicial && (
-          <Section title="Processos judiciais" count={courtProcesses.length}>
-            {courtProcesses.length === 0 ? (
-              <Empty text="Nenhum processo judicial vinculado ainda." />
-            ) : (
-              courtProcesses.map((process) => (
-                <div key={process.id} className="px-5 py-4">
+            <section aria-labelledby="court-process-title">
+              <Card className="px-4 py-4 sm:px-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p id="court-process-title" className="text-sm font-semibold">
+                      Processo judicial
+                    </p>
+                    <p className="mt-0.5 text-xs text-[var(--muted)] sm:text-sm">
+                      Consulte o DataJud/CNJ e importe movimentações como
+                      timeline pendente de validação nos autos.
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded border border-[var(--border)] bg-[var(--background)] px-2 py-1 text-xs text-[var(--muted)]">
+                    CNJ
+                  </span>
+                </div>
+
+                {error && (
+                  <p
+                    role="alert"
+                    className="mt-3 rounded border border-[var(--danger)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--danger)]"
+                  >
+                    {error}
+                  </p>
+                )}
+
+                <div className="mt-3">
+                  <VincularProcessoForm
+                    caseId={caso.id}
+                    tribunalGroups={tribunalGroups}
+                  />
+                </div>
+              </Card>
+            </section>
+          )}
+
+          {isJudicial && courtProcesses.length > 0 && (
+            <Section title="Processos vinculados" count={courtProcesses.length}>
+              {courtProcesses.map((process) => (
+                <div key={process.id} className="px-4 py-3 sm:px-5 sm:py-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div>
+                    <div className="min-w-0">
                       <p className="font-mono text-sm font-medium">
                         {formatProcessNumber(process.numeroProcesso)}
                       </p>
@@ -265,46 +266,66 @@ export default async function CasoPage({
                         </p>
                       )}
                     </div>
-                    <span className="rounded-lg bg-[var(--background)] px-3 py-2 text-sm text-[var(--muted)]">
-                      {process.movementCount} movimentos
+                    <span className="shrink-0 rounded border border-[var(--border)] bg-[var(--background)] px-2 py-1 text-xs text-[var(--muted)]">
+                      {process.movementCount} mov.
                     </span>
                   </div>
-                  <p className="mt-3 text-xs text-[var(--muted)]">
+                  <p className="mt-2 text-xs text-[var(--muted)]">
                     Última sincronização: {formatDate(process.lastSyncedAt)} ·
                     Snapshots: {Number(process.snapshotCount ?? 0)}
                   </p>
                 </div>
-              ))
-            )}
-          </Section>
+              ))}
+            </Section>
           )}
 
-          <Section title="Ingestão" count={ingestionJobs.length}>
-            {ingestionJobs.length === 0 ? (
-              <Empty text="Nenhum job de ingestão ainda." />
-            ) : (
-              ingestionJobs.map((job) => (
-                <div key={job.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                  <div>
-                    <p className="text-sm font-medium">{job.sourceFileName}</p>
-                    <p className="text-xs text-[var(--muted)]">
-                      {job.sourceMimeType || "mime desconhecido"} · {job.status}
+          <section aria-labelledby="drafts-title">
+            <Card className="overflow-hidden">
+              <div className="border-b border-[var(--border)] px-4 py-3 sm:px-5 sm:py-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <div className="min-w-0">
+                    <h2 id="drafts-title" className="text-sm font-semibold">
+                      Rascunhos e redação
+                    </h2>
+                    <p className="mt-0.5 text-xs text-[var(--muted)] sm:text-sm">
+                      Gere a peça aqui. O chat ao lado organiza estratégia; a
+                      minuta salva neste dossiê para revisão e PDF.
                     </p>
                   </div>
-                  <form action={`/api/ingestion-jobs/${job.id}/process`} method="post">
-                    <Button size="md" variant="secondary">
-                      Processar
-                    </Button>
-                  </form>
+                  <span className="text-xs text-[var(--muted)]">
+                    {caso.drafts.length} rascunho
+                    {caso.drafts.length === 1 ? "" : "s"}
+                  </span>
                 </div>
-              ))
-            )}
-          </Section>
+                <details className="mt-3 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)]">
+                  <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                    Nova minuta
+                  </summary>
+                  <div className="border-t border-[var(--border)] bg-[var(--surface)] px-3 py-3">
+                    <GenerateDraftForm
+                      caseId={caso.id}
+                      caseType={caso.type}
+                      initialStatus={llmRuntimeState.status}
+                    />
+                  </div>
+                </details>
+              </div>
+              {caso.drafts.length === 0 ? (
+                <Empty text="Nenhum rascunho ainda. Abra Nova minuta para gerar a primeira versão." />
+              ) : (
+                <div className="divide-y divide-[var(--border)]">
+                  {caso.drafts.map((draft) => (
+                    <DraftRow key={draft.id} draft={draft} />
+                  ))}
+                </div>
+              )}
+            </Card>
+          </section>
 
           <Section title="Provas" count={caso.evidence.length}>
             {caso.evidence.length === 0 ? (
-              <div className="px-5 pt-1">
-                <Empty text="Nenhuma prova ainda. Comece anexando a primeira." />
+              <div className="px-4 pt-1 sm:px-5">
+                <Empty text="Nenhuma prova ainda." />
               </div>
             ) : (
               caso.evidence.map((e) => (
@@ -317,14 +338,51 @@ export default async function CasoPage({
                 />
               ))
             )}
-            <div className="border-t border-[var(--border)] px-5 py-4 first:border-0">
-              <EvidenceUploadForm caseId={caso.id} />
+            <div className="border-t border-[var(--border)] px-4 py-3 sm:px-5">
+              <details className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)]">
+                <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)]">
+                  Adicionar prova
+                </summary>
+                <div className="border-t border-[var(--border)] bg-[var(--surface)] px-3 py-3">
+                  <EvidenceUploadForm caseId={caso.id} />
+                </div>
+              </details>
             </div>
+          </Section>
+
+          <Section title="Ingestão" count={ingestionJobs.length}>
+            {ingestionJobs.length === 0 ? (
+              <Empty text="Nenhum job de ingestão ainda." />
+            ) : (
+              ingestionJobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {job.sourceFileName}
+                    </p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {job.sourceMimeType || "mime desconhecido"} · {job.status}
+                    </p>
+                  </div>
+                  <form
+                    action={`/api/ingestion-jobs/${job.id}/process`}
+                    method="post"
+                  >
+                    <Button size="md" variant="secondary" className="whitespace-nowrap">
+                      Processar
+                    </Button>
+                  </form>
+                </div>
+              ))
+            )}
           </Section>
 
           <Section title="Linha do tempo" count={caso.timeline.length}>
             {caso.timeline.length === 0 ? (
-              <Empty text="A linha do tempo será montada na análise." />
+              <Empty text="A linha do tempo será montada na análise do dossiê." />
             ) : (
               caso.timeline.map((t) => (
                 <Row key={t.id} title={t.description} tag={t.certainty} />
@@ -342,8 +400,40 @@ export default async function CasoPage({
             )}
           </Section>
         </div>
+      </div>
     </main>
   );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded border border-[var(--border)] bg-[var(--background)] px-2 py-1.5">
+      <dt className="text-[10px] font-medium uppercase tracking-wide text-[var(--muted)]">
+        {label}
+      </dt>
+      <dd className="text-sm font-semibold tabular-nums text-[var(--foreground)]">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function nextSuggestedStep({
+  evidenceCount,
+  timelineCount,
+  gapCount,
+  draftCount,
+}: {
+  evidenceCount: number;
+  timelineCount: number;
+  gapCount: number;
+  draftCount: number;
+}) {
+  if (evidenceCount === 0) return "adicionar a primeira prova do caso.";
+  if (timelineCount === 0 && gapCount === 0) return "gerar a análise do dossiê.";
+  if (gapCount > 0) return "validar a lacuna aberta antes de redigir.";
+  if (draftCount === 0) return "abrir Nova minuta e gerar o primeiro rascunho.";
+  return "revisar o rascunho mais recente ou baixar o PDF.";
 }
 
 function Section({
@@ -357,9 +447,9 @@ function Section({
 }) {
   return (
     <Card className="overflow-hidden">
-      <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3">
-        <h2 className="font-semibold">{title}</h2>
-        <span className="text-sm text-[var(--muted)]">{count}</span>
+      <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-2.5 sm:px-5 sm:py-3">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        <span className="text-xs tabular-nums text-[var(--muted)]">{count}</span>
       </div>
       <div className="divide-y divide-[var(--border)]">{children}</div>
     </Card>
@@ -381,7 +471,7 @@ function EvidenceRow({
   contextMismatch?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-5 py-3">
+    <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
       <div className="min-w-0">
         <p className="truncate text-sm">{label}</p>
         {mimeType && (
@@ -401,10 +491,10 @@ function EvidenceRow({
 
 function Row({ title, tag }: { title: string; tag?: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-5 py-3">
-      <span className="text-sm">{title}</span>
+    <div className="flex items-start justify-between gap-3 px-4 py-3 sm:px-5">
+      <span className="min-w-0 text-sm leading-snug">{title}</span>
       {tag && (
-        <span className="rounded-full bg-[var(--background)] px-2.5 py-0.5 text-xs text-[var(--muted)]">
+        <span className="shrink-0 rounded-full bg-[var(--background)] px-2.5 py-0.5 text-xs text-[var(--muted)]">
           {tag}
         </span>
       )}
@@ -413,7 +503,11 @@ function Row({ title, tag }: { title: string; tag?: string }) {
 }
 
 function Empty({ text }: { text: string }) {
-  return <p className="px-5 py-4 text-sm text-[var(--muted)]">{text}</p>;
+  return (
+    <p className="px-4 py-3 text-sm text-[var(--muted)] sm:px-5 sm:py-4">
+      {text}
+    </p>
+  );
 }
 
 function DraftRow({
@@ -430,13 +524,11 @@ function DraftRow({
   };
 }) {
   return (
-    <div className="border-t border-[var(--border)] px-5 py-4 first:border-0">
-      <div className="flex items-start justify-between gap-3">
+    <div className="px-4 py-3 sm:px-5 sm:py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold">
-            {draftTypeLabel(draft.type)}
-          </p>
-          <p className="mt-1 truncate text-sm text-[var(--muted)]">
+          <p className="text-sm font-semibold">{draftTypeLabel(draft.type)}</p>
+          <p className="mt-0.5 truncate text-sm text-[var(--muted)]">
             {draft.title}
           </p>
         </div>
@@ -446,14 +538,14 @@ function DraftRow({
           <p className="mt-2">
             <a
               href={`/api/drafts/${draft.id}/export`}
-              className="font-semibold text-[var(--primary)] hover:underline"
+              className="text-[var(--muted)] hover:text-[var(--primary)] hover:underline"
             >
-              Baixar PDF
+              PDF
             </a>
           </p>
         </div>
       </div>
-      <details className="mt-3">
+      <details className="mt-2">
         <summary className="cursor-pointer text-xs text-[var(--muted)]">
           Prévia do conteúdo
         </summary>
