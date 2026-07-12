@@ -367,18 +367,26 @@ export default async function CasoPage({
                       {job.sourceMimeType || "mime desconhecido"} · {job.status}
                     </p>
                   </div>
-                  <form
-                    action={`/api/ingestion-jobs/${job.id}/process`}
-                    method="post"
-                  >
-                    <Button size="md" variant="ghost" className="whitespace-nowrap">
-                      {job.status === "CONCLUIDO"
-                        ? "Reprocessar"
-                        : job.status === "FALHOU"
+                  {job.status === "CONCLUIDO" ? (
+                    <span className="shrink-0 text-xs font-medium text-[var(--muted)]">
+                      Concluído
+                    </span>
+                  ) : (
+                    <form
+                      action={`/api/ingestion-jobs/${job.id}/process`}
+                      method="post"
+                    >
+                      <Button
+                        size="md"
+                        variant="ghost"
+                        className="whitespace-nowrap"
+                      >
+                        {job.status === "FALHOU"
                           ? "Tentar novamente"
                           : "Processar"}
-                    </Button>
-                  </form>
+                      </Button>
+                    </form>
+                  )}
                 </div>
               ))
             )}
