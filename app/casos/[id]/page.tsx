@@ -297,11 +297,14 @@ export default async function CasoPage({
                     {caso.drafts.length === 1 ? "" : "s"}
                   </span>
                 </div>
-                <details className="mt-3 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)]">
-                  <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)]">
-                    Nova minuta
+                <details className="mt-3">
+                  <summary className="flex cursor-pointer list-none items-center justify-between rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)] [&::-webkit-details-marker]:hidden">
+                    <span>Nova minuta</span>
+                    <span className="text-xs font-normal text-[var(--muted)]">
+                      abrir
+                    </span>
                   </summary>
-                  <div className="border-t border-[var(--border)] bg-[var(--surface)] px-3 py-3">
+                  <div className="mt-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-3 py-3">
                     <GenerateDraftForm
                       caseId={caso.id}
                       caseType={caso.type}
@@ -340,8 +343,11 @@ export default async function CasoPage({
             )}
             <div className="border-t border-[var(--border)] px-4 py-3 sm:px-5">
               <details className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)]">
-                <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)]">
-                  Adicionar prova
+                <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)] [&::-webkit-details-marker]:hidden">
+                  <span>Adicionar prova</span>
+                  <span className="text-xs font-normal text-[var(--muted)]">
+                    abrir
+                  </span>
                 </summary>
                 <div className="border-t border-[var(--border)] bg-[var(--surface)] px-3 py-3">
                   <EvidenceUploadForm caseId={caso.id} />
@@ -371,7 +377,7 @@ export default async function CasoPage({
                     action={`/api/ingestion-jobs/${job.id}/process`}
                     method="post"
                   >
-                    <Button size="md" variant="secondary" className="whitespace-nowrap">
+                    <Button size="md" variant="ghost" className="whitespace-nowrap">
                       Processar
                     </Button>
                   </form>
