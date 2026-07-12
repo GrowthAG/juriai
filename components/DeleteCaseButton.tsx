@@ -18,7 +18,7 @@ export function DeleteCaseButton({
       onSubmit={(e) => {
         if (
           !window.confirm(
-            "Excluir este caso? Provas, linha do tempo e lacunas vinculadas também serão removidas. Esta ação não pode ser desfeita.",
+            "Excluir este caso? Provas, rascunhos, conversa, linha do tempo, lacunas, ingestões, processos vinculados e auditoria relacionados também serão removidos. Esta ação não pode ser desfeita.",
           )
         ) {
           e.preventDefault();

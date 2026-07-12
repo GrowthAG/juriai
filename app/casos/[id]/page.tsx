@@ -372,7 +372,11 @@ export default async function CasoPage({
                     method="post"
                   >
                     <Button size="md" variant="ghost" className="whitespace-nowrap">
-                      Processar
+                      {job.status === "CONCLUIDO"
+                        ? "Reprocessar"
+                        : job.status === "FALHOU"
+                          ? "Tentar novamente"
+                          : "Processar"}
                     </Button>
                   </form>
                 </div>
