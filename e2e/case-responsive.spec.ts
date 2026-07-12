@@ -5,6 +5,7 @@ import { loginAsDevelopmentUser } from "./auth-helper";
 const prisma = new PrismaClient();
 let responsiveCaseId: string | null = null;
 let responsiveClientId: string | null = null;
+let createdResponsiveCase = false;
 
 async function openResponsiveCase(page: Page) {
   await loginAsDevelopmentUser(page);
@@ -48,6 +49,7 @@ async function openResponsiveCase(page: Page) {
         select: { id: true },
       });
       responsiveCaseId = created.id;
+      createdResponsiveCase = true;
       await prisma.caseMember.create({
         data: { caseId: created.id, userId: user.id },
       });
@@ -66,7 +68,7 @@ async function getTitleBox(page: Page, text: string) {
 
 test.describe("Dossiê responsivo", () => {
   test.afterAll(async () => {
-    if (responsiveCaseId) {
+    if (createdResponsiveCase && responsiveCaseId) {
       await prisma.case.delete({ where: { id: responsiveCaseId } }).catch(() => {});
     }
     if (responsiveClientId) {

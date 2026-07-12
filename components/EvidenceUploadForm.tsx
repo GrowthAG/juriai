@@ -67,7 +67,7 @@ export function EvidenceUploadForm({ caseId }: { caseId: string }) {
           className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-[var(--border)] bg-[var(--background)] px-4 py-6 text-center transition-colors hover:border-[var(--primary)]"
         >
           <span className="text-sm font-semibold text-[var(--foreground)]">
-            Clique ou solte um arquivo
+            Clique para escolher um arquivo
           </span>
           <span className="text-xs text-[var(--muted)]">
             PDF, imagem ou documento da prova
