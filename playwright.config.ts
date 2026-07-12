@@ -4,6 +4,11 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3002";
 const webServerPort = new URL(baseURL).port || "3002";
 const chromiumExecutablePath =
   process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+const webServerEnv = [
+  process.env.DATABASE_URL
+    ? `DATABASE_URL="${process.env.DATABASE_URL.replaceAll('"', '\\"')}"`
+    : "",
+].filter(Boolean);
 
 export default defineConfig({
   testDir: "./e2e",
@@ -28,7 +33,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run dev -- --port ${webServerPort} --webpack`,
+    command: `${webServerEnv.join(" ")} npm run dev -- --hostname 127.0.0.1 --port ${webServerPort} --webpack`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

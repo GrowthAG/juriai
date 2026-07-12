@@ -142,7 +142,7 @@ export default async function CasoPage({
       */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start xl:grid-cols-[minmax(0,1fr)_minmax(22rem,26rem)]">
         {/* Coluna lateral: estado + análise + conversa */}
-        <aside className="order-1 flex flex-col gap-4 lg:order-2 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start">
+        <aside className="order-2 flex flex-col gap-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start">
           <Card className="px-4 py-4">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
               Assistente do caso
@@ -206,7 +206,7 @@ export default async function CasoPage({
         </aside>
 
         {/* Coluna principal: conteúdo do dossiê */}
-        <div className="order-2 flex min-w-0 flex-col gap-5 lg:order-1">
+        <div className="order-1 flex min-w-0 flex-col gap-5">
           {isJudicial && (
             <section aria-labelledby="court-process-title">
               <Card className="px-4 py-4 sm:px-5">
@@ -300,9 +300,6 @@ export default async function CasoPage({
                 <details className="mt-3">
                   <summary className="flex cursor-pointer list-none items-center justify-between rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)] [&::-webkit-details-marker]:hidden">
                     <span>Nova minuta</span>
-                    <span className="text-xs font-normal text-[var(--muted)]">
-                      abrir
-                    </span>
                   </summary>
                   <div className="mt-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-3 py-3">
                     <GenerateDraftForm
@@ -345,9 +342,6 @@ export default async function CasoPage({
               <details className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)]">
                 <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)] [&::-webkit-details-marker]:hidden">
                   <span>Adicionar prova</span>
-                  <span className="text-xs font-normal text-[var(--muted)]">
-                    abrir
-                  </span>
                 </summary>
                 <div className="border-t border-[var(--border)] bg-[var(--surface)] px-3 py-3">
                   <EvidenceUploadForm caseId={caso.id} />
