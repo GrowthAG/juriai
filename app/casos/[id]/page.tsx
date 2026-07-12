@@ -544,16 +544,16 @@ function DraftRow({
           <p className="mt-2">
             <a
               href={`/api/drafts/${draft.id}/export`}
-              className="text-[var(--muted)] hover:text-[var(--primary)] hover:underline"
+              className="text-xs font-medium text-[var(--muted)] hover:text-[var(--foreground)] hover:underline"
             >
-              PDF
+              Abrir PDF
             </a>
           </p>
         </div>
       </div>
       <details className="mt-2">
-        <summary className="cursor-pointer text-xs text-[var(--muted)]">
-          Prévia do conteúdo
+        <summary className="cursor-pointer text-xs font-medium text-[var(--muted)] hover:text-[var(--foreground)]">
+          Ver prévia
         </summary>
         <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--foreground)]">
           {previewText(draft.content, 420)}
