@@ -45,6 +45,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/next.config.ts ./next.config.ts
 
+RUN mkdir -p /app/.next/cache/images \
+  && chown -R nextjs:nodejs /app
+
 USER nextjs
 EXPOSE 8080
 # next start respects -p; Cloud Run sets PORT
