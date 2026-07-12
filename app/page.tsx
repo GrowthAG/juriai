@@ -3,10 +3,14 @@ import { getActorContext } from "@/lib/actor-context";
 import { getSessionUserId } from "@/lib/session";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { HeroSection } from "@/components/site/HeroSection";
+import { TrustStrip } from "@/components/site/TrustStrip";
+import { HumanStrip } from "@/components/site/HumanStrip";
 import { ProblemSection } from "@/components/site/ProblemSection";
-import { ProductModulesSection } from "@/components/site/ProductModulesSection";
 import { MechanismSection } from "@/components/site/MechanismSection";
-import { OperationalScenariosSection } from "@/components/site/OperationalScenariosSection";
+import { ProductShowcaseSection } from "@/components/site/ProductShowcaseSection";
+import { ProductModulesSection } from "@/components/site/ProductModulesSection";
+import { PricingSection } from "@/components/site/PricingSection";
+import { AudienceSection } from "@/components/site/AudienceSection";
 import { TrustSection } from "@/components/site/TrustSection";
 import { ComparisonSection } from "@/components/site/ComparisonSection";
 import { FinalCta } from "@/components/site/FinalCta";
@@ -16,11 +20,6 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const sessionUserId = await getSessionUserId();
 
-  // A detecção de usuário logado depende do banco (RBAC real). A Home pública
-  // não pode cair junto com o banco/proxy/ADC: se o contexto não puder ser
-  // carregado, renderizamos a home pública em vez de propagar o erro.
-  // Os redirect() ficam FORA do try/catch de propósito — no Next eles funcionam
-  // lançando NEXT_REDIRECT, e um catch aqui engoliria o redirect.
   let ctx: Awaited<ReturnType<typeof getActorContext>> | null = null;
   if (sessionUserId) {
     try {
@@ -46,10 +45,14 @@ export default async function HomePage() {
   return (
     <SiteLayout>
       <HeroSection />
+      <TrustStrip />
+      <HumanStrip />
       <ProblemSection />
       <MechanismSection />
+      <ProductShowcaseSection />
       <ProductModulesSection />
-      <OperationalScenariosSection />
+      <PricingSection />
+      <AudienceSection />
       <TrustSection />
       <ComparisonSection />
       <FinalCta />

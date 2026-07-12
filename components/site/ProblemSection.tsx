@@ -1,88 +1,57 @@
-// Bloco fundido (antes: ProblemSection + NotChatSection). Contraste direto
-// entre a operação dispersa e o fluxo guiado do JuriAI. Azul só no lado do
-// fluxo (status). Copy sem promessa técnica nem nomes internos de schema.
+import { SiteReveal } from "./SiteReveal";
 
-const LOOSE = [
-  "Publicações chegam por canais diferentes",
-  "Documentos ficam fora do contexto do caso",
-  "Prazos dependem de planilhas e memória",
-  "Respostas soltas não viram próxima ação",
-];
-
-const GUIDED = [
-  "Contexto recebido",
-  "Documento vinculado",
-  "Revisão humana",
-  "Próxima ação sugerida",
+const PAINS = [
+  {
+    title: "Releitura eterna",
+    body: "Contrato, e-mail, NF e print espalhados. O sócio é o único que sabe o caso. Junior pergunta, senior para e perde a manhã.",
+  },
+  {
+    title: "Word de 2019",
+    body: "Modelo antigo, caso novo. Prova fraca vira forte no rascunho porque ninguém classificou. A peça sai bonita e o dossiê continua um caos.",
+  },
+  {
+    title: "IA que inventa",
+    body: "ChatGPT e “IA jurídica” de R$ 127 citam o que não existe. Você gasta mais tempo checando do que escrevendo do zero.",
+  },
 ];
 
 export function ProblemSection() {
   return (
-    <section className="border-b border-[var(--border)]">
-      <div className="mx-auto max-w-6xl px-6 py-20">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-            Antes e depois
-          </p>
-          <h2 className="mt-4 font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
-            Do prompt solto ao fluxo guiado.
-          </h2>
-          <p className="mt-4 text-lg leading-relaxed text-[var(--muted)]">
-            O JuriAI transforma entradas dispersas em contexto estruturado,
-            revisão humana e próxima ação.
-          </p>
-        </div>
-
-        <div className="mt-12 grid overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] md:grid-cols-2">
-          {/* Prompt solto — operação dispersa */}
-          <div className="border-b border-[var(--border)] px-6 py-7 md:border-b-0 md:border-r">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-              Prompt solto
+    <section className="border-b border-[var(--border)] bg-[var(--background)]">
+      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
+        <SiteReveal>
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+              O problema
             </p>
-            <p className="mt-0.5 text-sm text-[var(--muted)]">operação dispersa</p>
-            <ul className="mt-5 grid gap-3.5">
-              {LOOSE.map((item) => (
-                <li key={item} className="flex gap-3 text-sm leading-relaxed">
-                  <span
-                    aria-hidden="true"
-                    className="mt-2 h-1 w-4 shrink-0 rounded-full bg-[var(--border-strong)]"
-                  />
-                  <span className="text-[var(--foreground)]">{item}</span>
-                </li>
-              ))}
-            </ul>
+            <h2 className="mt-4 font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
+              Gestão de prazo e chat genérico não montam o caso.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-[var(--muted)]">
+              O erro é comparar o JuriAI com software barato. O custo real do
+              gargalo é o salário do analista mais o risco de peça com fonte
+              inventada.
+            </p>
           </div>
+        </SiteReveal>
 
-          {/* Fluxo guiado — operação estruturada */}
-          <div className="px-6 py-7">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">
-              Fluxo guiado
-            </p>
-            <p className="mt-0.5 text-sm text-[var(--muted)]">
-              operação estruturada
-            </p>
-            <ul className="mt-5 grid gap-3.5">
-              {GUIDED.map((item) => (
-                <li key={item} className="flex items-center gap-3 text-sm leading-relaxed">
-                  <span
-                    className="site-status-dot shrink-0"
-                    data-active="true"
-                    aria-hidden="true"
-                  />
-                  <span className="font-medium text-[var(--foreground)]">
-                    {item}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-          Não é uma caixa de texto esperando um prompt. É um fluxo guiado: a IA
-          estrutura e sugere, o advogado revisa e aprova, e cada saída aponta a
-          próxima ação.
-        </p>
+        <ul className="mt-12 grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] sm:grid-cols-3">
+          {PAINS.map((pain, i) => (
+            <li key={pain.title} className="bg-white px-6 py-8">
+              <SiteReveal delayMs={i * 50}>
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+                  0{i + 1}
+                </p>
+                <h3 className="mt-4 font-serif text-xl font-semibold tracking-tight">
+                  {pain.title}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+                  {pain.body}
+                </p>
+              </SiteReveal>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

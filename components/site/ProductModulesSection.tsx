@@ -1,103 +1,68 @@
-// Painel operacional (antes: grade de features). Os módulos operam sobre o
-// mesmo caso — contexto compartilhado, estados visíveis (sem hover-reveal).
-// Azul só no módulo ativo/status. Sem métrica falsa nem promessa técnica.
+import { SiteReveal } from "./SiteReveal";
 
-type Module = {
-  name: string;
-  state: string;
-  active?: boolean;
-};
-
-const MODULES: Module[] = [
-  { name: "Caso", state: "estruturado" },
-  { name: "Publicação", state: "vinculada ao caso" },
-  { name: "Documento", state: "indexado ao caso" },
-  { name: "Prazo", state: "com responsável" },
-  { name: "Tarefa", state: "atribuída" },
-  { name: "Revisão humana", state: "aguardando aprovação", active: true },
-  { name: "Próxima ação", state: "sugerida" },
+const MODULES = [
+  {
+    name: "Casos",
+    desc: "Dossiê com partes, status e resumo. Um lugar para o caso inteiro viver.",
+  },
+  {
+    name: "Provas",
+    desc: "Upload e força probatória (FORTE / MÉDIA / FRACA). Alerta quando o documento parece de outro caso.",
+  },
+  {
+    name: "Análise",
+    desc: "Fatos, riscos e lacunas a partir do material. [FATO ALEGADO] quando falta prova.",
+  },
+  {
+    name: "Rascunhos",
+    desc: "Peças para revisão humana, com exportação em PDF. Você assina o que aprova.",
+  },
+  {
+    name: "Conversa no caso",
+    desc: "Estratégia no contexto do dossiê. Minuta formal fica no módulo de rascunhos.",
+  },
+  {
+    name: "Monitoramento",
+    desc: "Publicações e consulta processual quando a fonte oficial responder.",
+  },
 ];
 
 export function ProductModulesSection() {
   return (
-    <section
-      id="recursos"
-      className="scroll-mt-16 border-b border-[var(--border)]"
-    >
-      <div className="mx-auto max-w-6xl px-6 py-20">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-            Painel operacional
-          </p>
-          <h2 className="mt-4 font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
-            Um sistema operacional, não um assistente avulso.
-          </h2>
-          <p className="mt-4 text-lg leading-relaxed text-[var(--muted)]">
-            Caso, publicação, documento, prazo, tarefa, revisão e próxima ação
-            operam sobre o mesmo caso. É isso que transforma resposta de IA em
-            operação jurídica conectada.
-          </p>
-        </div>
-
-        {/* Painel único: todos os módulos no mesmo contexto de caso */}
-        <div className="mt-12 overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-strong)] bg-[var(--surface)]">
-          {/* Titlebar — caso em foco (contexto compartilhado) */}
-          <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] px-5 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
-              Caso em foco{" "}
-              <span className="text-[var(--foreground)]">
-                · Caso 001 — Cobrança contratual
-              </span>
+    <section id="produto" className="scroll-mt-16 border-b border-[var(--border)] bg-[var(--background)]">
+      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
+        <SiteReveal>
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+              Módulos
             </p>
-            <div className="flex items-center gap-2">
-              <span
-                className="site-status-dot"
-                data-active="true"
-                aria-hidden="true"
-              />
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
-                Em operação
-              </span>
-            </div>
+            <h2 className="mt-4 font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
+              Um sistema de caso. Não um assistente avulso.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-[var(--muted)]">
+              Tudo indexado ao mesmo dossiê. Isso transforma resposta de IA em
+              operação jurídica que o escritório consegue auditar.
+            </p>
           </div>
+        </SiteReveal>
 
-          {/* Módulos conectados — estados visíveis */}
-          <ul className="divide-y divide-[var(--border)]">
-            {MODULES.map((mod) => (
-              <li
-                key={mod.name}
-                className={`flex items-center justify-between gap-4 px-5 py-3.5 ${
-                  mod.active ? "bg-[var(--surface)]" : ""
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="site-status-dot shrink-0"
-                    data-active={mod.active ? "true" : "false"}
-                    aria-hidden="true"
-                  />
-                  <span
-                    className={`text-sm font-semibold ${
-                      mod.active
-                        ? "text-[var(--primary)]"
-                        : "text-[var(--foreground)]"
-                    }`}
-                  >
-                    {mod.name}
-                  </span>
-                </div>
-                <span className="font-mono text-[11px] uppercase tracking-wide text-[var(--muted)]">
-                  {mod.state}
-                </span>
+        <SiteReveal delayMs={60}>
+          <ul className="mt-14 grid gap-px overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">
+            {MODULES.map((mod, i) => (
+              <li key={mod.name} className="bg-white px-6 py-6 sm:py-7">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+                  {String(i + 1).padStart(2, "0")}
+                </p>
+                <h3 className="mt-2 text-sm font-semibold text-[var(--foreground)]">
+                  {mod.name}
+                </h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-[var(--muted)]">
+                  {mod.desc}
+                </p>
               </li>
             ))}
           </ul>
-        </div>
-
-        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-          Cada módulo herda o mesmo contexto do caso. A revisão humana fica no
-          centro: nada avança para a próxima ação sem a aprovação do advogado.
-        </p>
+        </SiteReveal>
       </div>
     </section>
   );

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAccessibleCase } from "@/lib/access";
 import { processIngestionJob } from "@/lib/ingestion";
 import { prisma } from "@/lib/prisma";
+import { getSessionUserId } from "@/lib/session";
 import { storeUpload } from "@/lib/uploads";
 
 type RouteContext = {
@@ -10,6 +11,14 @@ type RouteContext = {
 };
 
 export async function POST(request: NextRequest, context: RouteContext) {
+  const sessionUserId = await getSessionUserId();
+  if (!sessionUserId) {
+    return NextResponse.json(
+      { error: "Sessão expirada ou inexistente." },
+      { status: 401 },
+    );
+  }
+
   const { id } = await context.params;
   const caso = await getAccessibleCase(id);
 

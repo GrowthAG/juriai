@@ -82,7 +82,7 @@ export function LinkToCaseDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-lg">
+      <div className="w-full max-w-lg rounded-lg border border-[var(--border)] bg-[var(--surface)]">
         <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3">
           <h2 className="text-sm font-semibold text-[var(--foreground)]">
             Vincular publicação ao caso

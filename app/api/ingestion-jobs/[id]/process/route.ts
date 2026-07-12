@@ -2,12 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAccessibleCase } from "@/lib/access";
 import { processIngestionJob } from "@/lib/ingestion";
 import { prisma } from "@/lib/prisma";
+import { getSessionUserId } from "@/lib/session";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
 export async function POST(request: NextRequest, context: RouteContext) {
+  const sessionUserId = await getSessionUserId();
+  if (!sessionUserId) {
+    return NextResponse.json(
+      { error: "Sessão expirada ou inexistente." },
+      { status: 401 },
+    );
+  }
+
   const { id: jobId } = await context.params;
 
   // Isolamento de tenant: o job só pode ser processado por quem já tem

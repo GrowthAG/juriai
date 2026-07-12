@@ -121,7 +121,7 @@ export default async function CasoPage({
           <summary className="cursor-pointer select-none text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)]">
             Mais
           </summary>
-          <div className="absolute right-auto z-20 mt-2 w-44 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] p-2 shadow-sm sm:right-0">
+          <div className="absolute right-auto z-20 mt-2 w-44 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] p-2 sm:right-0">
             <Link
               href={`/casos/${caso.id}/editar`}
               className="block rounded px-2 py-1.5 text-sm text-[var(--foreground)] hover:bg-[var(--background)]"

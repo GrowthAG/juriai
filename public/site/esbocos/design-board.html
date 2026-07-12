@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JuriAI — Board de esboços · Design do site</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f4f4f2;
+      --paper: #ffffff;
+      --ink: #0a0a0a;
+      --muted: #5c5c5c;
+      --line: #e2e2e0;
+      --line-strong: #c8c8c4;
+      --blue: #0b5fff;
+      --blue-soft: #e8f0ff;
+      --warn: #8a5a00;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Source Sans 3", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 24px 80px; }
+    h1, h2, h3 { font-family: Lora, Georgia, serif; font-weight: 600; letter-spacing: -0.02em; }
+    h1 { font-size: 2rem; margin: 0 0 8px; }
+    h2 { font-size: 1.35rem; margin: 0 0 12px; }
+    h3 { font-size: 1.05rem; margin: 0 0 8px; }
+    .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+    }
+    .lede { color: var(--muted); max-width: 62ch; margin: 0 0 28px; font-size: 1.05rem; }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+    .grid-2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+    .grid-3 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .tag {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      border: 1px solid var(--line-strong); padding: 3px 8px; border-radius: 999px; color: var(--muted);
+    }
+    .tag.rec { background: var(--blue-soft); border-color: #b8d0ff; color: #0840b8; }
+    .tag.keep { background: #f0f0ee; }
+    .tag.avoid { background: #fdecec; border-color: #f0c0c0; color: #8b1e1e; }
+    .mock {
+      border: 1px solid var(--line-strong);
+      border-radius: 4px;
+      overflow: hidden;
+      background: #fff;
+      min-height: 280px;
+    }
+    .mock-bar {
+      height: 40px; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 14px; font-size: 12px; color: var(--muted);
+    }
+    .mock-bar strong { color: var(--ink); font-family: Lora, serif; font-size: 14px; }
+    .mock-bar .cta {
+      background: var(--blue); color: #fff; border: 0; border-radius: 4px;
+      padding: 6px 12px; font-size: 11px; font-weight: 700;
+    }
+    .mock-body { padding: 20px; }
+    .mock-a { display: grid; grid-template-columns: 1.05fr 1fr; gap: 16px; align-items: center; }
+    .mock-a h4 { font-family: Lora, serif; font-size: 22px; line-height: 1.15; margin: 8px 0; }
+    .mock-a p { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+    .mock-a .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-p { background: var(--blue); color: #fff; border-radius: 4px; padding: 8px 14px; font-size: 12px; font-weight: 700; }
+    .btn-s { border: 1px solid var(--line-strong); border-radius: 4px; padding: 8px 14px; font-size: 12px; font-weight: 600; }
+    .shot {
+      border: 1px solid var(--line); border-radius: 3px; background: #fafafa;
+      aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+    .mock-b .hero-full {
+      position: relative; min-height: 220px;
+      background: linear-gradient(180deg, #fafafa 0%, #fff 40%);
+      border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
+    }
+    .mock-b .overlay {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      justify-content: flex-end; padding: 18px;
+      background: linear-gradient(transparent 30%, rgba(255,255,255,.92) 70%);
+    }
+    .mock-b h4 { font-family: Lora, serif; font-size: 20px; margin: 0 0 6px; }
+    .mock-c { text-align: center; max-width: 420px; margin: 0 auto; padding: 12px 0 8px; }
+    .mock-c h4 { font-family: Lora, serif; font-size: 22px; margin: 8px 0; }
+    .mock-c p { font-size: 13px; color: var(--muted); }
+    .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+    .swatch {
+      width: 72px; text-align: center; font-size: 10px; color: var(--muted);
+    }
+    .swatch i {
+      display: block; height: 48px; border-radius: 3px; border: 1px solid var(--line);
+      margin-bottom: 6px;
+    }
+    .motion li { margin-bottom: 8px; font-size: 14px; color: var(--muted); }
+    .motion strong { color: var(--ink); }
+    .ref-list { font-size: 14px; color: var(--muted); }
+    .ref-list li { margin-bottom: 10px; }
+    .ref-list a { color: var(--blue); text-decoration: none; }
+    .ref-list a:hover { text-decoration: underline; }
+    .mood img {
+      width: 100%; border-radius: 3px; border: 1px solid var(--line); display: block;
+    }
+    .rec-box {
+      border-left: 3px solid var(--blue);
+      background: var(--blue-soft);
+      padding: 14px 16px;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted); margin: 36px 0 12px;
+    }
+    .path { font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">JuriAI · Design research · Esboços v1</p>
+    <h1>Board de design — site institucional</h1>
+    <p class="lede">
+      Pesquisa nos líderes globais de legaltech (Harvey, Legora e peers),
+      princípios de craft editorial e três esboços de hero para o JuriAI.
+      Logo com martelo mantido. Direção: calma, densa o suficiente, tipo Webflow
+      de consultoria — não landing de vibecode.
+    </p>
+
+    <!-- RESEARCH -->
+    <p class="section-label">01 · Benchmarks mundiais</p>
+    <div class="card">
+      <h2>O que os melhores sites de legaltech fazem</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Referência</th>
+            <th>Padrão visual</th>
+            <th>Motion / craft</th>
+            <th>O que copiar no JuriAI</th>
+            <th>O que evitar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Harvey</strong><br /><span class="path">harvey.ai</span></td>
+            <td>Enterprise dark/light, hero de impacto, prova social massiva (logos AmLaw), CTA “Request a demo”</td>
+            <td>Vídeo/poster de produto, carrossel de clientes, seções amplas</td>
+            <td>Prova social quando existir; hierarquia de CTA; segurança em bloco próprio</td>
+            <td>Copiar escala “Practice Made Perfect” sem base de clientes reais</td>
+          </tr>
+          <tr>
+            <td><strong>Legora</strong><br /><span class="path">legora.com</span></td>
+            <td>Headline curta e confiante (“Legal work, without limits”), produto no centro, aOS como sistema</td>
+            <td>Produto “vivo”, tabs de arquitetura, storytelling de CEO</td>
+            <td>Frase-mãe curta; posicionar como <em>sistema</em>, não feature; ROI quando houver dado</td>
+            <td>Jargão de stack (aOS, agentic harness) na home BR</td>
+          </tr>
+          <tr>
+            <td><strong>Clio</strong></td>
+            <td>Practice management claro, cores de marca fortes, foco em SMB/firmas</td>
+            <td>UI didática, menos “art direction”</td>
+            <td>Clareza de módulos e ICP</td>
+            <td>Visual genérico de SaaS de gestão</td>
+          </tr>
+          <tr>
+            <td><strong>Ironclad / Spellbook</strong></td>
+            <td>Vertical (contratos), screenshots de fluxo, benefícios mensuráveis</td>
+            <td>Produto em contexto de trabalho (Word, review)</td>
+            <td>Screenshot do dossiê real; “no fluxo de trabalho”</td>
+            <td>Prometer automação total da peça</td>
+          </tr>
+          <tr>
+            <td><strong>Escritórios top / Webflow editorial</strong></td>
+            <td>Muito branco, tipografia serif, poucos acentos, grid rígido</td>
+            <td>Scroll suave, fade-in leve, zero parallax de gosto duvidoso</td>
+            <td>Respiro vertical; serif em H1; borda 1px</td>
+            <td>Tilt 3D, orbs, mesh gradient, ícones de balança</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="rec-box">
+        <strong>Síntese para JuriAI:</strong> mistura Harvey/Legora na <em>confiança e sistema</em>,
+        com craft de consultoria editorial (Webflow institutional). Diferencial de copy:
+        dossiê + evidência + revisão — não “AI without limits”.
+      </div>
+    </div>
+
+    <!-- SYSTEM -->
+    <p class="section-label">02 · Sistema visual proposto</p>
+    <div class="grid-2">
+      <div class="card">
+        <h2>Paleta</h2>
+        <div class="swatches">
+          <div class="swatch"><i style="background:#fff"></i>Branco #FFF</div>
+          <div class="swatch"><i style="background:#f4f4f2"></i>Papel #F4F4F2</div>
+          <div class="swatch"><i style="background:#0a0a0a"></i>Tinta #0A0A0A</div>
+          <div class="swatch"><i style="background:#5c5c5c"></i>Muted</div>
+          <div class="swatch"><i style="background:#0b5fff"></i>Ação #0B5FFF</div>
+          <div class="swatch"><i style="background:#e2e2e0"></i>Borda</div>
+        </div>
+        <p style="margin:16px 0 0;font-size:13px;color:var(--muted)">
+          Um único azul de ação. Sem segunda cor “criativa”. Sem gradiente de fundo.
+        </p>
+      </div>
+      <div class="card">
+        <h2>Tipografia</h2>
+        <p style="font-family:Lora,serif;font-size:28px;margin:0 0 8px;line-height:1.15">
+          Lora — títulos editoriais
+        </p>
+        <p style="font-size:16px;margin:0 0 12px;color:var(--muted)">
+          Source Sans 3 — corpo, nav, UI do site
+        </p>
+        <p style="font-size:13px;color:var(--muted);margin:0">
+          Logo: gavel-tile + wordmark JuriAI (mantido). Radius 2–4px. Sem sombra de elevação.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Motion design (institucional)</h2>
+      <ul class="motion">
+        <li><strong>Entrada de seção:</strong> fade + 8–12px translateY, 280–400ms, ease-out. Uma vez no scroll (IntersectionObserver).</li>
+        <li><strong>Nav sticky:</strong> backdrop blur leve já existente; sem shrink agressivo.</li>
+        <li><strong>CTA hover:</strong> só cor (−10% luminosidade). Sem scale bounce.</li>
+        <li><strong>Produto no hero:</strong> opcional ken-burns <em>muito</em> sutil no screenshot (scale 1.0 → 1.02 em 12s) — ou estático.</li>
+        <li><strong>Proibido:</strong> tilt 3D, parallax de orbs, typewriter, confetti, Lottie genérico de “AI brain”.</li>
+      </ul>
+    </div>
+
+    <!-- MOODBOARDS -->
+    <p class="section-label">03 · Moodboards gerados</p>
+    <div class="grid-2">
+      <div class="card mood">
+        <p class="eyebrow">Atmosfera</p>
+        <h3>Institucional legaltech global</h3>
+        <img src="moodboard-institucional.jpg" alt="Moodboard institucional JuriAI" />
+      </div>
+      <div class="card mood">
+        <p class="eyebrow">Arquitetura</p>
+        <h3>Três frames de hero (A · B · C)</h3>
+        <img src="wireframes-abc.jpg" alt="Wireframes ABC do hero" />
+      </div>
+    </div>
+
+    <!-- SKETCHES -->
+    <p class="section-label">04 · Esboços de hero (alta fidelidade)</p>
+
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+        <span class="tag rec">Recomendado</span>
+        <span class="tag">Esboço A · Split editorial</span>
+      </div>
+      <h2>A — Texto à esquerda · produto à direita</h2>
+      <p class="lede" style="margin-bottom:16px">
+        Padrão dos melhores SaaS B2B sérios + consultoria. Já alinhado ao que implementamos.
+        Melhor para desktop; empilha no mobile.
+      </p>
+      <div class="mock">
+        <div class="mock-bar">
+          <strong>⚖ JuriAI</strong>
+          <span>Produto · Como funciona · Para quem · Segurança &nbsp; <button class="cta" type="button">Solicitar acesso</button></span>
+        </div>
+        <div class="mock-body mock-a">
+          <div>
+            <p class="eyebrow" style="margin:0">Sistema operacional do caso</p>
+            <h4>Trabalho jurídico com trilha, evidência e revisão.</h4>
+            <p>O JuriAI organiza o dossiê: provas, análise, lacunas e minutas. A IA sugere. O advogado decide.</p>
+            <div class="btns">
+              <span class="btn-p">Solicitar acesso</span>
+              <span class="btn-s">Ver como funciona</span>
+            </div>
+          </div>
+          <div class="shot">
+            <img src="demo-dashboard.png" alt="Screenshot do produto JuriAI" />
+          </div>
+        </div>
+      </div>
+      <div class="rec-box"><strong>Por quê A:</strong> escaneável, prova o produto em 1 segundo, escala bem para pitch e home. É o caminho atual — polir spacing e screenshot do dossiê 2 colunas.</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+        <span class="tag keep">Alternativa forte</span>
+        <span class="tag">Esboço B · Full product</span>
+      </div>
+      <h2>B — Screenshot full-bleed + headline sobreposta</h2>
+      <p class="lede" style="margin-bottom:16px">
+        Estilo Legora/Harvey “produto no trono”. Mais cinematográfico; exige print impecável.
+      </p>
+      <div class="mock mock-b">
+        <div class="mock-bar">
+          <strong>⚖ JuriAI</strong>
+          <span><button class="cta" type="button">Solicitar acesso</button></span>
+        </div>
+        <div class="mock-body">
+          <div class="hero-full">
+            <img src="demo-dashboard.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;opacity:.35" />
+            <div class="overlay">
+              <p class="eyebrow" style="margin:0">Legal Operating System</p>
+              <h4>Do dossiê à minuta — com o que está nos autos.</h4>
+              <div class="btns">
+                <span class="btn-p">Solicitar acesso</span>
+                <span class="btn-s">Ver produto</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+        <span class="tag keep">Alternativa editorial</span>
+        <span class="tag">Esboço C · Centro tipográfico</span>
+      </div>
+      <h2>C — Headline central + produto abaixo</h2>
+      <p class="lede" style="margin-bottom:16px">
+        Mais “revista / Webflow agency”. Menos SaaS, mais marca. Bom se o print ainda não estiver perfeito.
+      </p>
+      <div class="mock">
+        <div class="mock-bar">
+          <strong>⚖ JuriAI</strong>
+          <span><button class="cta" type="button">Solicitar acesso</button></span>
+        </div>
+        <div class="mock-body">
+          <div class="mock-c">
+            <p class="eyebrow">Para escritórios que assinam a peça</p>
+            <h4>Estruture o caso antes de automatizar a decisão.</h4>
+            <p>Provas · análise · lacunas · rascunhos com revisão humana.</p>
+            <div class="btns" style="justify-content:center;margin-top:12px">
+              <span class="btn-p">Solicitar acesso</span>
+            </div>
+          </div>
+          <div class="shot" style="margin-top:16px;max-width:560px;margin-left:auto;margin-right:auto">
+            <img src="demo-dashboard.png" alt="Screenshot do produto" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE FLOW -->
+    <p class="section-label">05 · Fluxo de página (mapa)</p>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Seção</th>
+            <th>Objetivo</th>
+            <th>Referência de craft</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Hero (A)</td><td>Promessa + produto</td><td>Legora headline + split B2B</td></tr>
+          <tr><td>2</td><td>Problema</td><td>3 dores do sócio</td><td>Editorial, cards com borda</td></tr>
+          <tr><td>3</td><td>Como funciona</td><td>5 passos do dossiê</td><td>Stepper horizontal sóbrio</td></tr>
+          <tr><td>4</td><td>Produto</td><td>Módulos reais</td><td>Grid 3 col, sem ícones clichê</td></tr>
+          <tr><td>5</td><td>Para quem</td><td>ICP</td><td>Lista tipográfica</td></tr>
+          <tr><td>6</td><td>Confiança</td><td>Anti-alucinação</td><td>Tabela (estilo trust center)</td></tr>
+          <tr><td>7</td><td>Comparativo</td><td>Chat vs JuriAI</td><td>Tabela densa</td></tr>
+          <tr><td>8</td><td>CTA</td><td>Demo / acesso</td><td>Harvey “Request a demo”</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DECISION -->
+    <p class="section-label">06 · Decisão de design</p>
+    <div class="grid-3">
+      <div class="card">
+        <span class="tag rec">Seguir</span>
+        <h3 style="margin-top:10px">Esboço A + polish</h3>
+        <p style="font-size:14px;color:var(--muted);margin:0">
+          Manter layout atual, trocar print pelo dossiê 2 colunas, ajustar ritmo
+          vertical (py 16–20), motion só fade.
+        </p>
+      </div>
+      <div class="card">
+        <span class="tag keep">Depois</span>
+        <h3 style="margin-top:10px">Prova social</h3>
+        <p style="font-size:14px;color:var(--muted);margin:0">
+          Faixa de logos / 1 depoimento quando houver piloto real (padrão Harvey).
+        </p>
+      </div>
+      <div class="card">
+        <span class="tag avoid">Não agora</span>
+        <h3 style="margin-top:10px">Vídeo hero pesado</h3>
+        <p style="font-size:14px;color:var(--muted);margin:0">
+          Só quando o produto estiver estável em staging e o print estiver perfeito.
+        </p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px">
+      <h2>Próximos passos de produção</h2>
+      <ol class="ref-list">
+        <li>Você escolhe <strong>A</strong> (default), <strong>B</strong> ou <strong>C</strong>.</li>
+        <li>Capturamos screenshot real do dossiê novo (2 colunas + assistente).</li>
+        <li>Aplicamos no React da home (spacing + motion leve).</li>
+        <li>Opcional: micro-interação de scroll nas seções (sem vibecode).</li>
+      </ol>
+      <p class="path" style="margin-top:16px">
+        Este board: /site/esbocos/design-board.html · moodboards na mesma pasta
+      </p>
+    </div>
+
+    <p class="section-label">07 · Links de referência</p>
+    <div class="card">
+      <ul class="ref-list">
+        <li><a href="https://www.harvey.ai/" target="_blank" rel="noreferrer">Harvey</a> — enterprise trust, demo CTA, logos</li>
+        <li><a href="https://legora.com/" target="_blank" rel="noreferrer">Legora</a> — headline curta, produto como sistema</li>
+        <li><a href="https://www.clio.com/" target="_blank" rel="noreferrer">Clio</a> — clareza de practice management</li>
+        <li>Webflow “professional services / consulting” templates — ritmo editorial</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

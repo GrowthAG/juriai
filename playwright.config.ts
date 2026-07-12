@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3002";
+const webServerPort = new URL(baseURL).port || "3002";
 const chromiumExecutablePath =
   process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 
@@ -27,7 +28,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev -- --port 3002 --webpack",
+    command: `npm run dev -- --port ${webServerPort} --webpack`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

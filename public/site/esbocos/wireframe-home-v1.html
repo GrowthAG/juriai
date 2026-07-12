@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JuriAI · Wireframe Home v1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --line-strong: #d1d5db;
+      --paper: #ffffff;
+      --stage: #f3f2ef;
+      --bg: #f8f9fa;
+      --blue: #0057d8;
+      --blue-hover: #0041a6;
+      --dark: #0c0c0c;
+      --dark-card: #141414;
+      --dark-line: #2a2a2a;
+      --dark-muted: #a3a3a3;
+      --wf: #9ca3af; /* wireframe gray for annotations */
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "Source Sans 3", system-ui, sans-serif;
+      color: var(--ink);
+      background: #e8e8e6;
+      line-height: 1.45;
+    }
+    .board {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+    .meta {
+      margin-bottom: 28px;
+    }
+    .meta h1 {
+      font-family: Lora, Georgia, serif;
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+    .meta p {
+      margin-top: 8px;
+      color: var(--muted);
+      max-width: 62ch;
+    }
+    .meta .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--line-strong);
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: #fff;
+    }
+    .tag.hi { background: #e8f0ff; border-color: #b8d0ff; color: #0840b8; }
+    .frame-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--wf);
+      margin: 28px 0 10px;
+    }
+    .desktop {
+      background: var(--paper);
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(17, 24, 39, 0.06);
+    }
+    /* NAV */
+    .nav {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: Lora, serif;
+      font-weight: 600;
+      font-size: 17px;
+    }
+    .logo i {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--blue);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 12px;
+      font-style: normal;
+      font-family: system-ui;
+    }
+    .logo span span { color: var(--blue); font-family: "Source Sans 3", sans-serif; }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid transparent;
+      cursor: default;
+    }
+    .btn-ghost { color: var(--muted); }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-secondary {
+      background: #fff;
+      color: var(--ink);
+      border-color: var(--line-strong);
+    }
+
+    /* HERO */
+    .hero {
+      display: grid;
+      grid-template-columns: 0.92fr 1.18fr;
+      min-height: 520px;
+    }
+    .hero-copy {
+      padding: 56px 40px 56px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #fff;
+    }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .hero-copy h2 {
+      font-family: Lora, serif;
+      font-size: 44px;
+      line-height: 1.08;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-top: 18px;
+      max-width: 12ch;
+    }
+    .hero-copy .body {
+      margin-top: 20px;
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 36ch;
+      line-height: 1.55;
+    }
+    .hero-ctas {
+      display: flex;
+      gap: 10px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .hero-foot {
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 34ch;
+    }
+    .hero-stage {
+      background: var(--stage);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 36px;
+    }
+    .mock {
+      width: 100%;
+      max-width: 480px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid rgba(17, 24, 39, 0.08);
+      box-shadow:
+        0 1px 2px rgba(17, 24, 39, 0.04),
+        0 16px 48px rgba(17, 24, 39, 0.1);
+      overflow: hidden;
+    }
+    .mock-bar {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+      background: #fafafa;
+    }
+    .mock-bar .d {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: #e5e7eb;
+    }
+    .mock-bar .t {
+      flex: 1;
+      text-align: center;
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 500;
+      padding-right: 32px;
+    }
+    .mock-ui {
+      padding: 28px 24px 32px;
+      background: #f8f9fa;
+      min-height: 300px;
+    }
+    .mock-ui h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .mock-ui .sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .mock-option {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .mock-option:first-of-type {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 1px var(--blue);
+    }
+    .ann {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #b45309;
+      background: #fffbeb;
+      border: 1px dashed #f59e0b;
+      padding: 3px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    /* TRUST */
+    .trust {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      padding: 36px 48px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+    .trust h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .trust p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* SECTION BLOCKS */
+    .sec {
+      padding: 56px 48px;
+      border-top: 1px solid var(--line);
+    }
+    .sec.alt { background: var(--bg); }
+    .sec.dark {
+      background: var(--dark);
+      color: #f5f5f4;
+    }
+    .sec .ey {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .sec.dark .ey { color: var(--dark-muted); }
+    .sec h3 {
+      font-family: Lora, serif;
+      font-size: 28px;
+      font-weight: 600;
+      margin-top: 12px;
+      letter-spacing: -0.02em;
+    }
+    .sec.dark h3 { color: #fff; }
+    .sec .lede {
+      margin-top: 12px;
+      color: var(--muted);
+      max-width: 48ch;
+      font-size: 16px;
+    }
+    .sec.dark .lede { color: var(--dark-muted); }
+    .cards3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .card .n {
+      font-family: ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .card h5 {
+      margin-top: 10px;
+      font-family: Lora, serif;
+      font-size: 17px;
+    }
+    .card p {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      margin-top: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .step {
+      padding: 16px;
+      border-right: 1px solid var(--line);
+      font-size: 12px;
+    }
+    .step:last-child { border-right: 0; }
+    .step .n {
+      font-family: ui-monospace, monospace;
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .step strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 13px;
+    }
+    .step span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .mods {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      margin-top: 28px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .mod {
+      background: #fff;
+      padding: 20px;
+    }
+    .mod strong { font-size: 13px; }
+    .mod p {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .dark-table {
+      margin-top: 28px;
+      border: 1px solid var(--dark-line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .dark-table row,
+    .dark-table .row {
+      display: grid;
+      grid-template-columns: 0.35fr 1fr;
+      border-bottom: 1px solid var(--dark-line);
+      font-size: 13px;
+    }
+    .dark-table .row:last-child { border-bottom: 0; }
+    .dark-table .row span {
+      padding: 14px 18px;
+    }
+    .dark-table .row span:first-child {
+      font-weight: 600;
+      color: #fff;
+    }
+    .dark-table .row span:last-child {
+      color: var(--dark-muted);
+    }
+    .cta-final {
+      text-align: center;
+      padding: 64px 48px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+    .cta-final h3 {
+      font-family: Lora, serif;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    .cta-final p {
+      margin: 14px auto 0;
+      color: var(--muted);
+      max-width: 40ch;
+    }
+    .cta-final .hero-ctas {
+      justify-content: center;
+      margin-top: 24px;
+    }
+    .note {
+      margin-top: 24px;
+      padding: 16px 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .note strong { color: var(--ink); }
+    .note ol { margin: 10px 0 0 18px; }
+    .note li { margin-bottom: 6px; }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .trust, .cards3, .steps, .mods { grid-template-columns: 1fr; }
+      .step { border-right: 0; border-bottom: 1px solid var(--line); }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="board">
+    <div class="meta">
+      <h1>Wireframe Home v1 · JuriAI</h1>
+      <p>
+        Especificação visual para Stitch/Figma/implementação. Esboço A (split),
+        1 mockup no hero, UI de wizard limpa (sem sidebar admin), copy sem travessão.
+        Referências: Harvey (confiança), Legora (produto como peça), Webflow consultoria.
+      </p>
+      <div class="tags">
+        <span class="tag hi">Desktop 1440</span>
+        <span class="tag">Anti-vibecode</span>
+        <span class="tag">Sem travessão</span>
+        <span class="tag">1 mockup no hero</span>
+        <span class="tag">Hi-fi wireframe</span>
+      </div>
+    </div>
+
+    <p class="frame-label">Frame 01 · Home desktop (scroll completo)</p>
+    <div class="desktop">
+      <!-- NAV -->
+      <header class="nav">
+        <div class="logo">
+          <i>J</i>
+          <span>Juri<span>AI</span></span>
+        </div>
+        <nav class="nav-links">
+          <span>Produto</span>
+          <span>Como funciona</span>
+          <span>Para quem</span>
+          <span>Segurança</span>
+        </nav>
+        <div class="nav-actions">
+          <span class="btn btn-ghost">Entrar</span>
+          <span class="btn btn-primary">Solicitar acesso</span>
+        </div>
+      </header>
+
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="ann">Wire · 42% copy</span>
+          <p class="eyebrow">Sistema operacional do caso</p>
+          <h2>Trilha. Evidência. Revisão.</h2>
+          <p class="body">
+            O JuriAI organiza o dossiê do escritório: provas, análise, lacunas e
+            minutas. A IA estrutura e sugere. O advogado revisa e decide.
+          </p>
+          <div class="hero-ctas">
+            <span class="btn btn-primary">Solicitar acesso</span>
+            <span class="btn btn-secondary">Ver o produto</span>
+          </div>
+          <p class="hero-foot">
+            Não é chat genérico. Fluxo de caso com revisão humana no caminho crítico.
+          </p>
+        </div>
+        <div class="hero-stage">
+          <div>
+            <span class="ann">Wire · 58% produto · 1 mock only</span>
+            <div class="mock">
+              <div class="mock-bar">
+                <span class="d"></span><span class="d"></span><span class="d"></span>
+                <span class="t">app.juriai · novo caso</span>
+              </div>
+              <div class="mock-ui">
+                <h3>Qual a área desse caso?</h3>
+                <p class="sub">Escolha a área do direito que mais se aplica.</p>
+                <div class="mock-option">Cível / Contratos / B2B</div>
+                <div class="mock-option">Trabalhista</div>
+                <div class="mock-option">Consumidor</div>
+                <div class="mock-option">Penal</div>
+                <div class="mock-option">Família e Sucessões</div>
+                <div class="mock-option">Tributário</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRUST STRIP -->
+      <section class="trust">
+        <div>
+          <h4>Revisão humana</h4>
+          <p>Nenhuma peça sai como verdade automática.</p>
+        </div>
+        <div>
+          <h4>Lastro no material</h4>
+          <p>Lacuna explícita quando o fato não está nos autos.</p>
+        </div>
+        <div>
+          <h4>Isolamento por escritório</h4>
+          <p>Dados separados por permissão e workspace.</p>
+        </div>
+        <div>
+          <h4>Piloto com casos reais</h4>
+          <p>Fluxo de dossiê, não só demo de chat.</p>
+        </div>
+      </section>
+
+      <!-- PROBLEM -->
+      <section class="sec">
+        <p class="ey">O problema</p>
+        <h3>Gestão e chat genérico não fecham o trabalho do caso.</h3>
+        <p class="lede">
+          O escritório precisa de dossiê, evidência e revisão, não de mais uma
+          caixa de texto.
+        </p>
+        <div class="cards3">
+          <div class="card">
+            <div class="n">01</div>
+            <h5>Prazo sem dono</h5>
+            <p>Publicação chega e o prazo corre sem responsável no caso.</p>
+          </div>
+          <div class="card">
+            <div class="n">02</div>
+            <h5>Prova fora do raciocínio</h5>
+            <p>Documentos no Drive não entram na análise nem na peça.</p>
+          </div>
+          <div class="card">
+            <div class="n">03</div>
+            <h5>Texto sem lastro</h5>
+            <p>Chat inventa artigo. O risco fica com o advogado.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRODUCT -->
+      <section class="sec alt">
+        <p class="ey">Produto em ação</p>
+        <h3>Do wizard ao dossiê. Telas reais do sistema.</h3>
+        <p class="lede">Um mockup grande por vez. Tabs: Abrir caso · Operação · Workspace.</p>
+        <div style="margin-top: 24px; max-width: 640px;">
+          <div class="mock">
+            <div class="mock-bar">
+              <span class="d"></span><span class="d"></span><span class="d"></span>
+              <span class="t">app.juriai · operação</span>
+            </div>
+            <div class="mock-ui" style="min-height: 200px; display: grid; place-items: center; color: var(--muted); font-size: 13px;">
+              [ Slot: screenshot / export Stitch do dossiê 2 colunas ]
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FLOW -->
+      <section class="sec">
+        <p class="ey">Como funciona</p>
+        <h3>Do dossiê à minuta, com o que está nos autos.</h3>
+        <div class="steps">
+          <div class="step"><div class="n">01</div><strong>Abrir o caso</strong><span>Wizard: tipo, área, partes.</span></div>
+          <div class="step"><div class="n">02</div><strong>Anexar provas</strong><span>Documentos no dossiê.</span></div>
+          <div class="step"><div class="n">03</div><strong>Gerar análise</strong><span>Fatos e lacunas.</span></div>
+          <div class="step"><div class="n">04</div><strong>Redigir</strong><span>Rascunho + PDF.</span></div>
+          <div class="step"><div class="n">05</div><strong>Revisar</strong><span>Advogado decide.</span></div>
+        </div>
+      </section>
+
+      <!-- MODULES -->
+      <section class="sec alt">
+        <p class="ey">Módulos</p>
+        <h3>Um sistema de caso, não um assistente avulso.</h3>
+        <div class="mods">
+          <div class="mod"><strong>Casos</strong><p>Dossiê, partes, status.</p></div>
+          <div class="mod"><strong>Provas</strong><p>Upload e contexto.</p></div>
+          <div class="mod"><strong>Análise</strong><p>Fatos e lacunas.</p></div>
+          <div class="mod"><strong>Rascunhos</strong><p>Peça + PDF.</p></div>
+          <div class="mod"><strong>Conversa</strong><p>Estratégia no caso.</p></div>
+          <div class="mod"><strong>Monitoramento</strong><p>Publicações / CNJ.</p></div>
+        </div>
+      </section>
+
+      <!-- AUDIENCE -->
+      <section class="sec">
+        <p class="ey">Para quem</p>
+        <h3>Quem responde pelo caso, não quem brinca com prompt.</h3>
+        <p class="lede">Escritório cível, vários casos, frustrou com citação inventada, gestão de prazos sem raciocínio de peça.</p>
+      </section>
+
+      <!-- TRUST DARK -->
+      <section class="sec dark">
+        <p class="ey">Confiança</p>
+        <h3>Toda saída carrega origem, limite e revisão.</h3>
+        <p class="lede">Bloco escuro para quebrar o branco monótono (padrão enterprise).</p>
+        <div class="dark-table">
+          <div class="row"><span>Fonte no material</span><span>Documento ou trecho que sustenta o achado.</span></div>
+          <div class="row"><span>Lacuna explícita</span><span>O que não está nos autos não vira fato.</span></div>
+          <div class="row"><span>Revisão humana</span><span>Advogado no controle antes do uso externo.</span></div>
+          <div class="row"><span>Isolamento</span><span>Workspace e permissões por escritório.</span></div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta-final">
+        <h3>Estruture o caso antes de automatizar a peça.</h3>
+        <p>Veja o JuriAI no dossiê: provas, análise, lacunas e rascunhos com o advogado no controle.</p>
+        <div class="hero-ctas">
+          <span class="btn btn-primary">Solicitar acesso</span>
+          <span class="btn btn-secondary">Ver como funciona</span>
+        </div>
+      </section>
+    </div>
+
+    <div class="note">
+      <strong>Como usar este wireframe</strong>
+      <ol>
+        <li>Abrir no browser: <code>/site/esbocos/wireframe-home-v1.html</code></li>
+        <li>Replicar no Stitch/Figma frame a frame (hero primeiro).</li>
+        <li>Exportar mockup limpo do wizard (sem sidebar Console).</li>
+        <li>Só então atualizar o React da home para casar 1:1 com este layout.</li>
+        <li>Proibido no hero: print com sidebar admin, “Dados demo”, filmstrip de 3 telas.</li>
+      </ol>
+      <p style="margin-top:12px">
+        <strong>Stitch prompt:</strong> copiar o bloco “Prompt pronto” da conversa de design,
+        anexar este HTML como referência de estrutura.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

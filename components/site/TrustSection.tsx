@@ -1,124 +1,115 @@
+import { SiteReveal } from "./SiteReveal";
+
 type Guardrail = {
   control: string;
   guarantee: string;
-  token?: string;
-  tooltip?: string;
 };
 
 const GUARDRAILS: Guardrail[] = [
   {
-    control: "Fonte original",
-    guarantee: "Cada extração aponta o documento e a posição de origem.",
-    tooltip: "Documento ou publicação que originou a extração.",
+    control: "Fonte no material",
+    guarantee:
+      "Extrações e achados apontam para o documento ou trecho que os sustenta.",
   },
   {
-    control: "Trecho citado",
-    guarantee: "O texto exato que sustenta a saída fica registrado.",
-    tooltip: "O texto exato citado como base da saída da IA.",
+    control: "Lacuna explícita",
+    guarantee:
+      "O que não está nos autos aparece como [FATO ALEGADO] ou gap, não como fato inventado.",
   },
   {
-    control: "Nível de confiança",
-    guarantee: "A IA declara a confiança de cada informação extraída.",
-    tooltip: "Grau de certeza que a IA declara para cada informação.",
-  },
-  {
-    control: "Status da sugestão",
-    guarantee: "Toda saída da IA nasce como sugestão, não como verdade.",
-    token: "AI_SUGGESTED",
-    tooltip: "Toda saída nasce como sugestão (AI_SUGGESTED), não como verdade.",
+    control: "Sugestão, não verdade",
+    guarantee:
+      "Saídas de IA nascem como proposta para o advogado, nunca como decisão final.",
   },
   {
     control: "Revisão humana",
-    guarantee: "Nenhuma peça avança sem aprovação de um advogado.",
-    token: "reviewed_by",
-    tooltip: "Aprovação obrigatória de um advogado antes de gerar.",
+    guarantee:
+      "Peça e análise avançam com o advogado no controle antes de uso externo.",
   },
   {
-    control: "Automação bloqueada",
-    guarantee: "A geração final fica travada até a revisão ser concluída.",
-    token: "automationBlocked",
+    control: "Isolamento por escritório",
+    guarantee:
+      "Dados de cada escritório ficam separados por permissão e workspace.",
   },
   {
-    control: "Workspace isolado",
-    guarantee: "Dados de cada escritório ficam separados por permissão.",
-  },
-  {
-    control: "Auditoria",
-    guarantee: "Origem, confiança e responsável ficam na trilha de auditoria.",
-    token: "AuditEntry",
-    tooltip: "Origem, confiança e responsável ficam na trilha consultável.",
+    control: "Trilha consultável",
+    guarantee:
+      "Origem, confiança e responsável permanecem rastreáveis no caso.",
   },
 ];
 
 export function TrustSection() {
   return (
-    <section id="seguranca" className="scroll-mt-16 border-b border-[var(--border)]">
-      <div className="mx-auto max-w-6xl px-6 py-20">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-            Confiança e rastreabilidade
-          </p>
-          <h2 className="mt-4 font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
-            Toda saída da IA carrega origem, confiança e revisão.
-          </h2>
-          <p className="mt-4 text-lg leading-relaxed text-[var(--muted)]">
-            Rastreabilidade não é um recurso à parte. É a condição para usar IA
-            em trabalho jurídico. Estes guardrails são parte do produto, não uma
-            promessa de marketing.
-          </p>
-        </div>
+    <section
+      id="seguranca"
+      className="scroll-mt-16 border-b border-[var(--border)] bg-[#0c0c0c] text-[#f5f5f4]"
+    >
+      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
+        <SiteReveal>
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a3a3a3]">
+              Confiança
+            </p>
+            <h2 className="mt-4 font-serif text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+              Qualquer um promete agente de IA. Poucos fecham com “nunca inventa jurisprudência”.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-[#a3a3a3]">
+              Rastreabilidade não é slogan. É condição para usar IA em trabalho
+              que o advogado assina.
+            </p>
+          </div>
+        </SiteReveal>
 
-        <div className="mt-12 overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)]">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-[var(--border)] bg-[var(--background)]">
-                <th className="w-[30%] px-6 py-3 font-medium text-[var(--muted)]">
-                  Guardrail
-                </th>
-                <th className="px-6 py-3 font-medium text-[var(--muted)]">
-                  O que garante
-                </th>
-                <th className="hidden px-6 py-3 font-medium text-[var(--muted)] lg:table-cell">
-                  Registro
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {GUARDRAILS.map((g) => (
-                <tr
-                  key={g.control}
-                  className="border-b border-[var(--border)] last:border-0"
-                >
-                  <td className="px-6 py-4 align-top font-medium text-[var(--foreground)]">
-                    {g.tooltip ? (
-                      <span
-                        tabIndex={0}
-                        className="site-tooltip-trigger"
-                        data-tooltip={g.tooltip}
-                      >
-                        {g.control}
-                      </span>
-                    ) : (
-                      g.control
-                    )}
-                  </td>
-                  <td className="px-6 py-4 align-top text-[var(--muted)]">
-                    {g.guarantee}
-                  </td>
-                  <td className="hidden px-6 py-4 align-top lg:table-cell">
-                    {g.token ? (
-                      <code className="font-mono text-xs text-[var(--foreground)]">
-                        {g.token}
-                      </code>
-                    ) : (
-                      <span className="text-[var(--muted)]">—</span>
-                    )}
-                  </td>
+        <SiteReveal delayMs={70}>
+          <div className="mt-14 overflow-hidden rounded-sm border border-[#2a2a2a] bg-[#141414]">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-[#2a2a2a]">
+                  <th className="w-[32%] px-5 py-3.5 font-medium text-[#a3a3a3] sm:px-6">
+                    Controle
+                  </th>
+                  <th className="px-5 py-3.5 font-medium text-[#a3a3a3] sm:px-6">
+                    O que garante
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {GUARDRAILS.map((row) => (
+                  <tr
+                    key={row.control}
+                    className="border-b border-[#2a2a2a] last:border-0"
+                  >
+                    <td className="px-5 py-4 align-top font-medium text-white sm:px-6">
+                      {row.control}
+                    </td>
+                    <td className="px-5 py-4 align-top text-[#a3a3a3] sm:px-6">
+                      {row.guarantee}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </SiteReveal>
+
+        <SiteReveal delayMs={100}>
+          <div className="mt-10 flex flex-wrap gap-3">
+            {[
+              "LGPD",
+              "Isolamento multi-tenant",
+              "Revisão humana",
+              "Trilha de auditoria",
+              "Garantia de processo 30 dias",
+            ].map((badge) => (
+              <span
+                key={badge}
+                className="rounded border border-[#333] bg-[#1a1a1a] px-3 py-1.5 text-xs font-medium text-[#d4d4d4]"
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
+        </SiteReveal>
       </div>
     </section>
   );

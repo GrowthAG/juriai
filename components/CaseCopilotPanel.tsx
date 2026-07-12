@@ -184,10 +184,7 @@ export function CaseCopilotPanel({
               <div
                 className={[
                   bubbleMax,
-                  "rounded-[var(--radius-card)] px-3 py-2 text-sm leading-relaxed",
-                  message.role === "assistant"
-                    ? "bg-[var(--background)] text-[var(--foreground)] ring-1 ring-[var(--border)]"
-                    : "bg-[var(--background)] text-[var(--foreground)] ring-1 ring-[var(--border)]",
+                  "rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm leading-relaxed text-[var(--foreground)]",
                 ].join(" ")}
               >
                 {message.text}
@@ -196,7 +193,7 @@ export function CaseCopilotPanel({
           ))}
           {busyAction && (
             <div className="flex justify-start">
-              <div className="rounded-[var(--radius-card)] bg-[var(--background)] px-3 py-2 ring-1 ring-[var(--border)]">
+              <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)] px-3 py-2">
                 <span className="inline-flex items-center gap-1 text-[var(--muted)]">
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.3s]" />
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />

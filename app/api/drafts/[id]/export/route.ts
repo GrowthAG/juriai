@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAccessibleCase } from "@/lib/access";
 import { renderDraftPdf } from "@/lib/pdf/draft-pdf";
 import { prisma } from "@/lib/prisma";
+import { getSessionUserId } from "@/lib/session";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -14,6 +15,11 @@ type RouteContext = {
  * retorna 404 — nunca vaza conteúdo cross-workspace.
  */
 export async function GET(_request: Request, context: RouteContext) {
+  const sessionUserId = await getSessionUserId();
+  if (!sessionUserId) {
+    return NextResponse.json({ error: "Minuta não encontrada" }, { status: 404 });
+  }
+
   const { id } = await context.params;
   const draftId = String(id || "").trim();
   if (!draftId) {
