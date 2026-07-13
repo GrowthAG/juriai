@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { SiteReveal } from "./SiteReveal";
 
 const STEPS = [
@@ -33,7 +34,14 @@ const STEPS = [
 
 export function MechanismSection() {
   const [active, setActive] = useState(0);
+  const prevActive = useRef(0);
   const step = STEPS[active];
+  const direction = active > prevActive.current ? 1 : -1;
+
+  const handleSetActive = (index: number) => {
+    prevActive.current = active;
+    setActive(index);
+  };
 
   return (
     <section
@@ -71,7 +79,7 @@ export function MechanismSection() {
                     type="button"
                     role="tab"
                     aria-selected={selected}
-                    onClick={() => setActive(i)}
+                    onClick={() => handleSetActive(i)}
                     className={[
                       "relative min-w-[7.5rem] flex-1 px-3 py-4 text-left transition-colors sm:min-w-0 sm:px-4",
                       selected
@@ -106,39 +114,45 @@ export function MechanismSection() {
               })}
             </div>
 
-            <div
-              key={step.n}
-              className="site-step-panel grid gap-6 px-5 py-7 sm:grid-cols-[minmax(0,8rem)_1fr] sm:px-8 sm:py-9"
-              role="tabpanel"
-            >
-              <div>
-                <p className="font-mono text-3xl font-semibold tabular-nums text-[var(--primary)] sm:text-4xl">
-                  {step.n}
-                </p>
-                <p className="mt-2 text-xs text-[var(--muted)]">
-                  Etapa {active + 1} de {STEPS.length}
-                </p>
-              </div>
-              <div>
-                <h3 className="font-serif text-xl font-semibold tracking-tight sm:text-2xl">
-                  {step.title}
-                </h3>
-                <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--muted)] sm:text-base">
-                  {step.desc}
-                </p>
-                <div
-                  className="mt-6 h-0.5 w-full overflow-hidden rounded-full bg-[var(--border)]"
-                  aria-hidden="true"
-                >
-                  <div
-                    className="h-full rounded-full bg-[var(--primary)] transition-[width] duration-400 ease-out"
-                    style={{
-                      width: `${((active + 1) / STEPS.length) * 100}%`,
-                    }}
-                  />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step.n}
+                className="site-step-panel grid gap-6 px-5 py-7 sm:grid-cols-[minmax(0,8rem)_1fr] sm:px-8 sm:py-9"
+                role="tabpanel"
+                initial={{ opacity: 0, x: direction > 0 ? 20 : -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: direction > 0 ? -20 : 20 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <div>
+                  <p className="font-mono text-3xl font-semibold tabular-nums text-[var(--primary)] sm:text-4xl">
+                    {step.n}
+                  </p>
+                  <p className="mt-2 text-xs text-[var(--muted)]">
+                    Etapa {active + 1} de {STEPS.length}
+                  </p>
                 </div>
-              </div>
-            </div>
+                <div>
+                  <h3 className="font-serif text-xl font-semibold tracking-tight sm:text-2xl">
+                    {step.title}
+                  </h3>
+                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+                    {step.desc}
+                  </p>
+                  <div
+                    className="mt-6 h-0.5 w-full overflow-hidden rounded-full bg-[var(--border)]"
+                    aria-hidden="true"
+                  >
+                    <div
+                      className="h-full rounded-full bg-[var(--primary)] transition-[width] duration-400 ease-out"
+                      style={{
+                        width: `${((active + 1) / STEPS.length) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </SiteReveal>
       </div>

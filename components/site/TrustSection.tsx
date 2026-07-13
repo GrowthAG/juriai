@@ -1,4 +1,9 @@
+"use client";
+
+import { motion } from "motion/react";
+import { useReducedMotion } from "motion/react";
 import { SiteReveal } from "./SiteReveal";
+import { staggerContainer, staggerItem } from "./motion/variants";
 
 type Guardrail = {
   control: string;
@@ -39,6 +44,7 @@ const GUARDRAILS: Guardrail[] = [
 ];
 
 export function TrustSection() {
+  const shouldReduceMotion = useReducedMotion();
   return (
     <section
       id="seguranca"
@@ -60,37 +66,41 @@ export function TrustSection() {
           </div>
         </SiteReveal>
 
-        <SiteReveal delayMs={70}>
-          <div className="mt-14 overflow-hidden rounded-sm border border-[#2a2a2a] bg-[#141414]">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-[#2a2a2a]">
-                  <th className="w-[32%] px-5 py-3.5 font-medium text-[#a3a3a3] sm:px-6">
-                    Controle
-                  </th>
-                  <th className="px-5 py-3.5 font-medium text-[#a3a3a3] sm:px-6">
-                    O que garante
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {GUARDRAILS.map((row) => (
-                  <tr
-                    key={row.control}
-                    className="border-b border-[#2a2a2a] last:border-0"
-                  >
-                    <td className="px-5 py-4 align-top font-medium text-white sm:px-6">
-                      {row.control}
-                    </td>
-                    <td className="px-5 py-4 align-top text-[#a3a3a3] sm:px-6">
-                      {row.guarantee}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </SiteReveal>
+        <div className="mt-14 overflow-hidden rounded-sm border border-[#2a2a2a] bg-[#141414]">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-[#2a2a2a]">
+                <th className="w-[32%] px-5 py-3.5 font-medium text-[#a3a3a3] sm:px-6">
+                  Controle
+                </th>
+                <th className="px-5 py-3.5 font-medium text-[#a3a3a3] sm:px-6">
+                  O que garante
+                </th>
+              </tr>
+            </thead>
+            <motion.tbody
+              initial={shouldReduceMotion ? "visible" : "hidden"}
+              whileInView={shouldReduceMotion ? "visible" : "visible"}
+              viewport={{ once: true, margin: "-8% 0px" }}
+              variants={shouldReduceMotion ? {} : staggerContainer(0.06)}
+            >
+              {GUARDRAILS.map((row) => (
+                <motion.tr
+                  key={row.control}
+                  className="border-b border-[#2a2a2a] last:border-0"
+                  variants={shouldReduceMotion ? {} : staggerItem}
+                >
+                  <td className="px-5 py-4 align-top font-medium text-white sm:px-6">
+                    {row.control}
+                  </td>
+                  <td className="px-5 py-4 align-top text-[#a3a3a3] sm:px-6">
+                    {row.guarantee}
+                  </td>
+                </motion.tr>
+              ))}
+            </motion.tbody>
+          </table>
+        </div>
 
         <SiteReveal delayMs={100}>
           <div className="mt-10 flex flex-wrap gap-3">

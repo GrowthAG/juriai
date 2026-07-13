@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { ProductMockup } from "./ProductMockup";
 import { SiteReveal } from "./SiteReveal";
 
@@ -64,14 +65,15 @@ export function ProductShowcaseSection() {
             {SHOTS.map((item, i) => {
               const selected = i === active;
               return (
-                <button
+                <motion.button
                   key={item.id}
                   type="button"
                   role="tab"
                   aria-selected={selected}
                   onClick={() => setActive(i)}
+                  layoutId={selected ? "active-shot" : undefined}
                   className={[
-                    "min-w-[10.5rem] shrink-0 rounded-sm border px-4 py-3 text-left text-sm transition-colors",
+                    "relative min-w-[10.5rem] shrink-0 rounded-sm border px-4 py-3 text-left text-sm transition-colors",
                     selected
                       ? "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--surface)]"
                       : "border-[var(--border)] bg-[var(--background)] text-[var(--muted)] hover:border-[var(--border-strong)] hover:text-[var(--foreground)]",
@@ -86,7 +88,7 @@ export function ProductShowcaseSection() {
                   >
                     {item.caption}
                   </span>
-                </button>
+                </motion.button>
               );
             })}
           </div>

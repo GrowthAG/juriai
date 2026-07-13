@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { motion } from "motion/react";
 import { SiteReveal } from "./SiteReveal";
 
 export function FinalCta() {
@@ -35,18 +38,22 @@ export function FinalCta() {
               mais rápida, devolvemos o mês.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a
+              <motion.a
                 href="mailto:contato@juriai.com.br?subject=Demo%20JuriAI%20com%20caso%20real"
                 className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--primary)] px-8 text-base font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary-hover)]"
+                whileHover={{ scale: 1.015 }}
+                whileTap={{ scale: 0.985 }}
               >
                 Agendar demo com caso real
-              </a>
-              <a
+              </motion.a>
+              <motion.a
                 href="#precos"
                 className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border-strong)] bg-white px-8 text-base font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--background)]"
+                whileHover={{ scale: 1.015 }}
+                whileTap={{ scale: 0.985 }}
               >
                 Ver planos
-              </a>
+              </motion.a>
             </div>
             <p className="mx-auto mt-8 max-w-md text-sm font-medium leading-relaxed text-[var(--foreground)]">
               A única coisa que com certeza não resolve a releitura eterna é
