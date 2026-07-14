@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "juriai-agent-bus": {
+      "httpUrl": "http://127.0.0.1:8766/mcp",
+      "timeout": 60000,
+      "trust": false
+    }
+  }
+}
