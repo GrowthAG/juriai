@@ -77,44 +77,50 @@ export default async function LoginPage({
               </form>
 
               {showDevLogin && (
-            <>
-            <div className="mt-6 flex items-center gap-3 text-xs text-[var(--muted)]">
-                  <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
-                  ou
-                  <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
-                </div>
-
-                <form action={loginAsEmail} className="mt-6 grid gap-5">
-                  <div className="grid gap-2">
-                    <label
-                      htmlFor="email"
-                      className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]"
-                    >
-                      E-mail
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      autoFocus
-                      placeholder="voce@escritorio.com.br"
-                      className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[var(--primary)]"
+                <>
+                  <div className="mt-6 flex items-center gap-3 text-xs text-[var(--muted)]">
+                    <span
+                      className="h-px flex-1 bg-[var(--border)]"
+                      aria-hidden="true"
+                    />
+                    ou
+                    <span
+                      className="h-px flex-1 bg-[var(--border)]"
+                      aria-hidden="true"
                     />
                   </div>
 
-                  <Button type="submit" className="w-full">
-                    Entrar
-                  </Button>
-                </form>
+                  <form action={loginAsEmail} className="mt-6 grid gap-5">
+                    <div className="grid gap-2">
+                      <label
+                        htmlFor="email"
+                        className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]"
+                      >
+                        E-mail
+                      </label>
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        autoFocus
+                        placeholder="voce@escritorio.com.br"
+                        className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[var(--primary)]"
+                      />
+                    </div>
 
-                <p className="mt-5 text-xs leading-relaxed text-[var(--muted)]">
-                  Permissões, papel e workspace são aplicados automaticamente após
-                  a autenticação.
-                </p>
-            </>
-          )}
+                    <Button type="submit" className="w-full">
+                      Entrar
+                    </Button>
+                  </form>
+
+                  <p className="mt-5 text-xs leading-relaxed text-[var(--muted)]">
+                    Permissões, papel e workspace são aplicados automaticamente após
+                    a autenticação.
+                  </p>
+                </>
+              )}
             </Card>
 
             {/* Ambiente local — bloco discreto, alinhado à largura do card */}
@@ -142,7 +148,7 @@ export default async function LoginPage({
         <aside className="hidden min-h-screen flex-col justify-center border-l border-[var(--border)] bg-[var(--surface)] px-12 py-16 lg:flex">
           <div className="max-w-md">
             <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-              Legal Operating System
+              Operação jurídica
             </p>
             <h2 className="mt-4 font-serif text-3xl font-semibold leading-[1.15] tracking-tight text-[var(--foreground)]">
               Fluxos guiados para operar casos com revisão humana.
