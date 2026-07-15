@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getActorContext } from "@/lib/actor-context";
 import { getSessionUserId } from "@/lib/session";
 import { SiteLayout } from "@/components/site/SiteLayout";
@@ -14,11 +15,15 @@ import { AudienceSection } from "@/components/site/AudienceSection";
 import { TrustSection } from "@/components/site/TrustSection";
 import { ComparisonSection } from "@/components/site/ComparisonSection";
 import { FinalCta } from "@/components/site/FinalCta";
+import { getAppPath, isAppHost } from "@/lib/public-urls";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const sessionUserId = await getSessionUserId();
+  const [sessionUserId, requestHeaders] = await Promise.all([
+    getSessionUserId(),
+    headers(),
+  ]);
 
   let ctx: Awaited<ReturnType<typeof getActorContext>> | null = null;
   if (sessionUserId) {
@@ -37,9 +42,15 @@ export default async function HomePage() {
 
   if (ctx) {
     if (ctx.isSuperAdmin || ctx.workspaceKind === "MASTER") {
-      redirect("/admin");
+      redirect(getAppPath("/admin"));
     }
-    redirect("/workspace");
+    redirect(getAppPath("/workspace"));
+  }
+
+  const requestHost =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  if (isAppHost(requestHost)) {
+    redirect("/login");
   }
 
   return (
