@@ -17,8 +17,26 @@ test.describe("API auth guards", () => {
     await expectJsonError(response);
   });
 
+  test("rejeita worker interno sem credenciais da fila", async ({ request }) => {
+    const response = await request.post(
+      "/api/internal/ingestion-jobs/not-a-real-id/process",
+    );
+
+    expect(response.status()).toBe(401);
+    await expectJsonError(response);
+  });
+
   test("não revela PDF de minuta sem sessão", async ({ request }) => {
     const response = await request.get("/api/drafts/not-a-real-id/export");
+
+    expect(response.status()).toBe(404);
+    await expectJsonError(response);
+  });
+
+  test("não revela arquivo de prova sem sessão", async ({ request }) => {
+    const response = await request.get(
+      "/api/evidence/not-a-real-id/download",
+    );
 
     expect(response.status()).toBe(404);
     await expectJsonError(response);

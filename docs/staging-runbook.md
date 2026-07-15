@@ -33,11 +33,20 @@ Ver também `.env.example`.
 | `JURIAI_ALLOW_DEV_BYPASS` | **`false`** ou **ausente** |
 | `DATABASE_URL` | Postgres staging (não `127.0.0.1` do laptop) |
 | `JURIAI_SESSION_SECRET` | secret forte, distinto do dev local |
+| `AUTH_SECRET` | secret forte do Auth.js, distinto de `JURIAI_SESSION_SECRET` |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | OAuth client de staging |
-| Callback / URL pública | ver §4 |
+| `AUTH_URL` | URL canônica HTTPS do ambiente; ver §4 |
+| `JURIAI_APP_URL` | URL pública do produto, por exemplo `https://app.juriai.adv.br` |
 | `GOOGLE_CLOUD_PROJECT` | `juriai-app` (ou projeto staging) |
 | ADC | service account do Cloud Run |
-| `JURIAI_UPLOAD_DIR` | path persistente (não tmpdir efêmero) |
+| `JURIAI_UPLOAD_DIR` | `/var/juriai/uploads`, bucket de arquivos limpos |
+| `JURIAI_UNSCANNED_UPLOAD_DIR` | `/var/juriai/unscanned`, bucket de entrada não verificada |
+| `JURIAI_QUARANTINE_UPLOAD_DIR` | `/var/juriai/quarantine`, bucket de quarentena |
+| `JURIAI_TASKS_LOCATION` | `us-central1` |
+| `JURIAI_INGESTION_QUEUE` | `juriai-ingestion` |
+| `JURIAI_TASKS_BASE_URL` | URL canônica HTTPS usada como target e audience OIDC |
+| `JURIAI_TASKS_SERVICE_ACCOUNT` | Service account do runtime/worker |
+| `JURIAI_TASKS_AUTH_TOKEN` | Secret forte no Secret Manager; nunca env em texto puro |
 | LLM defaults | opcionais; workspace pode ter override no DB |
 | `ANTHROPIC_API_KEY` | **não** setar se política for só Google Startups |
 
@@ -48,7 +57,9 @@ test "$NODE_ENV" = "production"
 test "${JURIAI_ALLOW_DEV_BYPASS:-false}" != "true"
 test -n "$DATABASE_URL"
 test -n "$JURIAI_SESSION_SECRET"
+test -n "$AUTH_SECRET"
 test -n "$AUTH_GOOGLE_ID" && test -n "$AUTH_GOOGLE_SECRET"
+test -n "$AUTH_URL"
 ```
 
 ---
@@ -69,6 +80,12 @@ test -n "$AUTH_GOOGLE_ID" && test -n "$AUTH_GOOGLE_SECRET"
 **Preferido:** Cloud SQL Unix socket / Auth Proxy integrado ao Cloud Run.  
 **Evitar:** IP público aberto sem restrição.
 
+Formato do secret para Prisma/`pg` via socket:
+
+```text
+postgresql://USER:PASSWORD@localhost/DB?host=/cloudsql/PROJECT:REGION:INSTANCE&schema=public
+```
+
 ### Usuário
 
 - User app dedicado staging (ex. `juriai_staging`) ou user existente com secret no Secret Manager.
@@ -76,11 +93,43 @@ test -n "$AUTH_GOOGLE_ID" && test -n "$AUTH_GOOGLE_SECRET"
 
 ### Schema
 
-Prisma Migrate: sem pasta `migrations` versionada. Aplicar `prisma/patches/*.sql` na ordem do `SETUP.md` em instância nova. Build da imagem roda `npx prisma generate`.
+Prisma Migrate: sem pasta `migrations` versionada. Em uma instância nova e
+vazia, aplicar `prisma/init.sql` uma única vez. Em banco existente, primeiro
+inventariar o schema e então aplicar apenas os patches ausentes na ordem do
+`SETUP.md`. Build da imagem roda `npx prisma generate`.
+
+Depois do schema, criar o primeiro usuário permitido no OAuth:
+
+```bash
+npm run db:bootstrap-admin -- admin@empresa.com "Nome do admin"
+```
 
 ---
 
 ## 4) OAuth Google
+
+### Domínios de produção
+
+| Uso | URL |
+|---|---|
+| Site institucional | `https://juriai.adv.br` |
+| Alias do site | `https://www.juriai.adv.br` |
+| Aplicação | `https://app.juriai.adv.br` |
+
+O frontend usa o Load Balancer global `juriai-web-map`, IP estático
+`8.233.232.214`, backend serverless `juriai-cloud-run-backend` e certificado
+gerenciado `juriai-domains-cert`. O alias `www` usa o certificado
+`juriai-www-cert`. No DNS autoritativo da Hostinger:
+
+| Tipo | Nome | Valor |
+|---|---|---|
+| `A` | `@` | `8.233.232.214` |
+| `A` | `app` | `8.233.232.214` |
+| `CNAME` | `www` | `juriai.adv.br.` |
+
+Não remover registros `MX`/`TXT` usados pelo e-mail. Depois da propagação,
+configurar `AUTH_URL`, `NEXTAUTH_URL` e `JURIAI_APP_URL` como
+`https://app.juriai.adv.br`.
 
 ### Domínio staging (exemplo)
 
@@ -93,6 +142,8 @@ Prisma Migrate: sem pasta `migrations` versionada. Aplicar `prisma/patches/*.sql
 |---|---|
 | Authorized JavaScript origins | `https://staging.…` |
 | Authorized redirect URIs | `https://staging.…/api/auth/callback/google` |
+| Authorized JavaScript origins (prod) | `https://app.juriai.adv.br` |
+| Authorized redirect URIs (prod) | `https://app.juriai.adv.br/api/auth/callback/google` |
 
 ### Checklist Console
 
@@ -110,10 +161,21 @@ Com bypass off, formulário de e-mail dev **não** deve aparecer.
 
 | Ambiente | Opção |
 |---|---|
-| Staging mínima | `JURIAI_UPLOAD_DIR` em volume persistente; preferir **1** min instance se FS local |
-| Staging correta / prod | **GCS bucket** + SA; hoje o código grava filesystem (gap conhecido para multi-réplica) |
+| Staging e produção | Bucket Cloud Storage montado em `/var/juriai/uploads` |
 
-Timbrado PDF (`letterheadPath`) também depende de path legível no runtime.
+O código atual já usa filesystem para provas, ingestão, logos e timbrado. O mount
+do Cloud Run expõe o bucket como diretório, sem SDK adicional. Como o
+`Dockerfile` executa com usuário `nextjs` (`uid=1001`, `gid=1001`), configure o
+mount com essas identidades e dê à service account `roles/storage.objectUser`.
+Reserve memória para o processo FUSE e para uploads concorrentes; iniciar com
+1 GiB é uma base prudente para o smoke.
+
+### Ingestão assíncrona
+
+Uploads criam um `IngestionJob` e publicam uma task HTTP na fila regional
+`juriai-ingestion`. O worker interno exige OIDC da service account esperada e
+um segundo token vindo do Secret Manager. A fila deve limitar concorrência para
+proteger Cloud SQL e o provider de IA; o botão manual permanece como fallback.
 
 ---
 
@@ -126,12 +188,22 @@ Timbrado PDF (`letterheadPath`) também depende de path legível no runtime.
 - [ ] OAuth URIs  
 - [ ] Cloud SQL attachment  
 
-### Build da imagem
+### Build e deploy da imagem
 
 ```bash
-git fetch origin && git switch main && git pull --ff-only
-docker build -t REGION-docker.pkg.dev/PROJECT/REPO/juriai-staging:SHA .
+gcloud run deploy juriai-staging \
+  --source . \
+  --project juriai-app \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --add-cloudsql-instances juriai-app:us-central1:juriai-db \
+  --add-volume mount-path=/var/juriai/uploads,type=cloud-storage,bucket=BUCKET,readonly=false,mount-options="uid=1001;gid=1001" \
+  --memory 1Gi
 ```
+
+O deploy por source usa o `Dockerfile` presente e executa o build no Cloud
+Build, sem exigir Docker instalado na máquina local. Acrescente os secrets,
+env vars e a service account após inventariar os recursos existentes.
 
 ### Runtime
 
