@@ -12,7 +12,7 @@ const NAV_LINKS = [
   { label: "Confiança", href: "#seguranca" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ appLoginUrl }: { appLoginUrl: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -51,7 +51,7 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <Link
-            href="/login"
+            href={appLoginUrl}
             className="hidden rounded-lg px-3 py-2 text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)] sm:inline-flex"
           >
             Entrar
@@ -116,7 +116,7 @@ export function SiteHeader() {
             ))}
             <li>
               <Link
-                href="/login"
+                href={appLoginUrl}
                 className="block py-3 text-sm font-medium text-[var(--muted)]"
                 onClick={() => setOpen(false)}
               >
