@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { logout } from "@/app/actions/auth";
 
 export type WorkspaceKind = "MASTER" | "SUBCONTA";
@@ -52,12 +53,91 @@ const WORKSPACE_NAV: NavItem[] = [
 
 export function Sidebar({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const isConsole = user.workspaceKind === "MASTER";
   const navItems = (isConsole ? CONSOLE_NAV : WORKSPACE_NAV).filter(
     (item) => !item.adminOnly || user.isWorkspaceAdmin,
   );
   const sections = Array.from(new Set(navItems.map((item) => item.section)));
 
+  return (
+    <>
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4 lg:hidden">
+        <Link href="/" className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/gavel-tile.svg"
+            alt=""
+            aria-hidden="true"
+            className="h-8 w-8"
+          />
+          <span className="font-serif text-lg font-semibold tracking-tight">
+            Juri<span className="font-sans text-[var(--accent)]">AI</span>
+          </span>
+        </Link>
+        <button
+          type="button"
+          className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--foreground)]"
+          aria-expanded={mobileOpen}
+          aria-controls="app-mobile-sidebar"
+          onClick={() => setMobileOpen((v) => !v)}
+        >
+          Menu
+        </button>
+      </header>
+
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 bg-black/20 lg:hidden" role="presentation">
+          <button
+            type="button"
+            className="absolute inset-0 h-full w-full cursor-default"
+            aria-label="Fechar menu"
+            onClick={() => setMobileOpen(false)}
+          />
+          <aside
+            id="app-mobile-sidebar"
+            className="relative z-50 flex h-full w-[18rem] max-w-[85vw] flex-col border-r border-[var(--border)] bg-[var(--surface)] shadow-2xl"
+          >
+            <SidebarContent
+              isConsole={isConsole}
+              navItems={navItems}
+              sections={sections}
+              user={user}
+              pathname={pathname}
+              onNavigate={() => setMobileOpen(false)}
+            />
+          </aside>
+        </div>
+      )}
+
+      <aside className="hidden h-full w-56 flex-col border-r border-[var(--border)] bg-[var(--surface)] lg:fixed lg:left-0 lg:top-0 lg:flex">
+        <SidebarContent
+          isConsole={isConsole}
+          navItems={navItems}
+          sections={sections}
+          user={user}
+          pathname={pathname}
+        />
+      </aside>
+    </>
+  );
+}
+
+function SidebarContent({
+  isConsole,
+  navItems,
+  sections,
+  user,
+  pathname,
+  onNavigate,
+}: {
+  isConsole: boolean;
+  navItems: NavItem[];
+  sections: string[];
+  user: SidebarUser;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
   function isActive(href?: string) {
     if (!href) return false;
     if (href === "/") return pathname === "/";
@@ -65,7 +145,7 @@ export function Sidebar({ user }: { user: SidebarUser }) {
   }
 
   return (
-    <aside className="fixed left-0 top-0 flex h-full w-56 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
+    <>
       <div className="flex h-16 items-center gap-2.5 border-b border-[var(--border)] px-5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -89,7 +169,12 @@ export function Sidebar({ user }: { user: SidebarUser }) {
               {navItems
                 .filter((item) => item.section === section)
                 .map((item) => (
-                  <NavLink key={`${section}-${item.label}`} item={item} active={isActive(item.href)} />
+                  <NavLink
+                    key={`${section}-${item.label}`}
+                    item={item}
+                    active={isActive(item.href)}
+                    onNavigate={onNavigate}
+                  />
                 ))}
             </div>
           </div>
@@ -125,16 +210,18 @@ export function Sidebar({ user }: { user: SidebarUser }) {
           </Link>
         )}
       </div>
-    </aside>
+    </>
   );
 }
 
 function NavLink({
   item,
   active,
+  onNavigate,
 }: {
   item: NavItem;
   active: boolean;
+  onNavigate?: () => void;
 }) {
   const base =
     "rounded-lg px-3 py-2 text-sm transition-colors border border-transparent";
@@ -156,6 +243,7 @@ function NavLink({
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={`${base} ${
         active
           ? "border-[var(--border)] bg-[var(--background)] font-semibold text-[var(--foreground)]"
