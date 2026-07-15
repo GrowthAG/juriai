@@ -25,7 +25,6 @@ export function CaseCopilotPanel({
   isJudicial,
   courtProcessCount,
   draftCount,
-  pendingDraftCount,
   initialMessages,
   compact = false,
 }: {
@@ -41,7 +40,6 @@ export function CaseCopilotPanel({
   isJudicial: boolean;
   courtProcessCount: number;
   draftCount: number;
-  pendingDraftCount: number;
   initialMessages: { role: string; content: string }[];
   /** Layout denso para coluna lateral do dossiê */
   compact?: boolean;
@@ -71,7 +69,6 @@ export function CaseCopilotPanel({
       isJudicial,
       courtProcessCount,
       draftCount,
-      pendingDraftCount,
     });
     return [{ role: "assistant", text: greeting }];
   });
@@ -114,9 +111,9 @@ export function CaseCopilotPanel({
       timelineCount,
       gapCount,
       gapPrompts,
-      pendingDraftCount,
       isJudicial,
       courtProcessCount,
+      draftCount,
     });
   }
 
@@ -260,7 +257,6 @@ function buildInitialMessage({
   isJudicial,
   courtProcessCount,
   draftCount,
-  pendingDraftCount,
 }: {
   caseTitle: string;
   clientName: string | null;
@@ -273,7 +269,6 @@ function buildInitialMessage({
   isJudicial: boolean;
   courtProcessCount: number;
   draftCount: number;
-  pendingDraftCount: number;
 }) {
   const clientLabel =
     clientName && !caseTitle.toLowerCase().includes(clientName.toLowerCase())
@@ -298,7 +293,7 @@ function buildInitialMessage({
   }
 
   if (draftCount > 0) {
-    return `Há ${draftCount} rascunho${draftCount > 1 ? "s" : ""} no dossiê${pendingDraftCount > 0 ? ` (${pendingDraftCount} para revisão)` : ""}. Continue a conversa ou refine a minuta em Rascunhos e redação.`;
+    return `Há ${draftCount} rascunho${draftCount > 1 ? "s" : ""} no dossiê. Continue a conversa ou refine a minuta em Rascunhos e redação.`;
   }
 
   if (timelineCount > 0 || gapCount > 0) {
@@ -324,9 +319,9 @@ function buildNextQuestion({
   timelineCount,
   gapCount,
   gapPrompts,
-  pendingDraftCount,
   isJudicial,
   courtProcessCount,
+  draftCount,
 }: {
   input: string;
   notes: string[];
@@ -335,9 +330,9 @@ function buildNextQuestion({
   timelineCount: number;
   gapCount: number;
   gapPrompts: string[];
-  pendingDraftCount: number;
   isJudicial: boolean;
   courtProcessCount: number;
+  draftCount: number;
 }) {
   if (!isReady) {
     return "A IA ainda não está disponível para executar ações. Quando a configuração estiver pronta, eu conduzo a análise e a minuta por aqui.";
@@ -384,8 +379,8 @@ function buildNextQuestion({
     }
   }
 
-  if (pendingDraftCount > 0) {
-    return "Há rascunho no dossiê para revisão. Use Rascunhos e redação para gerar nova versão com instruções específicas, ou continue aqui para refinar a estratégia.";
+  if (draftCount > 0) {
+    return `Há ${draftCount} rascunho${draftCount > 1 ? "s" : ""} no dossiê. Use Rascunhos e redação para gerar nova versão com instruções específicas, ou continue aqui para refinar a estratégia.`;
   }
 
   return "Tenho contexto suficiente para avançar. Use Rascunhos e redação para a minuta, ou continue a conversa para refinar a estratégia.";

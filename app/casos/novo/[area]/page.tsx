@@ -46,13 +46,13 @@ export default async function NovoCasoContextoPage({
 
   return (
     <main className="flex-1 bg-[var(--surface)]">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-8 lg:grid-cols-3">
+      <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(20rem,24rem)] lg:px-8 xl:grid-cols-[minmax(0,1.9fr)_minmax(22rem,26rem)]">
         {/* Fluxo guiado central */}
-        <div className="lg:col-span-2">
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
             Fluxo guiado
           </p>
-          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)]">
+          <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[var(--foreground)]">
             Etapa 2 · Contexto inicial
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -193,7 +193,7 @@ export default async function NovoCasoContextoPage({
         </div>
 
         {/* Painel direito de contexto */}
-        <aside className="space-y-4">
+        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
           <Card className="p-5">
             <h2 className="text-sm font-semibold text-[var(--foreground)]">
               Contexto do caso
@@ -218,7 +218,7 @@ export default async function NovoCasoContextoPage({
 
           <Card className="p-5">
             <h2 className="text-sm font-semibold text-[var(--foreground)]">
-              Próximas etapas
+              O que vem depois
             </h2>
             <ul className="mt-4 space-y-2 text-sm">
               {NEXT_STEPS.map((step) => (
@@ -241,17 +241,26 @@ export default async function NovoCasoContextoPage({
               ))}
             </ul>
           </Card>
+
+          <Card className="p-5">
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">
+              Critério de avanço
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+              O caso só é criado quando o contexto mínimo estiver preenchido.
+              Depois disso, provas e análise seguem dentro do dossiê.
+            </p>
+          </Card>
         </aside>
       </div>
 
-      {/* Command bar inferior — submit real do formulário da etapa 2. */}
-      <div className="sticky bottom-0 border-t border-[var(--border)] bg-[var(--surface)] px-6 py-4">
-        <div className="mx-auto flex max-w-4xl items-center gap-3">
-          <div className="flex-1 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)]">
+      <div className="sticky bottom-0 border-t border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
+          <p className="text-sm text-[var(--muted)]">
             Revise o contexto acima. O caso é criado com estes dados e pode ser
-            editado em seguida.
-          </div>
-          <Button type="submit" form={FORM_ID} size="md">
+            editado depois.
+          </p>
+          <Button type="submit" form={FORM_ID} size="md" className="shrink-0">
             Criar caso
           </Button>
         </div>
