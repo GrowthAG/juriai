@@ -53,7 +53,7 @@ export default async function WorkspaceDetailPage({
       <Card className="mt-3 flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="font-serif text-2xl font-semibold tracking-tight">
-
+            {workspace.name}
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
             {planLabel} · {statusLabel} · {Number(workspace.userCount ?? 0)}{" "}
