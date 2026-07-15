@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { DOMAIN_LABEL } from "@/lib/case-labels";
 
 // Áreas derivadas da fonte canônica (lib/case-labels.ts). O slug de rota é a
@@ -31,13 +31,13 @@ const NEXT_STEPS: { label: string; active?: boolean }[] = [
 export default function NovoCasoWizardPage() {
   return (
     <main className="flex-1 bg-[var(--surface)]">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-8 lg:grid-cols-3">
+      <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(20rem,24rem)] lg:px-8 xl:grid-cols-[minmax(0,1.8fr)_minmax(22rem,26rem)]">
         {/* Fluxo guiado central */}
-        <div className="lg:col-span-2">
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
             Fluxo guiado
           </p>
-          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)]">
+          <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[var(--foreground)]">
             Novo caso
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -84,12 +84,12 @@ export default function NovoCasoWizardPage() {
               os próximos campos do wizard.
             </p>
 
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {DOMAIN_OPTIONS.map((opt) => (
                 <Link
                   key={opt.slug}
                   href={`/casos/novo/${opt.slug}`}
-                  className="rounded-[var(--radius-card)] border border-[var(--border-strong)] bg-[var(--surface)] p-4 text-left text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--primary)] hover:bg-[var(--background)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+                  className="flex min-h-20 items-center rounded-[var(--radius-card)] border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-4 text-left text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--primary)] hover:bg-[var(--background)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
                 >
                   {opt.label}
                 </Link>
@@ -104,7 +104,7 @@ export default function NovoCasoWizardPage() {
         </div>
 
         {/* Painel direito de contexto */}
-        <aside className="space-y-4">
+        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
           <Card className="p-5">
             <h2 className="text-sm font-semibold text-[var(--foreground)]">
               Contexto do caso
@@ -152,19 +152,18 @@ export default function NovoCasoWizardPage() {
               ))}
             </ul>
           </Card>
-        </aside>
-      </div>
 
-      {/* Command bar inferior — visual/auxiliar, sem ação real (sem submit/IA/API). */}
-      <div className="sticky bottom-0 border-t border-[var(--border)] bg-[var(--surface)] px-6 py-4">
-        <div className="mx-auto flex max-w-4xl items-center gap-3">
-          <div className="flex-1 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)]">
-            A entrada de contexto será liberada após a escolha da área.
-          </div>
-          <Button size="md" disabled>
-            Continuar
-          </Button>
-        </div>
+          <Card className="p-5">
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">
+              Como funciona
+            </h2>
+            <ol className="mt-4 space-y-2 text-sm text-[var(--muted)]">
+              <li>1. Escolha a área do caso.</li>
+              <li>2. Preencha o contexto no formulário da próxima etapa.</li>
+              <li>3. Anexe provas e só então gere análise e rascunhos.</li>
+            </ol>
+          </Card>
+        </aside>
       </div>
     </main>
   );
