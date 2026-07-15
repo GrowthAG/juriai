@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "agentBus": {
+    "host": "127.0.0.1",
+    "port": 8766,
+    "protocolVersion": 1,
+    "projectId": "juriai-app"
+  },
+  "coordinator": "juriai-coordinator",
+  "roles": [
+    {
+      "key": "coordinator",
+      "agentId": "juriai-coordinator",
+      "name": "Coordenação",
+      "roleFile": ".agents/roles/coordinator.md",
+      "capabilities": ["prioritization", "delegation", "decision", "integration"],
+      "defaultProvider": "claude",
+      "defaultModel": "claude-opus-4-8",
+      "reviewRole": "final",
+      "approvalScope": ["all"],
+      "writePolicy": "coordination-only"
+    },
+    {
+      "key": "po",
+      "agentId": "juriai-po",
+      "name": "Product Owner",
+      "roleFile": ".agents/roles/po.md",
+      "capabilities": ["discovery", "requirements", "acceptance-criteria", "roadmap"],
+      "defaultProvider": "codex",
+      "defaultModel": "o3",
+      "reviewRole": "requirements",
+      "approvalScope": ["problem", "requirements", "acceptance", "roadmap"],
+      "writePolicy": "read-only"
+    },
+    {
+      "key": "fullstack",
+      "agentId": "juriai-fullstack",
+      "name": "Desenvolvimento Fullstack",
+      "roleFile": ".agents/roles/fullstack.md",
+      "capabilities": ["nextjs", "typescript", "react", "prisma", "postgresql", "testing"],
+      "defaultProvider": "codex",
+      "defaultModel": "gpt-5",
+      "reviewRole": "implementation",
+      "approvalScope": ["implementation", "tests", "migrations"],
+      "writePolicy": "code-write"
+    },
+    {
+      "key": "cybersecurity",
+      "agentId": "juriai-cybersecurity",
+      "name": "Cibersegurança",
+      "roleFile": ".agents/roles/cybersecurity.md",
+      "capabilities": ["threat-modeling", "appsec", "privacy", "multi-tenant-review", "incident-readiness"],
+      "defaultProvider": "claude",
+      "defaultModel": "claude-sonnet-5",
+      "reviewRole": "security",
+      "approvalScope": ["auth", "data", "upload", "secrets", "integrations", "multi-tenant", "ai"],
+      "writePolicy": "read-only"
+    },
+    {
+      "key": "marketing",
+      "agentId": "juriai-marketing",
+      "name": "Marketing",
+      "roleFile": ".agents/roles/marketing.md",
+      "capabilities": ["positioning", "messaging", "content", "campaigns", "experiments"],
+      "defaultProvider": "gemini",
+      "defaultModel": "gemini-2.5-pro",
+      "reviewRole": "messaging",
+      "approvalScope": ["positioning", "message", "claims", "experiments"],
+      "writePolicy": "read-only"
+    },
+    {
+      "key": "sales",
+      "agentId": "juriai-sales",
+      "name": "Vendas",
+      "roleFile": ".agents/roles/sales.md",
+      "capabilities": ["qualification", "pitch", "objections", "proposal", "market-feedback"],
+      "defaultProvider": "gemini",
+      "defaultModel": "gemini-2.5-flash",
+      "reviewRole": "market-feedback",
+      "approvalScope": ["pitch", "objections", "feedback", "proposal"],
+      "writePolicy": "read-only"
+    },
+    {
+      "key": "customer-success",
+      "agentId": "juriai-customer-success",
+      "name": "Sucesso do Cliente",
+      "roleFile": ".agents/roles/customer-success.md",
+      "capabilities": ["onboarding", "adoption", "support-playbooks", "retention", "voice-of-customer"],
+      "defaultProvider": "claude",
+      "defaultModel": "claude-haiku-4-5-20251001",
+      "reviewRole": "adoption",
+      "approvalScope": ["onboarding", "adoption", "support", "playbooks", "retention"],
+      "writePolicy": "read-only"
+    }
+  ]
+}
