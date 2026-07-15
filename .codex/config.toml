@@ -1,0 +1,10 @@
+[mcp_servers.juriai_agent_bus]
+url = "http://127.0.0.1:8766/mcp"
+required = false
+startup_timeout_sec = 10
+tool_timeout_sec = 60
+bearer_token_env_var = "JURIAI_AGENT_BUS_TOKEN"
+
+[agents]
+max_threads = 6
+max_depth = 1
