@@ -6,6 +6,7 @@ import {
   type DocumentExtractionResult,
 } from "@/lib/llm";
 import { DOMAIN_LABEL } from "@/lib/case-labels";
+import { getMalwareScanStorageState } from "@/lib/uploads";
 
 // Teto de tamanho para mandar o arquivo ao modelo. Acima disso, cai para o
 // caminho ingênuo (texto), para não estourar custo/limite da API.
@@ -245,10 +246,127 @@ export async function processIngestionJob(jobId: string) {
     };
   }
 
-  await prisma.ingestionJob.update({
-    where: { id: job.id },
-    data: { status: "PROCESSANDO" },
+  if (job.evidence?.scanStatus === "INFECTED") {
+    await prisma.ingestionJob.update({
+      where: { id: job.id },
+      data: {
+        status: "FALHOU",
+        error: "Arquivo bloqueado pela verificação de segurança.",
+      },
+    });
+    return {
+      ok: false as const,
+      terminal: true as const,
+      error: "Arquivo bloqueado pela verificação de segurança.",
+      jobId: job.id,
+      caseId: job.caseId,
+    };
+  }
+
+  if (job.evidence?.scanStatus === "FAILED") {
+    await prisma.ingestionJob.update({
+      where: { id: job.id },
+      data: {
+        status: "FALHOU",
+        error: "A verificação de segurança do arquivo falhou.",
+      },
+    });
+    return {
+      ok: false as const,
+      terminal: true as const,
+      error: "A verificação de segurança do arquivo falhou.",
+      jobId: job.id,
+      caseId: job.caseId,
+    };
+  }
+
+  if (job.evidence?.scanStatus === "PENDING") {
+    let storageState: Awaited<
+      ReturnType<typeof getMalwareScanStorageState>
+    >;
+    try {
+      storageState = await getMalwareScanStorageState(job.storagePath);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Falha ao consultar a verificação de segurança.";
+      return {
+        ok: false as const,
+        terminal: false as const,
+        error: message,
+        jobId: job.id,
+        caseId: job.caseId,
+      };
+    }
+
+    if (storageState === "pending") {
+      return {
+        ok: false as const,
+        terminal: false as const,
+        error: "Verificação de segurança em andamento.",
+        jobId: job.id,
+        caseId: job.caseId,
+      };
+    }
+
+    if (storageState === "infected") {
+      const message = "Arquivo bloqueado pela verificação de segurança.";
+      await prisma.$transaction([
+        prisma.evidence.update({
+          where: { id: job.evidence.id },
+          data: {
+            scanStatus: "INFECTED",
+            scanMessage: message,
+            scannedAt: new Date(),
+          },
+        }),
+        prisma.ingestionJob.update({
+          where: { id: job.id },
+          data: { status: "FALHOU", error: message },
+        }),
+      ]);
+      return {
+        ok: false as const,
+        terminal: true as const,
+        error: message,
+        jobId: job.id,
+        caseId: job.caseId,
+      };
+    }
+
+    await prisma.evidence.update({
+      where: { id: job.evidence.id },
+      data: {
+        scanStatus: "CLEAN",
+        scanMessage: null,
+        scannedAt: new Date(),
+      },
+    });
+  }
+
+  // Claim atômico: impede que o clique manual e o Cloud Tasks processem o
+  // mesmo documento em paralelo. O lease libera jobs presos por crash.
+  const staleLease = new Date(Date.now() - 20 * 60 * 1000);
+  const claim = await prisma.ingestionJob.updateMany({
+    where: {
+      id: job.id,
+      OR: [
+        { status: { in: ["PENDENTE", "FALHOU"] } },
+        { status: "PROCESSANDO", updatedAt: { lt: staleLease } },
+      ],
+    },
+    data: { status: "PROCESSANDO", error: null },
   });
+
+  if (claim.count === 0) {
+    return {
+      ok: false as const,
+      error: "Job já está em processamento",
+      jobId: job.id,
+      caseId: job.caseId,
+    };
+  }
 
   try {
     const mediaType = resolveMediaType(job.sourceMimeType, job.sourceFileName);
