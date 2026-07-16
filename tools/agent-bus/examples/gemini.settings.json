@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "juriai-agent-bus": {
+      "type": "http",
+      "url": "http://127.0.0.1:8766/mcp",
+      "headers": {
+        "Authorization": "Bearer ${JURIAI_AGENT_BUS_TOKEN}"
+      },
+      "timeout": 60000,
+      "trust": false
+    }
+  }
+}
