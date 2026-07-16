@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+PROFILE_DIR="${JURIAI_GEMINI_VERTEX_DIR:-$HOME/.gemini-vertex}"
+LOCATION="${JURIAI_GEMINI_VERTEX_LOCATION:-${GOOGLE_CLOUD_LOCATION:-global}}"
+MODE="${1:-start}"
+
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "$1 nao foi encontrado no PATH." >&2
+    exit 1
+  fi
+}
+
+resolve_project() {
+  local project="${JURIAI_GEMINI_VERTEX_PROJECT:-${GOOGLE_CLOUD_PROJECT:-}}"
+
+  if [[ -z "$project" ]]; then
+    project="$(gcloud config get-value project 2>/dev/null || true)"
+  fi
+
+  if [[ -z "$project" || "$project" == "(unset)" ]]; then
+    echo "Nenhum projeto Google Cloud foi configurado." >&2
+    echo "Defina JURIAI_GEMINI_VERTEX_PROJECT ou rode: gcloud config set project PROJECT_ID" >&2
+    exit 1
+  fi
+
+  printf '%s' "$project"
+}
+
+has_adc() {
+  gcloud auth application-default print-access-token >/dev/null 2>&1
+}
+
+run_vertex_gemini() {
+  local project="$1"
+  shift
+
+  env \
+    -u GEMINI_API_KEY \
+    -u GOOGLE_API_KEY \
+    -u GOOGLE_APPLICATION_CREDENTIALS \
+    -u GOOGLE_GENAI_USE_GCA \
+    -u GOOGLE_GEMINI_BASE_URL \
+    GOOGLE_GENAI_USE_VERTEXAI=true \
+    GOOGLE_CLOUD_PROJECT="$project" \
+    GOOGLE_CLOUD_QUOTA_PROJECT="$project" \
+    GOOGLE_CLOUD_LOCATION="$LOCATION" \
+    GEMINI_CLI_HOME="$PROFILE_DIR" \
+    "$@"
+}
+
+require_command gcloud
+PROJECT="$(resolve_project)"
+
+case "$MODE" in
+  login)
+    echo "Abrindo login do Google Cloud para usar Vertex AI no projeto $PROJECT"
+    gcloud auth application-default login
+    if ! gcloud auth application-default set-quota-project "$PROJECT"; then
+      echo "Aviso: nao foi possivel definir o projeto de cota no ADC." >&2
+    fi
+    echo "Login concluido. Inicie com: npm run gemini:vertex:start"
+    ;;
+  status)
+    ACCOUNT="$(gcloud config get-value account 2>/dev/null || true)"
+    echo "Conta gcloud: ${ACCOUNT:-(nenhuma)}"
+    echo "Projeto Vertex: $PROJECT"
+    echo "Localizacao: $LOCATION"
+    echo "Perfil Gemini: $PROFILE_DIR"
+    if has_adc; then
+      echo "Credenciais ADC: autenticadas"
+    else
+      echo "Credenciais ADC: nao autenticadas"
+      exit 1
+    fi
+    ;;
+  start)
+    require_command gemini
+    if ! has_adc; then
+      echo "Credenciais ADC nao encontradas. Rode: npm run gemini:vertex:login" >&2
+      exit 1
+    fi
+    shift || true
+    run_vertex_gemini "$PROJECT" gemini "$@"
+    ;;
+  team)
+    require_command gemini
+    if [[ $# -lt 2 ]]; then
+      echo "Uso: ./scripts/gemini-vertex team <papel> [--model <modelo>]" >&2
+      exit 1
+    fi
+    if ! has_adc; then
+      echo "Credenciais ADC nao encontradas. Rode: npm run gemini:vertex:login" >&2
+      exit 1
+    fi
+    ROLE="$2"
+    shift 2
+    GEMINI_CLI_TRUST_WORKSPACE=true \
+      run_vertex_gemini "$PROJECT" npm run team:terminal -- "$ROLE" --provider gemini "$@"
+    ;;
+  *)
+    cat >&2 <<'EOF'
+Comando invalido.
+
+Uso:
+  ./scripts/gemini-vertex login
+  ./scripts/gemini-vertex status
+  ./scripts/gemini-vertex start
+  ./scripts/gemini-vertex team fullstack
+EOF
+    exit 1
+    ;;
+esac
