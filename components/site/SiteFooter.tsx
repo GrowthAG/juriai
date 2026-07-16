@@ -15,7 +15,7 @@ const FOOTER_LINKS = [
   },
 ];
 
-export function SiteFooter() {
+export function SiteFooter({ appLoginUrl }: { appLoginUrl: string }) {
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--surface)]">
       <div className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
@@ -37,7 +37,7 @@ export function SiteFooter() {
                 <li key={link.label}>
                   {link.external ? (
                     <a
-                      href={link.href}
+                      href={link.label === "Entrar" ? appLoginUrl : link.href}
                       className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
                     >
                       {link.label}
