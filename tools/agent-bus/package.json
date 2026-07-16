@@ -1,0 +1,19 @@
+{
+  "name": "@juriai/agent-bus",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Barramento MCP local para coordenar agentes de diferentes modelos nos terminais do Mosaic.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "better-sqlite3": "12.11.1",
+    "zod": "4.4.3"
+  }
+}

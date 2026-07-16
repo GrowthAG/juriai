@@ -16,6 +16,7 @@ const DOMAINS: { value: string; label: string }[] = [
   { value: "CONSUMIDOR", label: "Consumidor" },
   { value: "TRIBUTARIO", label: "Tributário" },
   { value: "FAMILIA", label: "Família" },
+  { value: "ADMINISTRATIVO", label: "Administrativo" },
 ];
 
 const FIRM_SIZES = ["1", "2-5", "6-15", "16-30", "30+"];
@@ -99,7 +100,7 @@ export default function OnboardingSubcontaPage() {
         navHref="/admin/subcontas"
         navLabel="Voltar aos escritórios"
       />
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-10">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
         {done ? (
           <section className="text-center">
             <h1 className="font-serif text-2xl font-semibold tracking-tight">

@@ -3,6 +3,7 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -17,11 +18,12 @@ enum LegalDomain {
   CONSUMIDOR
   TRIBUTARIO
   FAMILIA
+  ADMINISTRATIVO
 }
 
 enum WorkspaceKind {
-  MASTER    // conta agência (control plane): gestão de subcontas, sem casos
-  SUBCONTA  // escritório operacional (data plane): app jurídico, opera casos
+  MASTER // conta agência (control plane): gestão de subcontas, sem casos
+  SUBCONTA // escritório operacional (data plane): app jurídico, opera casos
 }
 
 enum Role {
@@ -70,6 +72,13 @@ enum EvidenceStrength {
   MEDIA
   FRACA
   NAO_AVALIADA
+}
+
+enum MalwareScanStatus {
+  PENDING
+  CLEAN
+  INFECTED
+  FAILED
 }
 
 enum FactCertainty {
@@ -134,15 +143,14 @@ enum TaskStatus {
   CONCLUIDA
 }
 
-
 // --- Modelos ---
 
 model Workspace {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   name      String
   kind      WorkspaceKind @default(SUBCONTA)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   activeDomains LegalDomain[]
 
@@ -169,14 +177,14 @@ model Workspace {
   parentWorkspace   Workspace?  @relation("WorkspaceHierarchy", fields: [parentWorkspaceId], references: [id], onDelete: NoAction)
   subWorkspaces     Workspace[] @relation("WorkspaceHierarchy")
 
-  users       User[]
-  memberships Membership[]
-  clients     Client[]
-  cases       Case[]
-  templates   Template[]
-  proposals   Proposal[]
-  contracts   ServiceContract[]
-  tasks       Task[]
+  users        User[]
+  memberships  Membership[]
+  clients      Client[]
+  cases        Case[]
+  templates    Template[]
+  proposals    Proposal[]
+  contracts    ServiceContract[]
+  tasks        Task[]
   publications LegalPublication[]
   subscription WorkspaceSubscription?
 
@@ -185,24 +193,24 @@ model Workspace {
 }
 
 model User {
-  id           String    @id
-  email        String    @unique
+  id           String   @id
+  email        String   @unique
   name         String?
   oab          String?
-  isSuperAdmin Boolean   @default(false) // Flag de Super Admin
-  role         Role      @default(LIMITED_USER) // Papel dentro do workspace
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  isSuperAdmin Boolean  @default(false) // Flag de Super Admin
+  role         Role     @default(LIMITED_USER) // Papel dentro do workspace
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  ownedCases   Case[]       @relation("CaseOwner")
-  assignedCases CaseMember[] // Casos em que o usuário é membro
-  memberships  Membership[]
-  auditReviews AuditEntry[] @relation("AuditReviewer")
-  assignedTasks Task[]      @relation("TaskAssignee")
-  createdTasks  Task[]      @relation("TaskCreator")
+  ownedCases         Case[]             @relation("CaseOwner")
+  assignedCases      CaseMember[] // Casos em que o usuário é membro
+  memberships        Membership[]
+  auditReviews       AuditEntry[]       @relation("AuditReviewer")
+  assignedTasks      Task[]             @relation("TaskAssignee")
+  createdTasks       Task[]             @relation("TaskCreator")
   linkedPublications LegalPublication[] @relation("PublicationLinker")
 
   @@index([workspaceId])
@@ -223,25 +231,26 @@ model Membership {
 }
 
 model Client {
-  id          String   @id @default(cuid())
-  name        String
-  document    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  document  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  kind        PartyKind @default(PJ)
-  email       String?
-  phone       String?
-  address     String?
+  kind    PartyKind @default(PJ)
+  email   String?
+  phone   String?
+  address String?
 
   workspaceId String
-  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   cases       Case[]
   proposals   Proposal[]
   contracts   ServiceContract[]
   clientUsers ClientUser[]
-  @@index([workspaceId])
+
   @@unique([workspaceId, document])
+  @@index([workspaceId])
 }
 
 model ClientUser {
@@ -252,23 +261,24 @@ model ClientUser {
   updatedAt DateTime @updatedAt
 
   clientId String
-  client   Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
 }
 
 model Case {
-  id          String      @id @default(cuid())
-  title       String
-  clientName  String?
-  domain      LegalDomain
-  type        CaseType    @default(EXTRAJUDICIAL)
-  status      CaseStatus  @default(TRIAGEM)
-  summary     String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id         String      @id @default(cuid())
+  title      String
+  clientName String?
+  domain     LegalDomain
+  type       CaseType    @default(EXTRAJUDICIAL)
+  status     CaseStatus  @default(TRIAGEM)
+  summary    String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   workspaceId String
-  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   ownerId String
   owner   User   @relation("CaseOwner", fields: [ownerId], references: [id], onDelete: NoAction)
@@ -276,18 +286,18 @@ model Case {
   clientId String
   client   Client @relation(fields: [clientId], references: [id])
 
-  members   CaseMember[] // Tabela pivot para permissões de acesso ao caso
-  parties   Party[]
-  evidence  Evidence[]
-  ingestionJobs IngestionJob[]
-  timeline  TimelineEvent[]
+  members        CaseMember[] // Tabela pivot para permissões de acesso ao caso
+  parties        Party[]
+  evidence       Evidence[]
+  ingestionJobs  IngestionJob[]
+  timeline       TimelineEvent[]
   courtProcesses CourtProcess[]
-  gaps      Gap[]
-  drafts    Draft[]
-  messages  ChatMessage[]
-  auditEntries AuditEntry[]
-  tasks     Task[]
-  publications LegalPublication[]
+  gaps           Gap[]
+  drafts         Draft[]
+  messages       ChatMessage[]
+  auditEntries   AuditEntry[]
+  tasks          Task[]
+  publications   LegalPublication[]
 
   @@index([workspaceId, clientId])
   @@index([ownerId])
@@ -314,41 +324,44 @@ model Template {
   updatedAt   DateTime     @updatedAt
   workspaceId String
   workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@index([workspaceId])
 }
 
 model Proposal {
-  id        String         @id @default(cuid())
-  title     String
-  status    ProposalStatus @default(RASCUNHO)
-  value     Decimal
-  scope     String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  clientId    String
-  client      Client    @relation(fields: [clientId], references: [id])
-  generatedContractId String? @unique
+  id                  String           @id @default(cuid())
+  title               String
+  status              ProposalStatus   @default(RASCUNHO)
+  value               Decimal
+  scope               String
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  workspaceId         String
+  workspace           Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  clientId            String
+  client              Client           @relation(fields: [clientId], references: [id])
+  generatedContractId String?          @unique
   generatedContract   ServiceContract?
+
   @@index([workspaceId, clientId])
 }
 
 model ServiceContract {
-  id            String    @id @default(cuid())
-  title         String
-  value         Decimal
-  paymentMethod String
-  signedAt      DateTime?
-  filePath      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  workspaceId   String
-  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  clientId      String
-  client        Client    @relation(fields: [clientId], references: [id])
+  id             String    @id @default(cuid())
+  title          String
+  value          Decimal
+  paymentMethod  String
+  signedAt       DateTime?
+  filePath       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  workspaceId    String
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  clientId       String
+  client         Client    @relation(fields: [clientId], references: [id])
   fromProposalId String?   @unique
   fromProposal   Proposal? @relation(fields: [fromProposalId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
   @@index([workspaceId, clientId])
 }
 
@@ -373,15 +386,15 @@ model SubscriptionPlan {
 }
 
 model WorkspaceSubscription {
-  id                   String   @id @default(cuid())
-  status               String   @default("trialing")
+  id                   String            @id @default(cuid())
+  status               String            @default("trialing")
   stripeCustomerId     String?
   stripeSubscriptionId String?
   currentPeriodEnd     DateTime?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  workspaceId          String   @unique
-  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  workspaceId          String            @unique
+  workspace            Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   planId               String?
   plan                 SubscriptionPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
 
@@ -397,39 +410,44 @@ model Party {
   notes    String?
   caseId   String
   case     Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
   @@index([caseId])
 }
 
 model Evidence {
-  id                 String           @id @default(cuid())
+  id                 String            @id @default(cuid())
   label              String
   description        String?
   storagePath        String?
   mimeType           String?
-  strength           EvidenceStrength @default(NAO_AVALIADA)
+  strength           EvidenceStrength  @default(NAO_AVALIADA)
   analysis           String?
-  isSharedWithClient Boolean          @default(false) // Campo para o Portal do Cliente
-  createdAt          DateTime         @default(now())
+  scanStatus         MalwareScanStatus @default(PENDING)
+  scanMessage        String?
+  scannedAt          DateTime?
+  isSharedWithClient Boolean           @default(false) // Campo para o Portal do Cliente
+  createdAt          DateTime          @default(now())
   caseId             String
-  case               Case             @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  case               Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
   ingestionJob       IngestionJob?
+
   @@index([caseId])
 }
 
 model IngestionJob {
-  id              String            @id @default(cuid())
-  status          IngestionJobStatus @default(PENDENTE)
-  sourceFileName  String
-  sourceMimeType  String?
-  storagePath     String
+  id               String             @id @default(cuid())
+  status           IngestionJobStatus @default(PENDENTE)
+  sourceFileName   String
+  sourceMimeType   String?
+  storagePath      String
   extractionResult Json?
-  error           String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  caseId          String
-  case            Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  evidenceId      String?           @unique
-  evidence        Evidence?         @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+  error            String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  caseId           String
+  case             Case               @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidenceId       String?            @unique
+  evidence         Evidence?          @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
 
   @@index([caseId])
 }
@@ -446,12 +464,13 @@ model TimelineEvent {
   createdAt          DateTime      @default(now())
   caseId             String
   case               Case          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
   @@index([caseId])
   @@index([caseId, source, sourceRef])
 }
 
 model CourtProcess {
-  id                  String   @id @default(cuid())
+  id                  String                 @id @default(cuid())
   tribunal            String
   alias               String
   numeroProcesso      String
@@ -464,15 +483,15 @@ model CourtProcess {
   dataAjuizamento     DateTime?
   lastSyncedAt        DateTime?
   latestMovementAt    DateTime?
-  movementCount       Int      @default(0)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  movementCount       Int                    @default(0)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
   caseId              String
-  case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  case                Case                   @relation(fields: [caseId], references: [id], onDelete: Cascade)
   snapshots           CourtProcessSnapshot[]
 
-  @@index([caseId])
   @@unique([caseId, tribunal, numeroProcesso])
+  @@index([caseId])
 }
 
 model CourtProcessSnapshot {
@@ -496,6 +515,7 @@ model Gap {
   createdAt   DateTime @default(now())
   caseId      String
   case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
   @@index([caseId])
 }
 
@@ -505,18 +525,18 @@ model Gap {
 // Nunca guarda o `raw` da fonte: só a whitelist de campos normalizados.
 model LegalPublication {
   id                   String    @id @default(cuid())
-  source               String    // "DJEN" (futuro: "DATAJUD")
-  externalId           String    // id da comunicação na fonte
+  source               String // "DJEN" (futuro: "DATAJUD")
+  externalId           String // id da comunicação na fonte
   sourceUrl            String
   tribunal             String
-  numeroProcesso       String    // dígitos normalizados (CNJ)
+  numeroProcesso       String // dígitos normalizados (CNJ)
   tipo                 String
-  texto                String    // texto normalizado (sem raw)
+  texto                String // texto normalizado (sem raw)
   dataDisponibilizacao DateTime?
   dataPublicacao       DateTime?
   destinatarios        Json
   advogados            Json
-  contentHash          String    // sha256(source|externalId|numeroProcesso|texto)
+  contentHash          String // sha256(source|externalId|numeroProcesso|texto)
   linkedById           String?
   linkedAt             DateTime  @default(now())
   createdAt            DateTime  @default(now())
@@ -567,6 +587,7 @@ model Draft {
   updatedAt          DateTime  @updatedAt
   caseId             String
   case               Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
   @@index([caseId])
 }
 
@@ -577,6 +598,7 @@ model ChatMessage {
   createdAt DateTime @default(now())
   caseId    String
   case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
   @@index([caseId])
 }
 
