@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+PROFILE_DIR="${JURIAI_CLAUDE_PERSONAL_DIR:-$HOME/.claude-personal}"
+MODE="${1:-start}"
+
+if ! command -v claude >/dev/null 2>&1; then
+  echo "Claude Code nao foi encontrado no PATH." >&2
+  exit 1
+fi
+
+run_personal_claude() {
+  env \
+    -u CLAUDE_CODE_USE_VERTEX \
+    -u ANTHROPIC_VERTEX_PROJECT_ID \
+    -u CLOUD_ML_REGION \
+    -u ANTHROPIC_VERTEX_BASE_URL \
+    -u CLAUDE_CODE_USE_BEDROCK \
+    -u CLAUDE_CODE_USE_FOUNDRY \
+    -u CLAUDE_CODE_USE_MANTLE \
+    -u ANTHROPIC_BASE_URL \
+    -u ANTHROPIC_AUTH_TOKEN \
+    -u ANTHROPIC_API_KEY \
+    CLAUDE_CONFIG_DIR="$PROFILE_DIR" \
+    "$@"
+}
+
+case "$MODE" in
+  login)
+    echo "Abrindo login da conta pessoal em $PROFILE_DIR"
+    run_personal_claude claude auth login
+    ;;
+  logout)
+    run_personal_claude claude auth logout
+    ;;
+  status)
+    run_personal_claude claude auth status --text
+    ;;
+  start)
+    shift || true
+    run_personal_claude claude "$@"
+    ;;
+  team)
+    if [[ $# -lt 2 ]]; then
+      echo "Uso: ./scripts/claude-personal team <papel> [--model <modelo>]" >&2
+      exit 1
+    fi
+    ROLE="$2"
+    shift 2
+    run_personal_claude npm run team:terminal -- "$ROLE" --provider claude "$@"
+    ;;
+  *)
+    cat >&2 <<'EOF'
+Comando invalido.
+
+Uso:
+  ./scripts/claude-personal login
+  ./scripts/claude-personal status
+  ./scripts/claude-personal start
+  ./scripts/claude-personal logout
+  ./scripts/claude-personal team po
+EOF
+    exit 1
+    ;;
+esac

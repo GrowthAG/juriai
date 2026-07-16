@@ -164,3 +164,82 @@ RISCOS/PENDÊNCIAS:
 - Enforcement provado em dry-run; ainda falta o SMOKE HUMANO: abrir os 7 terminais
   um a um e confirmar presença/policy no bus sem colisão.
 PRÓXIMO PASSO: smoke test humano dos 7 papéis (comandos entregues pelo coordenador).
+
+## 2026-07-15 — Smoke real dos 7 terminais no Mosaic (fleet no ar)
+
+DE -> PARA: coordenação -> equipe
+ESTADO ATUAL:
+- Os 7 papéis foram LANÇADOS de verdade em painéis visíveis do Mosaic via
+  `mosaic workspace create --command 'node scripts/team-terminal.mjs <papel>'`.
+  O painel do Mosaic fornece TTY real (`/dev/ttysNNN`), que era a peça que faltava
+  para os CLIs interativos subirem — o erro "stdin is not a terminal" só ocorria ao
+  lançar do Bash sem terminal. Mecanismo confirmado.
+- RESULTADO do smoke: 5/7 subiram de primeira (coordinator/claude-opus, marketing e
+  sales/gemini, cybersecurity e customer-success/claude). Todos registram no bus e
+  ficam gated por policy (pausam em prompt de aprovação antes de agir) — enforcement
+  observado ao vivo.
+DECISÃO/CORREÇÃO (reality wins sobre a matriz aspiracional):
+- A matriz TRAVADA anterior (po=codex/o3, fullstack=codex/gpt-5) nomeava modelos que a
+  conta Codex NÃO suporta. Erro real no launch: `{"status":400,... "The 'o3' model is
+  not supported when using Codex with a ChatGPT account."}` (idem gpt-5). O login do
+  Codex é conta ChatGPT, cujo modelo suportado é o default `gpt-5.6-sol`
+  (`~/.codex/config.toml`).
+- CORRIGIDO em `.agents/team.json`: po e fullstack -> codex/`gpt-5.6-sol`. Ambos os
+  papéis Codex agora compartilham modelo, MAS a invariante anti-colisão real é
+  preservada: os dois papéis que ESCREVEM (coordinator=claude, fullstack=codex) seguem
+  em provedores distintos; po é read-only e pode repetir modelo sem risco (racional já
+  registrado neste HANDOFF). A "distinção de 7 modelos" era nice-to-have, não invariante.
+- Enforcement segue intacto no dry-run pós-fix: po `sandbox=read-only approval=never`;
+  fullstack `sandbox=workspace-write approval=on-request`.
+ARQUIVOS/EVIDÊNCIAS: `.agents/team.json` (po/fullstack -> gpt-5.6-sol); painéis Mosaic
+  workspace:4 (coordinator) e 7–12 (demais); tabela `team-registry status` com presença
+  fresca dos 7.
+RISCOS/PENDÊNCIAS:
+- Se no futuro a conta Codex passar a expor modelos distintos (API key com o3/gpt-5),
+  reavaliar a distinção de modelo entre po e fullstack. Por ora, `gpt-5.6-sol` é o real.
+- Os agentes ficam idle após registrar: só agem com tarefa atribuída e reivindicada.
+  Para "vê-los trabalhando de fato", o coordenador precisa atribuir uma tarefa (candidata
+  natural: spec 005, já implementada e aguardando revisão).
+PRÓXIMO PASSO: coordenador atribui a primeira tarefa real (spec 005) para o fullstack
+  reivindicar numa worktree, com revisão de ux-ui; humano aprova o merge.
+
+## 2026-07-15 — PIVÔ ESTRATÉGICO: vertical Trabalhista + diferencial RAG-com-fontes
+
+DE -> PARA: coordenação (decisão delegada pelo humano: "você que manda e toma as decisões")
+FONTE: call com Rodrigo Avila (Head de Operações, Aleve LegalTech Ventures — venture
+  builder), 2026-07-15. Doc: `Calls Especialistas/30 min with Giulliano (Rodrigo Avila...).md`.
+
+DIAGNÓSTICO DO ESPECIALISTA:
+- Produto atual = "ERP jurídico" em OCEANO VERMELHO (Projuris, CPJ/Preâmbulo, AdvBox).
+  Maior barreira: custo de troca de plataforma dos escritórios.
+- Conselho central: NÃO ser plataforma ampla; escolher UM nicho. "Tecnologia virou
+  commodity; o diferencial é o modelo de negócio."
+- Diferencial técnico exigido: RAG com FONTE + link do tribunal em todo argumento (a IA
+  usa só os documentos do usuário). Alinha 1:1 com a nossa promessa anti-alucinação.
+- Nichos apontados: Trabalhista e Tributário (contexto: jornada 6x1, reforma tributária).
+
+DECISÕES APROVADAS (coordenação, autoridade delegada):
+1. NICHO-LÍDER = TRABALHISTA. Tributário vira fast-follow #2. Racional (verificado no
+   repo): pack trabalhista é o mais fundo (`plugin-juriai/domain-packs/trabalhista`: 4
+   modelos incl. cálculo de verbas + 3 skills) e a "jornada 6x1" dá urgência de mercado.
+2. ESTRELA TÉCNICA = camada de REFERÊNCIAS CITÁVEIS (fonte/link de tribunal) sobre os
+   documentos do usuário. Hoje é BURACO: `docs/30-knowledge-base` vazio e NÃO existe
+   tabela `Reference` no Prisma (só `IngestionJob`/`AuditEntry`/`Draft`). Este é o
+   verdadeiro diferencial — maior prioridade estratégica que a spec 005.
+3. NÃO thrashar o writer: fullstack mantém FS-ENFORCE-002 -> spec 005 (plumbing útil e de
+   baixo risco em qualquer vertical). Em PARALELO, PO produz o brief de pivô e a equipe
+   especifica a camada de referências. Fullstack pivota para o RAG quando a spec existir.
+
+LIMITE CONSTITUCIONAL (segue 100% humano, NÃO delegado):
+- Comunicação externa (atualizar o Rodrigo/WhatsApp), equity/parceria com a Aleve,
+  preço/contrato, release em produção, e o outreach de POC com advogados reais.
+
+ARQUIVOS/EVIDÊNCIAS: `.agents/BOARD.md` (reprioridade), tarefa `PO-PIVOT-001` no bus.
+RISCOS/PENDÊNCIAS:
+- Pivô de posicionamento amplo -> vertical exige cortar/esconder áreas do wizard
+  (o `PRODUCT_STATE` já anota a divergência cível vs áreas exibidas). Decisão de recorte
+  fica no brief do PO.
+- A camada de referências toca ingestão/dados = área sensível: revisão de cibersegurança
+  obrigatória antes de implementar.
+PRÓXIMO PASSO: PO reivindica PO-PIVOT-001 (brief do pivô trabalhista + plano de POC);
+  coordenador consolida e leva as decisões externas ao humano.
