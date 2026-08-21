@@ -16,7 +16,7 @@ export type TribunalGroup = {
 export const TRIBUNAL_GROUPS: TribunalGroup[] = [
   {
     label: "Justiça Estadual",
-    domains: ["CIVIL", "CONSUMIDOR", "FAMILIA", "PENAL"],
+    domains: ["CIVIL", "CONSUMIDOR", "FAMILIA", "PENAL", "ADMINISTRATIVO"],
     tribunais: [
       { sigla: "TJSP", nome: "São Paulo" },
       { sigla: "TJRJ", nome: "Rio de Janeiro" },
@@ -49,7 +49,7 @@ export const TRIBUNAL_GROUPS: TribunalGroup[] = [
   },
   {
     label: "Justiça Federal",
-    domains: ["CIVIL", "TRIBUTARIO", "CONSUMIDOR"],
+    domains: ["CIVIL", "TRIBUTARIO", "CONSUMIDOR", "ADMINISTRATIVO"],
     tribunais: [
       { sigla: "TRF1", nome: "1ª Região (DF, MG, GO, TO, BA, PI, MA, PA, AM, AC, RO, RR, AP)" },
       { sigla: "TRF2", nome: "2ª Região (RJ, ES)" },
@@ -91,7 +91,7 @@ export const TRIBUNAL_GROUPS: TribunalGroup[] = [
   },
   {
     label: "Tribunais Superiores",
-    domains: ["CIVIL", "CONSUMIDOR", "TRABALHISTA", "PENAL", "TRIBUTARIO", "FAMILIA"],
+    domains: ["CIVIL", "CONSUMIDOR", "TRABALHISTA", "PENAL", "TRIBUTARIO", "FAMILIA", "ADMINISTRATIVO"],
     tribunais: [
       { sigla: "STJ", nome: "Superior Tribunal de Justiça" },
       { sigla: "TST", nome: "Tribunal Superior do Trabalho" },

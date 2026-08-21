@@ -76,6 +76,7 @@ const ONBOARDING_DOMAINS = [
   "CONSUMIDOR",
   "TRIBUTARIO",
   "FAMILIA",
+  "ADMINISTRATIVO",
 ] as const;
 
 const FIRM_SIZES = new Set(["1", "2-5", "6-15", "16-30", "30+"]);

@@ -12,6 +12,7 @@ const DOMAINS: Array<[string, string]> = [
   ["PENAL", "Penal"],
   ["FAMILIA", "Família e Sucessões"],
   ["TRIBUTARIO", "Tributário"],
+  ["ADMINISTRATIVO", "Administrativo"],
 ];
 
 const TYPES: Array<[string, string]> = [

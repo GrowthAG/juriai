@@ -2,6 +2,10 @@
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui";
+import {
+  EVIDENCE_FILE_ACCEPT,
+  MAX_EVIDENCE_UPLOAD_BYTES,
+} from "@/lib/evidence-files";
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -12,15 +16,24 @@ function formatFileSize(bytes: number) {
 export function EvidenceUploadForm({ caseId }: { caseId: string }) {
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<{ name: string; size: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selected = event.target.files?.[0];
+    if (selected && selected.size > MAX_EVIDENCE_UPLOAD_BYTES) {
+      event.target.value = "";
+      setFile(null);
+      setError("O arquivo excede o limite de 20 MB.");
+      return;
+    }
+    setError(null);
     setFile(selected ? { name: selected.name, size: selected.size } : null);
   };
 
   const handleRemove = () => {
     if (inputFileRef.current) inputFileRef.current.value = "";
     setFile(null);
+    setError(null);
   };
 
   return (
@@ -33,6 +46,7 @@ export function EvidenceUploadForm({ caseId }: { caseId: string }) {
       <input
         name="file"
         type="file"
+        accept={EVIDENCE_FILE_ACCEPT}
         required
         className="hidden"
         ref={inputFileRef}
@@ -70,21 +84,29 @@ export function EvidenceUploadForm({ caseId }: { caseId: string }) {
             Clique para escolher um arquivo
           </span>
           <span className="text-xs text-[var(--muted)]">
-            PDF, imagem ou documento da prova
+            PDF, JPG, PNG, WEBP, TXT ou Markdown · até 20 MB
           </span>
         </button>
+      )}
+
+      {error && (
+        <p role="alert" className="text-sm text-[var(--danger)]">
+          {error}
+        </p>
       )}
 
       <input
         name="label"
         type="text"
         required
+        maxLength={160}
         placeholder="Título da prova"
         className="h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm outline-none focus:border-[var(--primary)]"
       />
       <textarea
         name="description"
         rows={3}
+        maxLength={2000}
         placeholder="Descrição opcional"
         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm outline-none focus:border-[var(--primary)]"
       />

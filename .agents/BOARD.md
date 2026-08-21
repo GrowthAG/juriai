@@ -5,6 +5,8 @@ para atribuição/claim; este quadro registra a visão humana consolidada.
 
 | Prioridade | Item | Responsável | Estado | Dependência / evidência |
 | --- | --- | --- | --- | --- |
+| **P0** | **PIVÔ: vertical Trabalhista (nicho-líder)** | PO + coordenação | **decidido, brief pendente** | Call Rodrigo/Aleve (2026-07-15); pack trabalhista já fundo; tarefa `PO-PIVOT-001` |
+| **P0** | **Camada de referências citáveis (RAG com fonte/link de tribunal)** | PO + fullstack + cyber | **estrela técnica, sem spec** | Buraco real: `docs/30-knowledge-base` vazio, sem tabela `Reference` no Prisma |
 | P0 | Perfis, protocolo e barramento da equipe | coordenação | concluído | `team:doctor`, launchers e piloto aprovados |
 | P0 | Separar produto implementado, beta, demo e planejado | PO | base inicial pronta | `.agents/PRODUCT_STATE.md`; validar com coordenador |
 | P1 | MVP do cockpit operacional (`/workspace`) | PO + fullstack | painel entregue; lista de casos é o gap | `/workspace` já tem KPIs, fila de atenção, gráficos, tarefas e lacunas |
@@ -19,10 +21,14 @@ para atribuição/claim; este quadro registra a visão humana consolidada.
 
 ## Caixa de entrada do coordenador
 
+- **PIVÔ DECIDIDO (coordenação, autoridade delegada):** nicho-líder = Trabalhista;
+  Tributário fast-follow. Estrela técnica = camada de referências com fonte/link de
+  tribunal. Registro durável no HANDOFF (2026-07-15 — PIVÔ ESTRATÉGICO).
+- **PO:** reivindicar `PO-PIVOT-001` — brief do pivô (proposta de valor trabalhista,
+  o que cortar do "amplo", plano de POC com advogados, métrica de sucesso).
+- **Fullstack:** manter FS-ENFORCE-002 -> spec 005 (plumbing de baixo risco); NÃO iniciar
+  o RAG sem spec. A camada de referências toca dados/ingestão -> revisão de cyber obrigatória.
+- **Decisões que seguem 100% do humano:** falar com o Rodrigo, equity/Aleve, preço/contrato,
+  produção, outreach de POC com advogados reais.
 - Aprovar ou corrigir a fotografia em `.agents/PRODUCT_STATE.md`.
-- Cockpit `/workspace` já entregue e maduro; a frente P1 concreta agora é a spec 005
-  (busca/filtro na lista de casos) — menor risco, sem schema/auth, não precisa do cyber.
-- Próxima ação: fullstack reivindica a spec 005 numa worktree própria; revisão por
-  ux-ui (anti-vibecode) e gate final da coordenação.
-- Evitar expandir escopo para monitoramento, billing ou governança antes do MVP do cockpit ficar útil e estável.
 - Definir se especialistas não técnicos poderão editar documentos diretamente.

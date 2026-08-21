@@ -8,6 +8,7 @@ import {
   CASE_STATUS,
   CASE_STATUS_ORDER,
   GAP_LABEL,
+  DOMAIN_LABEL,
   relativeDays,
 } from "@/lib/case-labels";
 import {
@@ -20,6 +21,7 @@ import {
 export const dynamic = "force-dynamic";
 
 type StatusRow = { status: string; n: number };
+type VerticalRow = { domain: string; n: number };
 type OwnerRow = { owner: string; n: number };
 type RecentRow = {
   id: string;
@@ -36,6 +38,14 @@ type GapRow = {
   caseTitle: string;
 };
 type Option = { id: string; label: string };
+type AttentionItem = {
+  id: string;
+  kind: "Tarefa" | "Lacuna";
+  title: string;
+  detail: string;
+  href: string;
+  tone: "danger" | "warning" | "neutral";
+};
 
 function dueLabel(due: Date | null) {
   if (!due) return { text: "sem prazo", overdue: false };
@@ -44,6 +54,14 @@ function dueLabel(due: Date | null) {
   if (days === 0) return { text: "vence hoje", overdue: true };
   if (days === 1) return { text: "vence amanhã", overdue: false };
   return { text: `vence em ${days} d`, overdue: false };
+}
+
+function dueTone(due: Date | null) {
+  if (!due) return "neutral" as const;
+  const days = Math.floor((new Date(due).getTime() - Date.now()) / 86_400_000);
+  if (days < 0) return "danger" as const;
+  if (days <= 1) return "warning" as const;
+  return "neutral" as const;
 }
 
 export default async function WorkspacePage() {
@@ -63,6 +81,7 @@ export default async function WorkspacePage() {
 
   const [
     statusRows,
+    verticalRows,
     ownerRows,
     recentRows,
     memberRows,
@@ -76,6 +95,14 @@ export default async function WorkspacePage() {
     prisma.$queryRawUnsafe<StatusRow[]>(
       `SELECT "status"::text AS status, COUNT(*)::int AS n
        FROM "Case" WHERE "workspaceId" = $1 GROUP BY "status"`,
+      wid,
+    ),
+    prisma.$queryRawUnsafe<VerticalRow[]>(
+      `SELECT "domain"::text AS domain, COUNT(*)::int AS n
+       FROM "Case"
+       WHERE "workspaceId" = $1
+       GROUP BY "domain"
+       ORDER BY n DESC`,
       wid,
     ),
     prisma.$queryRawUnsafe<OwnerRow[]>(
@@ -135,7 +162,43 @@ export default async function WorkspacePage() {
     (statusMap.get("ARQUIVADO") ?? 0);
   const inAnalysis = statusMap.get("ANALISE") ?? 0;
   const members = memberRows[0]?.n ?? 0;
+  const primaryVertical = verticalRows[0]?.domain ?? null;
   const openGaps = gapCountRows[0]?.n ?? 0;
+  const prioritySummary =
+    taskCounts.overdue > 0
+      ? `Priorize ${taskCounts.overdue} tarefa${taskCounts.overdue === 1 ? "" : "s"} vencida${taskCounts.overdue === 1 ? "" : "s"}.`
+      : openGaps > 0
+        ? `Revise ${openGaps} lacuna${openGaps === 1 ? "" : "s"} aberta${openGaps === 1 ? "" : "s"}.`
+        : totalCases === 0
+          ? "Crie o primeiro caso para iniciar a operação."
+          : "Sem urgência crítica; revise casos recentes e mantenha a fila limpa.";
+  const attentionItems: AttentionItem[] = [
+    ...openTasks.map((task) => {
+      const due = dueLabel(task.dueDate);
+      return {
+        id: `task-${task.id}`,
+        kind: "Tarefa" as const,
+        title: task.title,
+        detail: [
+          task.caseTitle ? task.caseTitle : "Sem caso",
+          task.assignedToName ? task.assignedToName : null,
+          due.text,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        href: task.caseId ? `/casos/${task.caseId}` : "/workspace",
+        tone: dueTone(task.dueDate),
+      };
+    }),
+    ...gapRows.map((gap) => ({
+      id: `gap-${gap.id}`,
+      kind: "Lacuna" as const,
+      title: gap.description,
+      detail: gap.caseTitle,
+      href: `/casos/${gap.caseId}`,
+      tone: "warning" as const,
+    })),
+  ].slice(0, 6);
 
   const donutSegments = CASE_STATUS_ORDER.filter(
     (s) => (statusMap.get(s) ?? 0) > 0,
@@ -146,25 +209,84 @@ export default async function WorkspacePage() {
   }));
 
   const maxOwner = Math.max(1, ...ownerRows.map((o) => o.n));
+  const nextStepsByVertical = [
+    {
+      domain: "CIVIL",
+      title: "Cível",
+      detail: "Contratos, cobrança, prova documental e linha do tempo.",
+    },
+    {
+      domain: "TRABALHISTA",
+      title: "Trabalhista",
+      detail: "Prazos fatais, peças, movimentações e revisão de risco.",
+    },
+    {
+      domain: "TRIBUTARIO",
+      title: "Tributário",
+      detail: "Intimações, autos, documentos fiscais e tese com fonte.",
+    },
+  ];
 
   return (
     <main className="flex-1 px-8 py-8">
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-            Meu Escritório
+            Cockpit operacional
           </p>
           <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight">
             {ctx.workspaceName}
           </h1>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Visão operacional do escritório.
+            O que exige atenção, o que está ativo e qual é a próxima ação.
           </p>
         </div>
-        <ButtonLink href="/casos/novo" size="lg">
-          Novo caso
-        </ButtonLink>
+        <div className="flex flex-wrap items-center gap-3">
+          <ButtonLink href="/workspace/casos" size="lg">
+            Ver casos
+          </ButtonLink>
+          <ButtonLink href="/casos/novo" size="lg" variant="secondary">
+            Novo caso
+          </ButtonLink>
+        </div>
       </div>
+
+      <Card className="mt-6 border-[var(--border-strong)] px-6 py-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+              Nicho ativo
+            </p>
+            <p className="mt-2 text-base font-medium text-[var(--foreground)]">
+              {primaryVertical
+                ? `Foco principal em ${DOMAIN_LABEL[primaryVertical] ?? primaryVertical}.`
+                : "Nicho ainda não consolidado no workspace."}
+            </p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {prioritySummary}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {verticalRows.slice(0, 3).map((vertical) => (
+              <span
+                key={vertical.domain}
+                className="rounded-full bg-[var(--background)] px-3 py-1 text-xs font-medium text-[var(--muted)]"
+              >
+                {DOMAIN_LABEL[vertical.domain] ?? vertical.domain} · {vertical.n}
+              </span>
+            ))}
+            <span className="rounded-full bg-[var(--background)] px-3 py-1 text-xs font-medium text-[var(--muted)]">
+              {activeCases} ativos
+            </span>
+            <span className="rounded-full bg-[var(--background)] px-3 py-1 text-xs font-medium text-[var(--muted)]">
+              {taskCounts.open} tarefas abertas
+            </span>
+            <span className="rounded-full bg-[var(--background)] px-3 py-1 text-xs font-medium text-[var(--muted)]">
+              {openGaps} lacunas abertas
+            </span>
+          </div>
+        </div>
+      </Card>
 
       {/* KPIs */}
       <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -183,10 +305,28 @@ export default async function WorkspacePage() {
         <Kpi label="Lacunas abertas" value={openGaps} />
       </div>
 
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        {nextStepsByVertical.map((vertical) => (
+          <Card key={vertical.domain} className="px-5 py-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+              Próximo passo por vertical
+            </p>
+            <h2 className="mt-2 text-base font-medium">
+              {vertical.title}
+            </h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {vertical.detail}
+            </p>
+          </Card>
+        ))}
+      </div>
+
       {totalCases === 0 ? (
         <EmptyState />
       ) : (
         <>
+          <AttentionCard items={attentionItems} />
+
           {/* Gráficos */}
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
             <Card className="px-6 py-6">
@@ -336,6 +476,66 @@ function Kpi({
             {note}
           </span>
         ) : null}
+      </div>
+    </Card>
+  );
+}
+
+function AttentionCard({ items }: { items: AttentionItem[] }) {
+  return (
+    <Card className="mt-6 overflow-hidden">
+      <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
+            Fila de atenção
+          </h2>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            O que exige ação antes de olhar os gráficos
+          </p>
+        </div>
+        <span className="text-xs text-[var(--muted)]">{items.length} itens</span>
+      </div>
+
+      <div className="divide-y divide-[var(--border)]">
+        {items.length === 0 ? (
+          <p className="px-6 py-5 text-sm text-[var(--muted)]">
+            Nenhuma pendência urgente. O escritório está limpo no momento.
+          </p>
+        ) : (
+          items.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className="flex items-start gap-4 px-6 py-4 transition-colors hover:bg-[var(--background)]"
+            >
+              <span
+                className={`mt-1 h-2.5 w-2.5 rounded-full ${
+                  item.tone === "danger"
+                    ? "bg-[var(--danger)]"
+                    : item.tone === "warning"
+                      ? "bg-amber-500"
+                      : "bg-[var(--primary)]"
+                }`}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+                    {item.kind}
+                  </span>
+                  <span className="rounded-full bg-[var(--background)] px-2 py-0.5 text-xs text-[var(--muted)]">
+                    {item.tone === "danger"
+                      ? "urgente"
+                      : item.tone === "warning"
+                        ? "atenção"
+                        : "acompanhar"}
+                  </span>
+                </div>
+                <p className="mt-1 truncate text-sm font-medium">{item.title}</p>
+                <p className="mt-1 text-xs text-[var(--muted)]">{item.detail}</p>
+              </div>
+            </Link>
+          ))
+        )}
       </div>
     </Card>
   );

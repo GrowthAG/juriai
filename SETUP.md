@@ -73,6 +73,8 @@ Em produção, configure um segredo exclusivo com pelo menos 32 caracteres:
 
 ```bash
 JURIAI_SESSION_SECRET="..."
+AUTH_SECRET="..."
+AUTH_URL="http://localhost:3002"
 ```
 
 Sem essa variável, tokens de sessão não são emitidos nem aceitos fora de
@@ -106,6 +108,12 @@ saídas de IA no banco atual:
 ```bash
 psql "$DATABASE_URL" -f prisma/patches/2026-06-25_llm_workspace.sql
 psql "$DATABASE_URL" -f prisma/patches/2026-06-26_audit_entry.sql
+```
+
+Em uma instalação nova, crie o primeiro administrador antes do login Google:
+
+```bash
+npm run db:bootstrap-admin -- admin@empresa.com "Nome do admin"
 ```
 
 ## DataJud / consulta processual
@@ -180,7 +188,10 @@ Rotas:
   variável no `.env` local para manter o fluxo de dev funcionando. Sem ela,
   nenhum dos três bypasses é liberado, mesmo em `NODE_ENV=development`.
 - Uploads ficam em `JURIAI_UPLOAD_DIR` quando definido; sem isso, o app usa o
-  diretório temporário do sistema.
+  diretório temporário do sistema. Em produção, configure também
+  `JURIAI_UNSCANNED_UPLOAD_DIR` e `JURIAI_QUARANTINE_UPLOAD_DIR`: o app grava no
+  volume não verificado e só libera download/IA depois que o scanner mover o
+  objeto para o volume limpo.
 - Identity Platform ainda não está plugado. Esta camada de contexto é a ponte
   para trocar o hardcode sem espalhar a lógica pelo app.
 - `MembershipRole` (`Membership.role`: OWNER/LAWYER/INTERN/FINANCE/VIEWER) é

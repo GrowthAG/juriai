@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { loginAsDevelopmentUser } from "./auth-helper";
 
-const PAGES = ["/", "/casos/novo"];
+const PAGES = ["/", "/casos/novo", "/onboarding/subconta"];
 
 test.describe("Anti-Vibecode Compliance", () => {
   for (const url of PAGES) {
@@ -100,7 +100,7 @@ test.describe("Anti-Vibecode Compliance", () => {
 });
 
 async function openPage(page: Page, url: string) {
-  if (url.startsWith("/casos")) {
+  if (url.startsWith("/casos") || url.startsWith("/onboarding")) {
     await loginAsDevelopmentUser(page);
   }
   await page.goto(url);

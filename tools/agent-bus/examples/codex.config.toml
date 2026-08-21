@@ -1,0 +1,10 @@
+# Copie este bloco para .codex/config.toml no projeto ou ~/.codex/config.toml.
+[mcp_servers.juriai_agent_bus]
+url = "http://127.0.0.1:8766/mcp"
+bearer_token_env_var = "JURIAI_AGENT_BUS_TOKEN"
+required = true
+startup_timeout_sec = 10
+tool_timeout_sec = 60
+
+# Se JURIAI_AGENT_BUS_TOKEN estiver definido no servidor, descomente:
+# bearer_token_env_var = "JURIAI_AGENT_BUS_TOKEN"

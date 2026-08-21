@@ -6,6 +6,7 @@ import { AnalisarCasoButton } from "@/components/AnalisarCasoButton";
 import { CaseCopilotPanel } from "@/components/CaseCopilotPanel";
 import { EvidenceUploadForm } from "@/components/EvidenceUploadForm";
 import { GenerateDraftForm } from "@/components/GenerateDraftForm";
+import { IngestionStatusRefresh } from "@/components/IngestionStatusRefresh";
 import { StrengthBadge } from "@/components/CaseBadges";
 import { VincularProcessoForm } from "@/components/VincularProcessoForm";
 import { getActorContext } from "@/lib/actor-context";
@@ -18,6 +19,7 @@ import {
   listCaseCourtProcesses,
   listCaseIngestionJobs,
 } from "@/app/actions/cases";
+import { reviewAuditEntry } from "@/app/actions/audits";
 
 export const dynamic = "force-dynamic";
 
@@ -31,10 +33,14 @@ export default async function CasoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    upload?: string;
+    uploadError?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { error } = await searchParams;
+  const { error, upload, uploadError } = await searchParams;
   const caso = await getCase(id);
   const ingestionJobs = await listCaseIngestionJobs(id);
   const courtProcesses = await listCaseCourtProcesses(id);
@@ -42,13 +48,21 @@ export default async function CasoPage({
   if (!caso) notFound();
 
   const actor = await getActorContext();
-  // Histórico do copiloto (tabela ChatMessage já existente).
-  const chatMessages = await prisma.chatMessage.findMany({
-    where: { caseId: caso.id },
-    orderBy: { createdAt: "asc" },
-    take: 50,
-    select: { role: true, content: true },
-  });
+  const [chatMessages, auditEntries] = await Promise.all([
+    prisma.chatMessage.findMany({
+      where: { caseId: caso.id },
+      orderBy: { createdAt: "asc" },
+      take: 50,
+      select: { role: true, content: true },
+    }),
+    prisma.auditEntry.findMany({
+      where: { caseId: caso.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        reviewedBy: { select: { name: true, email: true } },
+      },
+    }),
+  ]);
 
   // Provas cujo job detectou partes do documento que não batem com o caso.
   const contextMismatchByEvidenceId = new Set<string>();
@@ -70,9 +84,6 @@ export default async function CasoPage({
 
   const isJudicial = TIPOS_JUDICIAIS.has(caso.type);
   const tribunalGroups = tribunalGroupsForDomain(caso.domain);
-  // Rascunhos ainda não têm status de revisão no schema: contam como pendentes
-  // de revisão humana enquanto existirem no caso.
-  const pendingDraftCount = caso.drafts.length;
   const suggestedNextStep = nextSuggestedStep({
     evidenceCount: caso.evidence.length,
     timelineCount: caso.timeline.length,
@@ -81,7 +92,7 @@ export default async function CasoPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+    <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <Link
         href="/workspace/casos"
         className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
@@ -136,11 +147,38 @@ export default async function CasoPage({
         </details>
       </header>
 
+      {uploadError && (
+        <p
+          role="alert"
+          className="mt-4 rounded border border-[var(--danger)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--danger)]"
+        >
+          {uploadError}
+        </p>
+      )}
+      {upload === "queued" && (
+        <p
+          role="status"
+          className="mt-4 rounded border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
+        >
+          Prova salva. Use “Processar” na fila de ingestão para iniciar a
+          análise do conteúdo.
+        </p>
+      )}
+      {upload === "processing" && (
+        <p
+          role="status"
+          className="mt-4 rounded border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
+        >
+          Prova salva. A análise do conteúdo foi enviada para processamento
+          automático.
+        </p>
+      )}
+
       {/*
         Desktop: 2 colunas — dossiê à esquerda, assistente sticky à direita.
         Mobile: 1 coluna — assistente logo após o header (ordem lógica de ação).
       */}
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start xl:grid-cols-[minmax(0,1fr)_minmax(22rem,26rem)]">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(20rem,24rem)] lg:items-start xl:grid-cols-[minmax(0,1.75fr)_minmax(22rem,26rem)]">
         {/* Coluna lateral: estado + análise + conversa */}
         <aside className="order-2 flex flex-col gap-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start">
           <Card className="px-4 py-4">
@@ -197,7 +235,6 @@ export default async function CasoPage({
                 isJudicial={isJudicial}
                 courtProcessCount={courtProcesses.length}
                 draftCount={caso.drafts.length}
-                pendingDraftCount={pendingDraftCount}
                 initialMessages={chatMessages}
                 compact
               />
@@ -331,9 +368,14 @@ export default async function CasoPage({
               caso.evidence.map((e) => (
                 <EvidenceRow
                   key={e.id}
+                  id={e.id}
                   label={e.label}
                   strength={e.strength}
                   mimeType={e.mimeType}
+                  scanStatus={e.scanStatus}
+                  downloadable={Boolean(
+                    e.storagePath && e.scanStatus === "CLEAN",
+                  )}
                   contextMismatch={contextMismatchByEvidenceId.has(e.id)}
                 />
               ))
@@ -351,6 +393,11 @@ export default async function CasoPage({
           </Section>
 
           <Section title="Ingestão" count={ingestionJobs.length}>
+            <IngestionStatusRefresh
+              active={ingestionJobs.some((job) =>
+                ["PENDENTE", "PROCESSANDO"].includes(job.status),
+              )}
+            />
             {ingestionJobs.length === 0 ? (
               <Empty text="Nenhum job de ingestão ainda." />
             ) : (
@@ -371,6 +418,10 @@ export default async function CasoPage({
                     <span className="shrink-0 text-xs font-medium text-[var(--muted)]">
                       Concluído
                     </span>
+                  ) : job.status === "PROCESSANDO" ? (
+                    <span className="shrink-0 text-xs font-medium text-[var(--muted)]">
+                      Processando…
+                    </span>
                   ) : (
                     <form
                       action={`/api/ingestion-jobs/${job.id}/process`}
@@ -388,6 +439,24 @@ export default async function CasoPage({
                     </form>
                   )}
                 </div>
+              ))
+            )}
+          </Section>
+
+          <Section title="Revisão das saídas de IA" count={auditEntries.length}>
+            {auditEntries.length === 0 ? (
+              <Empty text="Nenhuma saída de IA registrada para revisão." />
+            ) : (
+              auditEntries.map((audit) => (
+                <AuditReviewRow
+                  key={audit.id}
+                  audit={audit}
+                  reviewAction={reviewAuditEntry.bind(
+                    null,
+                    caso.id,
+                    audit.id,
+                  )}
+                />
               ))
             )}
           </Section>
@@ -472,22 +541,47 @@ function Section({
 // para futuras ações de editar/excluir metadados da prova — sem implementá-
 // las ainda, já que isso exige novas server actions (fora do patch mínimo).
 function EvidenceRow({
+  id,
   label,
   strength,
   mimeType,
+  scanStatus,
+  downloadable,
   contextMismatch = false,
 }: {
+  id: string;
   label: string;
   strength: string;
   mimeType: string | null;
+  scanStatus: string;
+  downloadable: boolean;
   contextMismatch?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
+    <div
+      data-evidence-id={id}
+      className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5"
+    >
       <div className="min-w-0">
         <p className="truncate text-sm">{label}</p>
         {mimeType && (
           <p className="text-xs text-[var(--muted)]">{mimeType}</p>
+        )}
+        {scanStatus === "PENDING" && (
+          <p className="mt-1.5 text-xs leading-snug text-[var(--warning)]">
+            Verificação de segurança em andamento. Download e análise serão
+            liberados automaticamente.
+          </p>
+        )}
+        {scanStatus === "INFECTED" && (
+          <p className="mt-1.5 text-xs leading-snug text-[var(--danger)]">
+            Arquivo bloqueado pela verificação de segurança.
+          </p>
+        )}
+        {scanStatus === "FAILED" && (
+          <p className="mt-1.5 text-xs leading-snug text-[var(--danger)]">
+            Não foi possível verificar a segurança deste arquivo.
+          </p>
         )}
         {contextMismatch && (
           <p className="mt-1.5 text-xs leading-snug text-[var(--warning)]">
@@ -496,10 +590,115 @@ function EvidenceRow({
           </p>
         )}
       </div>
-      <StrengthBadge strength={strength} />
+      <div className="flex shrink-0 items-center gap-3">
+        {downloadable && (
+          <a
+            href={`/api/evidence/${id}/download`}
+            className="text-xs font-medium text-[var(--muted)] hover:text-[var(--foreground)] hover:underline"
+          >
+            Baixar
+          </a>
+        )}
+        <StrengthBadge strength={strength} />
+      </div>
     </div>
   );
 }
+
+function AuditReviewRow({
+  audit,
+  reviewAction,
+}: {
+  audit: {
+    id: string;
+    action: string;
+    model: string;
+    groundedOn: unknown;
+    confidence: string;
+    unresolvedGaps: unknown;
+    createdAt: Date;
+    reviewedBy: { name: string | null; email: string } | null;
+  };
+  reviewAction: (formData: FormData) => Promise<void>;
+}) {
+  const sources = jsonItems(audit.groundedOn);
+  const gaps = jsonItems(audit.unresolvedGaps);
+
+  return (
+    <div
+      data-audit-id={audit.id}
+      className="px-4 py-3 sm:px-5 sm:py-4"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">
+            {AUDIT_ACTION_LABEL[audit.action] ?? audit.action}
+          </p>
+          <p className="mt-0.5 text-xs text-[var(--muted)]">
+            {audit.model} · confiança {audit.confidence.toLowerCase()} ·{" "}
+            {formatDate(audit.createdAt)}
+          </p>
+        </div>
+        {audit.reviewedBy ? (
+          <span className="shrink-0 rounded-full border border-[var(--border)] bg-[var(--background)] px-2.5 py-1 text-xs text-[var(--muted)]">
+            Revisado por {audit.reviewedBy.name || audit.reviewedBy.email}
+          </span>
+        ) : (
+          <form action={reviewAction}>
+            <Button size="md" variant="ghost">
+              Marcar como revisado
+            </Button>
+          </form>
+        )}
+      </div>
+
+      <details className="mt-2">
+        <summary className="cursor-pointer text-xs font-medium text-[var(--muted)] hover:text-[var(--foreground)]">
+          Ver rastreabilidade
+        </summary>
+        <div className="mt-2 grid gap-2 text-xs leading-relaxed text-[var(--muted)]">
+          <AuditDetail label="Base utilizada" items={sources} empty="Não informada" />
+          <AuditDetail label="Lacunas não resolvidas" items={gaps} empty="Nenhuma" />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function AuditDetail({
+  label,
+  items,
+  empty,
+}: {
+  label: string;
+  items: string[];
+  empty: string;
+}) {
+  return (
+    <p>
+      <span className="font-medium text-[var(--foreground)]">{label}:</span>{" "}
+      {items.length > 0 ? items.join("; ") : empty}
+    </p>
+  );
+}
+
+function jsonItems(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 8).map((item) => {
+    if (typeof item === "string") return item;
+    if (typeof item === "number" || typeof item === "boolean") {
+      return String(item);
+    }
+    return JSON.stringify(item);
+  });
+}
+
+const AUDIT_ACTION_LABEL: Record<string, string> = {
+  ANALYZE: "Análise do dossiê",
+  GENERATE_DRAFT: "Geração de minuta",
+  SUGGEST_STRATEGY: "Sugestão de estratégia",
+  EXTRACT_EVIDENCE: "Extração de prova",
+};
 
 function Row({ title, tag }: { title: string; tag?: string }) {
   return (

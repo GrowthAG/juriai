@@ -1,8 +1,6 @@
 /**
- * Cliente Gemini no Vertex AI com a mesma superfície mínima usada pelo
- * runtime Anthropic (messages.create), para reutilizar analyze/draft/extract/copilot.
- *
- * Auth: ADC (GoogleAuth / cloud-platform). Não usa ANTHROPIC_API_KEY.
+ * Cliente Gemini com suporte a API Key direta (Google AI Studio / Gemini 3.6 Flash)
+ * e fallback para Google Vertex AI (ADC).
  */
 import { GoogleAuth } from "google-auth-library";
 
@@ -34,7 +32,7 @@ export type GeminiVertexLlmClient = {
     create: (params: {
       model: string;
       max_tokens: number;
-      thinking: { type: "adaptive" };
+      thinking?: { type: "adaptive" };
       system: string;
       output_config: {
         format: {
@@ -58,21 +56,8 @@ const auth = new GoogleAuth({
   scopes: ["https://www.googleapis.com/auth/cloud-platform"],
 });
 
-function buildGenerateContentUrl(
-  projectId: string,
-  location: string,
-  model: string,
-) {
-  const host =
-    location === "global"
-      ? "https://aiplatform.googleapis.com"
-      : `https://${location}-aiplatform.googleapis.com`;
-  return `${host}/v1/projects/${projectId}/locations/${location}/publishers/google/models/${model}:generateContent`;
-}
-
-/** Converte JSON Schema (Anthropic-style) para schema aceito pelo Vertex Gemini. */
 export function toGeminiResponseSchema(schema: JsonSchema): Record<string, unknown> {
-  const type = String(schema.type || "object").toLowerCase();
+  const type = String(schema.type || "object").toUpperCase();
   const out: Record<string, unknown> = { type };
 
   if (schema.enum) out.enum = [...schema.enum];
@@ -90,7 +75,6 @@ export function toGeminiResponseSchema(schema: JsonSchema): Record<string, unkno
     out.items = toGeminiResponseSchema(schema.items as JsonSchema);
   }
 
-  // Gemini rejeita additionalProperties em vários modos; omitimos.
   return out;
 }
 
@@ -117,36 +101,14 @@ function contentToParts(content: LlmMessageContent): Array<Record<string, unknow
   return parts.length > 0 ? parts : [{ text: "" }];
 }
 
-async function getAccessToken(): Promise<string> {
-  const client = await auth.getClient();
-  const tokenResponse = await client.getAccessToken();
-  const token =
-    typeof tokenResponse === "string" ? tokenResponse : tokenResponse?.token;
-  if (!token) {
-    throw Object.assign(new Error("Falha ao obter credencial ADC do Google."), {
-      status: 401,
-      code: "UNAUTHENTICATED",
-    });
-  }
-  return token;
-}
-
 export function buildGeminiVertexClient(
-  location: string,
-  projectId: string,
+  location?: string,
+  projectId?: string,
 ): GeminiVertexLlmClient {
-  const loc = location.trim();
-  const project = projectId.trim();
-  if (!loc || !project) {
-    throw new Error("Região e projectId são obrigatórios para Gemini Vertex.");
-  }
-
   return {
     messages: {
       async create(params) {
         const userParts: Array<Record<string, unknown>> = [];
-        // System vira prefixo no primeiro turno (Gemini Vertex não tem system
-        // idêntico ao Anthropic em todos os endpoints).
         if (params.system?.trim()) {
           userParts.push({
             text: `INSTRUÇÕES DO SISTEMA:\n${params.system.trim()}\n\n---\n`,
@@ -176,16 +138,41 @@ export function buildGeminiVertexClient(
           },
         };
 
-        const url = buildGenerateContentUrl(project, loc, params.model);
-        const token = await getAccessToken();
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
+        const apiKey = process.env.GEMINI_API_KEY;
+        let response: Response;
+
+        if (apiKey) {
+          // Direct Google Gemini API call
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+          response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+        } else {
+          // Google Vertex AI via ADC
+          const loc = (location || "us-central1").trim();
+          const project = (projectId || "juriai-app").trim();
+          const host =
+            loc === "global"
+              ? "https://aiplatform.googleapis.com"
+              : `https://${loc}-aiplatform.googleapis.com`;
+          const url = `${host}/v1/projects/${project}/locations/${loc}/publishers/google/models/${params.model}:generateContent`;
+
+          const client = await auth.getClient();
+          const tokenResponse = await client.getAccessToken();
+          const token =
+            typeof tokenResponse === "string" ? tokenResponse : tokenResponse?.token;
+
+          response = await fetch(url, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+        }
 
         const payload = (await response.json().catch(() => ({}))) as {
           error?: { code?: number; status?: string; message?: string };
@@ -197,18 +184,7 @@ export function buildGeminiVertexClient(
         };
 
         if (!response.ok) {
-          const message =
-            payload.error?.message ||
-            `Gemini Vertex HTTP ${response.status}`;
-          const err = new Error(message) as Error & {
-            status?: number;
-            code?: string;
-            error?: { code?: unknown; status?: unknown; message?: unknown };
-          };
-          err.status = response.status;
-          err.code = payload.error?.status || String(response.status);
-          err.error = payload.error;
-          throw err;
+          throw new Error(payload.error?.message || `Gemini API Error: ${response.status}`);
         }
 
         const text = (payload.candidates?.[0]?.content?.parts || [])
@@ -223,7 +199,7 @@ export function buildGeminiVertexClient(
         const finish = payload.candidates?.[0]?.finishReason || null;
         return {
           content: [{ type: "text", text }],
-          model: payload.modelVersion || params.model,
+          model: payload.modelVersion || params.model || "gemini-3.6-flash",
           stop_reason: finish === "SAFETY" ? "refusal" : finish,
         };
       },

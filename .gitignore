@@ -47,3 +47,7 @@ next-env.d.ts
 /app/generated/prisma
 cloud-sql-proxy
 .env
+
+# local multi-agent runtime
+/tools/agent-bus/data/
+/.agents/runtime/

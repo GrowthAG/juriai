@@ -27,7 +27,7 @@
       "roleFile": ".agents/roles/po.md",
       "capabilities": ["discovery", "requirements", "acceptance-criteria", "roadmap"],
       "defaultProvider": "codex",
-      "defaultModel": "o3",
+      "defaultModel": "gpt-5.6-sol",
       "reviewRole": "requirements",
       "approvalScope": ["problem", "requirements", "acceptance", "roadmap"],
       "writePolicy": "read-only"
@@ -39,7 +39,7 @@
       "roleFile": ".agents/roles/fullstack.md",
       "capabilities": ["nextjs", "typescript", "react", "prisma", "postgresql", "testing"],
       "defaultProvider": "codex",
-      "defaultModel": "gpt-5",
+      "defaultModel": "gpt-5.6-sol",
       "reviewRole": "implementation",
       "approvalScope": ["implementation", "tests", "migrations"],
       "writePolicy": "code-write"

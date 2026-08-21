@@ -1,23 +1,12 @@
 import Image from "next/image";
+import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Button, Card } from "@/components/ui";
 import { loginAsEmail, loginWithGoogle } from "@/app/actions/auth";
+import { getAppPath, getAppUrl, isMarketingHost } from "@/lib/public-urls";
 
 export const dynamic = "force-dynamic";
-
-// E-mail do usuário de desenvolvimento (login local sem senha). Não é escolha
-// de persona: o papel/workspace são resolvidos no servidor pelo e-mail.
-const DEV_EMAIL = "dev@juriai.local";
-
-// Linhas estáticas do mini painel operacional (ilustrativas, sem prometer
-// auditoria técnica nem expor termos internos).
-const OPERATION_ROWS = [
-  "Contexto recebido",
-  "Documento vinculado",
-  "Revisão humana",
-  "Próxima ação",
-];
-
-const STEPPER = ["Contexto", "Revisão", "Próxima ação"];
 
 export default async function LoginPage({
   searchParams,
@@ -25,169 +14,199 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
+  const requestHeaders = await headers();
+  const requestHost =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
 
-  const showDevLogin =
-    process.env.NODE_ENV === "development" &&
-    process.env.JURIAI_ALLOW_DEV_BYPASS === "true";
+  if (isMarketingHost(requestHost) && getAppUrl()) {
+    const target = new URL(getAppPath("/login"));
+    if (error) target.searchParams.set("error", error);
+    redirect(target.toString());
+  }
 
   return (
-    // w-full flex-1: o <body> do root layout é `flex`; sem isto o main encolhe
-    // para o conteúdo e a tela fica presa à esquerda (não tocamos no layout).
-    <main className="flex w-full flex-1">
-      <div className="grid w-full lg:grid-cols-[42fr_58fr]">
-        {/* ── Lado esquerdo — login principal ───────────────────────── */}
-        <div className="flex min-h-screen items-center justify-center bg-[var(--surface)] px-6 py-16">
-          <div className="w-full max-w-md">
-            {/* Logo oficial: gavel-tile + wordmark */}
-            <div className="flex items-center gap-2.5">
+    <main className="flex min-h-screen w-full flex-1 bg-[var(--background)]">
+      <div className="grid w-full lg:grid-cols-12 min-h-screen">
+        
+        {/* ── COLUNA ESQUERDA: LOGIN FORM (5 colunas no desktop) ── */}
+        <div className="flex flex-col justify-between bg-[var(--surface)] px-6 py-10 sm:px-12 lg:col-span-5 lg:px-16 xl:col-span-5 border-r border-[var(--border)]">
+          {/* Topbar: Logo e link para trial */}
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2.5 group">
               <Image
                 src="/brand/gavel-tile.svg"
-                width={32}
-                height={32}
-                alt=""
+                width={30}
+                height={30}
+                alt="JuriAI"
                 aria-hidden="true"
                 unoptimized
+                className="transition-transform group-hover:scale-105"
               />
-              <span className="font-serif text-lg font-semibold tracking-tight">
-                Juri<span className="font-sans text-[var(--accent)]">AI</span>
+              <span className="font-serif text-lg font-semibold tracking-tight text-[var(--foreground)]">
+                Juri<span className="font-sans text-[var(--primary)]">AI</span>
+              </span>
+            </Link>
+            <span className="rounded-full border border-[var(--border)] bg-[var(--background)] px-2.5 py-1 text-[11px] font-medium text-[var(--muted)]">
+              Acesso Seguro
+            </span>
+          </div>
+
+          {/* Card Central de Login */}
+          <div className="my-auto w-full max-w-sm mx-auto py-8">
+            <div>
+              <h1 className="font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">
+                Entrar no Workspace
+              </h1>
+              <p className="mt-2 text-sm text-[var(--muted)] leading-relaxed">
+                Acesse o ambiente operacional do seu escritório.
+              </p>
+            </div>
+
+            {error && (
+              <div
+                role="alert"
+                className="mt-6 rounded-[var(--radius)] border border-[var(--danger)] bg-red-50/50 px-3.5 py-2.5 text-xs font-medium text-[var(--danger)]"
+              >
+                {error}
+              </div>
+            )}
+
+            {/* Google OAuth Button */}
+            <form action={loginWithGoogle} className="mt-7">
+              <button
+                type="submit"
+                className="flex h-11 w-full items-center justify-center gap-3 rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+              >
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span>Entrar com Conta Google</span>
+              </button>
+            </form>
+
+            <div className="relative mt-6 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[var(--border)]" />
+              </div>
+              <span className="relative bg-[var(--surface)] px-3 text-[11px] uppercase tracking-wider text-[var(--muted)] font-medium">
+                ou por e-mail corporativo
               </span>
             </div>
 
-            <Card className="mt-8 px-7 py-8">
-              <h1 className="font-serif text-2xl font-semibold tracking-tight">
-                Entrar no JuriAI
-              </h1>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                Acesse o workspace do seu escritório.
-              </p>
-
-              {error && (
-                <p
-                  role="alert"
-                  className="mt-6 rounded-lg border border-[var(--danger)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--danger)]"
+            {/* Email Login Form */}
+            <form action={loginAsEmail} className="mt-6 space-y-4">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)] mb-1.5"
                 >
-                  {error}
-                </p>
-              )}
-
-              <form action={loginWithGoogle} className="mt-7">
-                <Button type="submit" className="w-full">
-                  Entrar com Google
-                </Button>
-              </form>
-
-              {showDevLogin && (
-            <>
-            <div className="mt-6 flex items-center gap-3 text-xs text-[var(--muted)]">
-                  <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
-                  ou
-                  <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
-                </div>
-
-                <form action={loginAsEmail} className="mt-6 grid gap-5">
-                  <div className="grid gap-2">
-                    <label
-                      htmlFor="email"
-                      className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]"
-                    >
-                      E-mail
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      autoFocus
-                      placeholder="voce@escritorio.com.br"
-                      className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[var(--primary)]"
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full">
-                    Entrar
-                  </Button>
-                </form>
-
-                <p className="mt-5 text-xs leading-relaxed text-[var(--muted)]">
-                  Permissões, papel e workspace são aplicados automaticamente após
-                  a autenticação.
-                </p>
-            </>
-          )}
-            </Card>
-
-            {/* Ambiente local — bloco discreto, alinhado à largura do card */}
-            {showDevLogin && (
-              <div className="mt-5 border-t border-[var(--border)] pt-4">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted)]">
-                  Ambiente local
-                </p>
-                <form action={loginAsEmail} className="mt-1">
-                  <input type="hidden" name="email" value={DEV_EMAIL} />
-                  <Button
-                    type="submit"
-                    variant="ghost"
-                    className="h-auto px-0 text-xs font-medium"
-                  >
-                    Entrar com usuário de desenvolvimento
-                  </Button>
-                </form>
+                  E-mail do Escritório
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  placeholder="voce@escritorio.adv.br"
+                  className="h-11 w-full rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
+                />
               </div>
-            )}
+
+              <Button type="submit" size="md" className="w-full font-semibold shadow-sm">
+                Acessar Escritório →
+              </Button>
+            </form>
+
+            {/* Banner de Criação de Trial */}
+            <div className="mt-8 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--background)] p-4 text-center">
+              <p className="text-xs text-[var(--muted)]">
+                Ainda não tem um workspace cadastrado?
+              </p>
+              <Link
+                href="/cadastro"
+                className="mt-1.5 inline-block text-xs font-semibold text-[var(--primary)] hover:underline"
+              >
+                Criar conta e iniciar Trial de 30 dias →
+              </Link>
+            </div>
+          </div>
+
+          {/* Footer discreto */}
+          <div className="pt-6 border-t border-[var(--border)] flex items-center justify-between text-[11px] text-[var(--muted)]">
+            <span>JuriAI LegalTech Platform</span>
+            <span>A IA sugere. O advogado valida.</span>
           </div>
         </div>
 
-        {/* ── Lado direito — painel editorial-operacional (desktop) ─── */}
-        <aside className="hidden min-h-screen flex-col justify-center border-l border-[var(--border)] bg-[var(--surface)] px-12 py-16 lg:flex">
-          <div className="max-w-md">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-              Legal Operating System
-            </p>
-            <h2 className="mt-4 font-serif text-3xl font-semibold leading-[1.15] tracking-tight text-[var(--foreground)]">
-              Fluxos guiados para operar casos com revisão humana.
+        {/* ── COLUNA DIREITA: EDITORIAL HERO IMAGE (7 colunas no desktop) ── */}
+        <div className="relative hidden lg:col-span-7 xl:col-span-7 lg:flex flex-col justify-between overflow-hidden bg-slate-900 p-12 lg:p-16">
+          {/* Background image com overlay elegante */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/site/hero-human-desk.jpg"
+              alt="Mesa de trabalho com documentos jurídicos"
+              fill
+              priority
+              className="object-cover object-center opacity-40 mix-blend-luminosity filter contrast-125"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-900/40" />
+          </div>
+
+          {/* Topo do painel editorial */}
+          <div className="relative z-10 flex items-center gap-3">
+            <span className="inline-flex items-center rounded-full bg-blue-500/10 border border-blue-400/20 px-3 py-1 text-xs font-medium text-blue-300">
+              Contencioso Cível e Consultoria B2B
+            </span>
+          </div>
+
+          {/* Conteúdo Editorial Central */}
+          <div className="relative z-10 max-w-lg space-y-5">
+            <h2 className="font-serif text-3xl font-semibold leading-tight text-white xl:text-4xl">
+              A precisão documental que a advocacia de alto nível exige.
             </h2>
-            <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">
-              O JuriAI organiza contexto, documentos e próximos passos antes da
-              revisão do advogado.
+            <p className="text-sm text-slate-300 leading-relaxed">
+              Estruturação automática de linha do tempo, classificação de provas materiais e geração de minutas com rastreabilidade absoluta de fontes. Sem inventar jurisprudência.
             </p>
 
-            {/* Mini painel operacional — moldura 1px, estático */}
-            <div className="mt-8 overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)]">
-              <p className="border-b border-[var(--border)] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
-                Fila operacional
-              </p>
-              <ul className="divide-y divide-[var(--border)]">
-                {OPERATION_ROWS.map((row) => (
-                  <li key={row} className="flex items-center gap-2.5 px-4 py-2.5">
-                    <span
-                      className="site-status-dot shrink-0"
-                      data-active="true"
-                      aria-hidden="true"
-                    />
-                    <span className="text-sm text-[var(--foreground)]">
-                      {row}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Stepper discreto */}
-            <div className="mt-4 flex flex-wrap items-center gap-1.5 font-mono text-[10px] uppercase tracking-wide text-[var(--muted)]">
-              {STEPPER.map((step, i) => (
-                <span key={step} className="flex items-center gap-1.5">
-                  <span>{step}</span>
-                  {i < STEPPER.length - 1 && (
-                    <span aria-hidden="true" className="text-[var(--border-strong)]">
-                      →
-                    </span>
-                  )}
-                </span>
-              ))}
+            {/* Três pilares sóbrios */}
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800">
+              <div>
+                <p className="font-mono text-xs font-bold text-white">100%</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Rastreabilidade</p>
+              </div>
+              <div>
+                <p className="font-mono text-xs font-bold text-white">Zero</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Alucinações</p>
+              </div>
+              <div>
+                <p className="font-mono text-xs font-bold text-white">Multi-Tenant</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Isolamento Total</p>
+              </div>
             </div>
           </div>
-        </aside>
+
+          {/* Rodapé da imagem */}
+          <div className="relative z-10 text-[11px] text-slate-500 font-mono">
+            Conforme com os padrões éticos e de sigilo profissional da OAB.
+          </div>
+        </div>
+
       </div>
     </main>
   );

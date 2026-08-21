@@ -26,7 +26,7 @@ export function Shell({
   return (
     <>
       <Sidebar user={user} />
-      <div className="ml-56 flex min-h-full flex-1 flex-col">
+      <div className="flex min-h-full flex-1 flex-col lg:ml-56">
         {impersonating && (
           <div className="flex items-center justify-between gap-4 bg-[var(--primary)] px-6 py-2 text-sm text-[var(--primary-foreground)]">
             <span>

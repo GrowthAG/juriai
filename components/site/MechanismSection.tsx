@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { SiteReveal } from "./SiteReveal";
 
@@ -34,12 +34,11 @@ const STEPS = [
 
 export function MechanismSection() {
   const [active, setActive] = useState(0);
-  const prevActive = useRef(0);
+  const [direction, setDirection] = useState(1);
   const step = STEPS[active];
-  const direction = active > prevActive.current ? 1 : -1;
 
   const handleSetActive = (index: number) => {
-    prevActive.current = active;
+    setDirection(index > active ? 1 : -1);
     setActive(index);
   };
 

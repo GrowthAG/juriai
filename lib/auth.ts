@@ -1,29 +1,43 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { setSession } from "@/lib/session";
-import { findAuthUserByEmail, resolvePostLoginPath } from "@/lib/auth-user";
+import { findOrCreateAuthUserByGoogle, resolvePostLoginPath } from "@/lib/auth-user";
 
-/* Auth.js só cuida do handshake OAuth com o Google. Quem manda na sessão do
-   app continua sendo o cookie próprio do JuriAI (ver lib/session.ts) — o
-   callback abaixo resolve o usuário e chama setSession() antes de decidir
-   para onde redirecionar, no mesmo padrão de loginAsEmail. */
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [Google],
+  providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
+  ],
+  secret: process.env.AUTH_SECRET || "dev-secret-key-must-be-at-least-32-chars-long",
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   callbacks: {
     async signIn({ user }) {
       if (!user.email) return false;
 
-      const found = await findAuthUserByEmail(user.email);
-      if (!found) {
+      const resolvedUser = await findOrCreateAuthUserByGoogle({
+        email: user.email,
+        name: user.name,
+      });
+
+      if (!resolvedUser) {
         return `/login?error=${encodeURIComponent(
-          "E-mail não encontrado. Peça para um administrador criar seu acesso em Escritórios.",
+          "Não foi possível autenticar sua conta Google. Tente novamente.",
         )}`;
       }
 
-      await setSession(found.id);
-      return resolvePostLoginPath(found);
+      await setSession(resolvedUser.id);
+      return resolvePostLoginPath(resolvedUser);
     },
   },
 });

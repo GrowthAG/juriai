@@ -1,0 +1,13 @@
+.gcloudignore
+.git
+.gitignore
+#!include:.gitignore
+
+.grok
+.claude
+e2e
+playwright-report
+test-results
+scripts/dev-recreate-almeida-smoke.mjs
+scripts/probe-datajud.mjs
+scripts/_tmp*
