@@ -61,47 +61,19 @@ export function LandingPage() {
               <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 14 }}>14 dias gratis. Sem cartao de credito upfront.</p>
             </div>
 
-            {/* Right — simplified product table */}
+            {/* Right — REAL product screenshot */}
             <div>
-              <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 12, overflow: "hidden" }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "#020520" }}>MATRIZ FATO x PROVA</span>
-                    <span style={{ fontSize: 11, color: "#9ca3af" }}>Caso: Cobranca Alugueis</span>
-                  </div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <span style={{ fontSize: 10, padding: "2px 8px", background: "#f0fdf4", color: "#16ca2e", fontWeight: 500 }}>9 provados</span>
-                    <span style={{ fontSize: 10, padding: "2px 8px", background: "#fef2f2", color: "#f26052", fontWeight: 500 }}>3 alegados</span>
-                  </div>
-                </div>
-                <div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 90px", padding: "8px 20px", background: "#f8f9fa", borderBottom: "1px solid #f1f5f9" }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>Fato</span>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>Status</span>
-                  </div>
-                  {[
-                    { f: "Contrato firmado em 15/01/2023", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
-                    { f: "Inadimplemento a partir de 01/04/2024", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
-                    { f: "R$ 18.750,00 em alugueis atrasados", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
-                    { f: "Notificacao extrajudicial em 10/05/2024", s: "ALEGADO", c: "#f26052", bg: "#fef2f2" },
-                    { f: "Multa contratual de 2 meses", s: "ALEGADO", c: "#f26052", bg: "#fef2f2" },
-                  ].map((row, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 90px", padding: "10px 20px", borderBottom: i < 4 ? "1px solid #f1f5f9" : "none", background: "white" }}>
-                      <span style={{ fontSize: 11, color: "#14141e" }}>{row.f}</span>
-                      <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 4, background: row.bg, color: row.c, alignSelf: "center" }}>{row.s}</span>
-                    </div>
-                  ))}
-                  <div style={{ padding: "10px 20px", background: "#fef2f2", borderTop: "1px solid #fecaca" }}>
-                    <p style={{ fontSize: 11, color: "#991b1b", fontWeight: 500 }}>2 fatos sem comprovacao. Revise antes de ajuizar.</p>
-                  </div>
-                </div>
-              </div>
+              <img
+                src="/site/juriai-wizard-real.png"
+                alt="JuriAI extraindo fatos de um contrato em tempo real"
+                style={{ width: "100%", height: "auto", display: "block", borderRadius: 8, border: "1px solid #e2e8f0" }}
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* HERO ends above */}
+      {/* HERO ends here */}
 
       {/* LOGO STRIP */}
       {/* TRUST STRIP — integrations + compliance badges */}
@@ -190,7 +162,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          {/* Steps are shown below in the clean feature cards */}
+
 
           {/* Feature cards — como cada etapa funciona na pratica */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20, marginTop: 40 }}>
