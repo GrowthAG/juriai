@@ -463,21 +463,14 @@ async function resolveLlmRuntime(): Promise<LlmRuntimeResolution> {
     workspaceConfig?.llmRegion?.trim() ||
     process.env.CLOUD_ML_REGION?.trim() ||
     process.env.GOOGLE_CLOUD_LOCATION?.trim() ||
-    null;
+    process.env.JURIAI_TASKS_LOCATION?.trim() ||
+    "us-central1";
   const projectId =
     workspaceConfig?.llmProjectId?.trim() ||
     process.env.ANTHROPIC_VERTEX_PROJECT_ID?.trim() ||
     process.env.GOOGLE_CLOUD_PROJECT?.trim() ||
     process.env.GCLOUD_PROJECT?.trim() ||
-    null;
-
-  if (!region || !projectId) {
-    return {
-      state: { status: "missing_config" },
-      provider: null,
-      workspaceConfig,
-    };
-  }
+    "juriai-app";
 
   if (provider === "google-vertex-gemini") {
     if (!GEMINI_MODELS.has(model)) {
