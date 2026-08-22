@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JuriAI - Curadoria de Imagens para o Site</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #0f172a; padding: 40px; }
+    h1 { text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { text-align: center; color: #64748b; margin-bottom: 40px; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 24px; max-width: 1400px; margin: 0 auto; }
+    .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .card img { width: 100%; height: 220px; object-fit: cover; display: block; }
+    .card-body { padding: 16px; }
+    .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #145aff; margin-bottom: 6px; }
+    .card-desc { font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 8px; }
+    .card-meta { font-size: 11px; color: #94a3b8; font-family: monospace; }
+    .card-status { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 8px; border-radius: 999px; }
+    .status-ok { background: #dcfce7; color: #166534; }
+    .status-review { background: #fef9c3; color: #854d0e; }
+    .status-consider { background: #e0f2fe; color: #075985; }
+    .section-title { font-size: 18px; font-weight: 700; margin: 40px 0 20px; text-align: center; color: #0f172a; }
+    hr { border: none; border-top: 1px solid #e2e8f0; margin: 40px 0; }
+    .verdict { font-size: 12px; color: #64748b; text-align: center; margin-top: 40px; padding: 20px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 900px; margin-left: auto; margin-right: auto; }
+    .verdict strong { color: #0f172a; }
+  </style>
+</head>
+<body>
+
+<h1>JuriAI - Curadoria de Imagens para o Site</h1>
+<p class="subtitle">9 ativos visuais disponiveis em public/site/ | Verificacao de dimensao, conteudo e adequacao para o novo site</p>
+
+<!-- ============================================================
+     FOTOGRAFIAS EDITORIAIS (uso: Hero, Barra de Confianca, FAQ)
+     ============================================================ -->
+<h2 class="section-title">Fotografias Editoriais (Uso: Hero Split, Barra de Confianca, FAQ)</h2>
+<div class="grid">
+
+  <div class="card">
+    <img src="http://localhost:3000/site/hero-human-desk.jpg" alt="hero-human-desk">
+    <div class="card-body">
+      <div class="card-title">HERO SPLIT-SCREEN (LADO DIREITO)</div>
+      <p class="card-desc">Mesa de trabalho em madeira nobre com documentos. Iluminacao natural. Ambiente de advogado titular em foco. Ideal para hero editorial de fundo escuro com overlay.</p>
+      <p class="card-meta">1280x720 px | JPEG | 181 KB</p>
+      <span class="card-status status-ok">APROVADO - Hero Principal</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="http://localhost:3000/site/hero-human-desk-crop.jpg" alt="hero-human-desk-crop">
+    <div class="card-body">
+      <div class="card-title">HERO SPLIT-SCREEN (CROP VERTICAL)</div>
+      <p class="card-desc">Corte vertical do mesmo escritorio. Foco no profissional com documentos. Funciona bem em card ou badge lateral do hero. Aspect ratio 1:1 amigavel.</p>
+      <p class="card-meta">743x691 px | JPEG | 79 KB</p>
+      <span class="card-status status-ok">APROVADO - Hero Secundario</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="http://localhost:3000/site/human-office-meeting.jpg" alt="human-office-meeting">
+    <div class="card-body">
+      <div class="card-title">SALA DE REUNIAO / CASO DE USO</div>
+      <p class="card-desc">Equipe de advogados em reuniao de estrategia. Transmissao de trabalho colaborativo e forense. Uso ideal: secao de rigor etico, FAQ ou pagina de cadastro (lado direito).</p>
+      <p class="card-meta">1280x720 px | JPEG | 244 KB</p>
+      <span class="card-status status-ok">APROVADO - Secao Rigor / Cadastro</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="http://localhost:3000/site/human-desk-still.jpg" alt="human-desk-still">
+    <div class="card-body">
+      <div class="card-title">MESA DE TRABALHO (AMBIENTE)</div>
+      <p class="card-desc">Ambiente estatico de escritorio com pilha de documentos e笔记本. Sensacao de trabalho continuo. Pode ser usada em secao de problema ou showcase do produto.</p>
+      <p class="card-meta">1280x720 px | JPEG | 174 KB</p>
+      <span class="card-status status-review">CONSIDERAR - Secao Problema / Showcase</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="http://localhost:3000/site/human-desk-docs-crop.jpg" alt="human-desk-docs-crop">
+    <div class="card-body">
+      <div class="card-title">MESA COM DOCUMENTOS (CROP)</div>
+      <p class="card-desc">Close de maos organizando documentos. Foco em paperwork e gestao documental. Uso: secao de esteira forense ou showcase de custodia de provas.</p>
+      <p class="card-meta">794x627 px | JPEG | 64 KB</p>
+      <span class="card-status status-review">CONSIDERAR - Secao Esteira Forense</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="http://localhost:3000/site/human-office-crop.jpg" alt="human-office-crop">
+    <div class="card-body">
+      <div class="card-title">ESCRITORIO COM PROFISSIONAIS (CROP)</div>
+      <p class="card-desc">Equipe ou espaco de escritorio com profissionais. Uso possivel: secao de quem somos ou secao de prova social (beta testers). Aspect ratio widescreen.</p>
+      <p class="card-meta">1024x605 px | JPEG | 105 KB</p>
+      <span class="card-status status-review">CONSIDERAR - Prova Social / Beta</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     CAPTURAS DO PRODUTO (uso: Showcase, Demo, Hero Interativo)
+     ============================================================ -->
+<hr>
+<h2 class="section-title">Capturas do Produto (Uso: Showcase Visual, Demo Dashboard)</h2>
+<div class="grid">
+
+  <div class="card">
+    <img src="http://localhost:3000/site/demo-dashboard.png" alt="demo-dashboard">
+    <div class="card-body">
+      <div class="card-title">DEMO DASHBOARD (SITE /DEMO/DASHBOARD)</div>
+      <p class="card-desc">Captura da pagina de demo operacional. Dados ficticios realistas. KPI cards, mesa de trabalho, pipeline e fila de tarefas criticas. Uso principal: link /demo/dashboard.</p>
+      <p class="card-meta">1922x994 px | PNG | 182 KB</p>
+      <span class="card-status status-ok">APROVADO - Pagina Demo + Showcase Hero</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="http://localhost:3000/site/juriai-dashboard-real.png" alt="juriai-dashboard-real">
+    <div class="card-body">
+      <div class="card-title">DASHBOARD REAL DO PRODUTO</div>
+      <p class="card-desc">Captura real do dashboard operacional do JuriAI em uso. Alta resolucao (3024x1890). Uso: secao de showcase visual do produto, demonstracao interativa.</p>
+      <p class="card-meta">3024x1890 px | PNG | 221 KB</p>
+      <span class="card-status status-ok">APROVADO - Showcase Produto</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="http://localhost:3000/site/juriai-wizard-real.png" alt="juriai-wizard-real">
+    <div class="card-body">
+      <div class="card-title">WIZARD REAL DE CRIACAO DE CASO</div>
+      <p class="card-desc">Captura real do wizard de novo caso do JuriAI. Alta resolucao (3024x1890). Uso: showcase da esteira forense, secao de mecanismo do produto.</p>
+      <p class="card-meta">3024x1890 px | PNG | 136 KB</p>
+      <span class="card-status status-ok">APROVADO - Showcase Mecanismo</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     VEREDITO E RECOMENDACOES DE USO
+     ============================================================ -->
+<div class="verdict">
+  <strong>Veredito da curadoria:</strong><br><br>
+  <strong>PRONTAS PARA USO IMEDIATO (3/9):</strong> hero-human-desk.jpg (hero split-screen principal),
+  human-office-meeting.jpg (rigor etico / cadastro), demo-dashboard.png (showcase e demo).<br><br>
+  <strong>CAPTURAS DE PRODUTO (3/9):</strong> demo-dashboard.png, juriai-dashboard-real.png, juriai-wizard-real.png
+  — todas aprovadas para secao de showcase e link /demo/dashboard.<br><br>
+  <strong>CONSIDERAR (3/9):</strong> human-desk-still.jpg (problema), human-desk-docs-crop.jpg (esteira),
+  human-office-crop.jpg (prova social beta). Usar se a composicao final exigir.<br><br>
+  <strong>FALTA:</strong> (1) Infografica CSS animada do pipeline (codigo, nao imagem).
+  (2) Icones forenses customizados (SHA-256, DataJud, timbre, OAB).
+  (3) Mockup de documento exportado em papel timbrado (idealmente gerado via codigo com dados ficticios).
+</div>
+
+</body>
+</html>
