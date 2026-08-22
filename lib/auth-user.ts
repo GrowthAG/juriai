@@ -4,6 +4,7 @@ export type AuthUserLookup = {
   id: string;
   isSuperAdmin: boolean;
   workspaceKind: "MASTER" | "SUBCONTA";
+  isNewUser?: boolean;
 };
 
 export async function findAuthUserByEmail(
@@ -27,7 +28,7 @@ export async function findAuthUserByEmail(
 
 /**
  * Encontra o usuário existente ou cria automaticamente um novo Workspace (SUBCONTA)
- * e o usuário como WORKSPACE_ADMIN em modo Trial de 30 dias quando loga/cadastra via Google.
+ * e o usuário como WORKSPACE_ADMIN quando loga/cadastra via Google.
  */
 export async function findOrCreateAuthUserByGoogle(user: {
   email?: string | null;
@@ -38,9 +39,9 @@ export async function findOrCreateAuthUserByGoogle(user: {
 
   // 1. Se já existe, retorna o usuário existente
   const existing = await findAuthUserByEmail(email);
-  if (existing) return existing;
+  if (existing) return { ...existing, isNewUser: false };
 
-  // 2. Se não existe, cria o Workspace em Trial e o Usuário como Admin do Escritório
+  // 2. Se não existe, cria o Workspace e o Usuário como Admin do Escritório
   const firmName = user.name
     ? `Advocacia ${user.name}`
     : `Escritório ${email.split("@")[0]}`;
@@ -90,7 +91,7 @@ export async function findOrCreateAuthUserByGoogle(user: {
       workspaceId, userId
     );
 
-    // Cria assinatura em Trial de 30 dias
+    // Cria assinatura
     await tx.$executeRawUnsafe(
       `INSERT INTO "WorkspaceSubscription" (
         "id", "status", "workspaceId", "createdAt", "updatedAt"
@@ -107,14 +108,19 @@ export async function findOrCreateAuthUserByGoogle(user: {
       id: userId,
       isSuperAdmin: false,
       workspaceKind: "SUBCONTA" as const,
+      isNewUser: true,
     };
   });
 }
 
 export function resolvePostLoginPath(
-  user: Pick<AuthUserLookup, "isSuperAdmin" | "workspaceKind">,
-): "/admin" | "/workspace" {
-  return user.isSuperAdmin || user.workspaceKind === "MASTER"
-    ? "/admin"
-    : "/workspace";
+  user: Pick<AuthUserLookup, "isSuperAdmin" | "workspaceKind" | "isNewUser">,
+): "/admin" | "/workspace" | "/onboarding" {
+  if (user.isSuperAdmin || user.workspaceKind === "MASTER") {
+    return "/admin";
+  }
+  if (user.isNewUser) {
+    return "/onboarding";
+  }
+  return "/workspace";
 }

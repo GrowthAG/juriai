@@ -5,53 +5,36 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
-import { registerClientTrial } from "@/app/actions/signup";
+import { registerClientAccount } from "@/app/actions/signup";
 import { loginWithGoogle } from "@/app/actions/auth";
 
 const fieldClass =
   "mt-1.5 h-11 w-full rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface)] px-3.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]";
 
-const DOMAINS = [
-  { value: "CIVIL", label: "Cível" },
-  { value: "CONSUMIDOR", label: "Consumidor" },
-  { value: "TRABALHISTA", label: "Trabalhista" },
-  { value: "TRIBUTARIO", label: "Tributário" },
-  { value: "EMPRESARIAL", label: "Empresarial & Contratos" },
-  { value: "FAMILIA", label: "Família" },
-];
-
 export default function CadastroPage() {
   const router = useRouter();
-  const [firmName, setFirmName] = useState("");
-  const [adminName, setAdminName] = useState("");
-  const [adminEmail, setAdminEmail] = useState("");
-  const [domains, setDomains] = useState<string[]>(["CIVIL", "CONSUMIDOR"]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  function toggleDomain(val: string) {
-    setDomains((prev) =>
-      prev.includes(val) ? prev.filter((d) => d !== val) : [...prev, val]
-    );
-  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     const fd = new FormData();
-    fd.set("firmName", firmName.trim());
-    fd.set("adminName", adminName.trim());
-    fd.set("adminEmail", adminEmail.trim());
-    domains.forEach((d) => fd.append("domains", d));
+    fd.set("name", name.trim());
+    fd.set("email", email.trim());
+    fd.set("phone", phone.trim());
 
     startTransition(async () => {
-      const res = await registerClientTrial(fd);
+      const res = await registerClientAccount(fd);
       if (!res.ok) {
         setError(res.message);
         return;
       }
-      router.push("/workspace");
+      router.push("/onboarding");
     });
   }
 
@@ -59,7 +42,7 @@ export default function CadastroPage() {
     <main className="flex min-h-screen w-full flex-1 bg-[var(--background)]">
       <div className="grid w-full lg:grid-cols-12 min-h-screen">
         
-        {/* ── COLUNA ESQUERDA: FORMULÁRIO DE CADASTRO / TRIAL ── */}
+        {/* ── COLUNA ESQUERDA: FORMULÁRIO DE CADASTRO ── */}
         <div className="flex flex-col justify-between bg-[var(--surface)] px-6 py-10 sm:px-12 lg:col-span-6 lg:px-16 xl:col-span-5 border-r border-[var(--border)]">
           {/* Topbar */}
           <div className="flex items-center justify-between">
@@ -88,14 +71,11 @@ export default function CadastroPage() {
           {/* Form Area */}
           <div className="my-auto w-full max-w-md mx-auto py-6">
             <div className="border-b border-[var(--border)] pb-4">
-              <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--primary)]">
-                Trial de 30 Dias sem Custo
-              </span>
-              <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">
-                Criar Conta do Escritório
+              <h1 className="font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">
+                Criar Conta
               </h1>
               <p className="mt-1.5 text-xs text-[var(--muted)] leading-relaxed">
-                Acesso instantâneo em nuvem com isolamento individual por subconta.
+                Acesse o ambiente do seu escritório no JuriAI.
               </p>
             </div>
 
@@ -136,12 +116,12 @@ export default function CadastroPage() {
               </button>
             </form>
 
-            <div className="relative my-4 flex items-center justify-center">
+            <div className="relative my-5 flex items-center justify-center">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-[var(--border)]" />
               </div>
               <span className="relative bg-[var(--surface)] px-3 text-[11px] uppercase tracking-wider text-[var(--muted)] font-medium">
-                ou preencha com e-mail
+                ou preencha com seus dados
               </span>
             </div>
 
@@ -149,68 +129,43 @@ export default function CadastroPage() {
             <form onSubmit={handleSubmit} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-                  Nome do Escritório ou Advocacia
+                  Nome Completo
                 </label>
                 <input
                   required
-                  value={firmName}
-                  onChange={(e) => setFirmName(e.target.value)}
-                  placeholder="Ex: Albuquerque & Associados Advocacia"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Dr(a). Seu Nome"
                   className={fieldClass}
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-                    Advogado(a) Titular
-                  </label>
-                  <input
-                    required
-                    value={adminName}
-                    onChange={(e) => setAdminName(e.target.value)}
-                    placeholder="Dr. Marcos Albuquerque"
-                    className={fieldClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-                    E-mail Corporativo
-                  </label>
-                  <input
-                    required
-                    type="email"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="marcos@albuquerque.adv.br"
-                    className={fieldClass}
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                  E-mail Corporativo
+                </label>
+                <input
+                  required
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="voce@escritorio.adv.br"
+                  className={fieldClass}
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)] mb-1.5">
-                  Áreas de Atuação
+                <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                  WhatsApp / Telefone
                 </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {DOMAINS.map((d) => {
-                    const active = domains.includes(d.value);
-                    return (
-                      <button
-                        key={d.value}
-                        type="button"
-                        onClick={() => toggleDomain(d.value)}
-                        className={`h-7 rounded-md border px-2.5 text-xs font-medium transition-colors ${
-                          active
-                            ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]"
-                            : "border-[var(--border-strong)] bg-[var(--surface)] text-[var(--muted)] hover:border-[var(--primary)]"
-                        }`}
-                      >
-                        {d.label}
-                      </button>
-                    );
-                  })}
-                </div>
+                <input
+                  required
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="(11) 99999-9999"
+                  className={fieldClass}
+                />
               </div>
 
               <div className="pt-2">
@@ -218,15 +173,11 @@ export default function CadastroPage() {
                   type="submit"
                   size="md"
                   className="w-full font-semibold shadow-sm"
-                  disabled={isPending || !firmName.trim() || !adminEmail.trim()}
+                  disabled={isPending || !name.trim() || !email.trim() || !phone.trim()}
                 >
-                  {isPending ? "Criando ambiente..." : "Iniciar Trial de 30 Dias →"}
+                  {isPending ? "Criando conta..." : "Criar conta →"}
                 </Button>
               </div>
-
-              <p className="text-center text-[11px] text-[var(--muted)] leading-relaxed pt-1">
-                Sem necessidade de cartão de crédito. Acesso imediato ao Cockpit.
-              </p>
             </form>
           </div>
 
@@ -274,3 +225,4 @@ export default function CadastroPage() {
     </main>
   );
 }
+
