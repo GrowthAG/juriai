@@ -22,9 +22,9 @@ export function LandingPage() {
             </span>
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+            <a href="#problema" style={{ fontSize: 14, fontWeight: 400, color: "#374151", textDecoration: "none" }}>Problema</a>
             <a href="#como-funciona" style={{ fontSize: 14, fontWeight: 400, color: "#374151", textDecoration: "none" }}>Como funciona</a>
             <a href="#precos" style={{ fontSize: 14, fontWeight: 400, color: "#374151", textDecoration: "none" }}>Precos</a>
-            <a href="#para-quem-e" style={{ fontSize: 14, fontWeight: 400, color: "#374151", textDecoration: "none" }}>Para quem e</a>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
             <Link href="/login" style={{ fontSize: 14, color: "#374151", textDecoration: "none" }}>Entrar</Link>
@@ -101,15 +101,15 @@ export function LandingPage() {
       </section>
 
       {/* PROBLEMA — a dor que o socio sente */}
-      <section id="como-funciona" style={{ padding: "96px 0", background: "#fcfcfc" }}>
+      <section id="problema" style={{ padding: "96px 0", background: "#fcfcfc" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>O problema</p>
             <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.48px", color: "#020520", marginBottom: 16 }}>
-              O que você faz quando o juiz pergunta "e onde esta isso?"
+              O que voce faz quando o juiz pergunta "e onde esta isso?"
             </h2>
             <p style={{ fontSize: 17, color: "#374151", maxWidth: 520, margin: "0 auto", lineHeight: 1.63 }}>
-              Você tem 3 segundos para responder. Se não tiver o documento na mão — a cláusula, a data do e-mail, o valor do boleto — você perdeu o ponto. E talvez o caso.
+              Voce tem 3 segundos para responder. Se nao tiver o documento na mao — a clausula, a data do e-mail, o valor do boleto — voce perdeu o ponto. E talvez o caso.
             </p>
           </div>
 
@@ -117,16 +117,16 @@ export function LandingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 56 }}>
             {[
               {
-                t: "O socio não confia na pesquisa",
-                d: "Associados produzem peças com fatos que não dao para provar. O socio titular relê tudo antes de protocolar. Sao 3 horas de trabalho braçal por peça."
+                t: "O socio nao confia na pesquisa",
+                d: "Associados produzem pecas com fatos que nao dao para provar. O socio titular rele tudo antes de protocolar. Sao 3 horas de trabalho manual por peca."
               },
               {
                 t: "A lacuna aparece no tribunal",
-                d: "O juiz pergunta pelo documento. O advogado não tem. Perde o ponto. O caso vira uma discussao sobre a ausencia de prova — não sobre o merito."
+                d: "O juiz pergunta pelo documento. O advogado nao tem. Perde o ponto. O caso vira uma discussao sobre a ausencia de prova — nao sobre o merito."
               },
               {
-                t: "O escritório não escala",
-                d: "Para crescer, você precisa de mais gente. Mais gente significa mais custo fixo, mais gestao, mais risco. E você continua fazendo a mesma quantidade de trabalho estrategico."
+                t: "O escritorio nao escala",
+                d: "Para crescer, voce precisa de mais gente. Mais gente significa mais custo fixo, mais gestao, mais risco. E voce continua fazendo a mesma quantidade de trabalho estrategico."
               }
             ].map(pain => (
               <div key={pain.t} style={{ background: "white", borderRadius: 16, padding: 28, border: "1px solid #e2e8f0" }}>
@@ -140,10 +140,10 @@ export function LandingPage() {
           {/* Transition to mechanism */}
           <div style={{ textAlign: "center", padding: "0 24px" }}>
             <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.48px", color: "#020520", marginBottom: 16 }}>
-              O JuriAI mostra exatamente o que você tem antes de você ajuizar.
+              O JuriAI mostra exatamente o que voce tem antes de voce ajuizar.
             </h2>
             <p style={{ fontSize: 17, color: "#374151", maxWidth: 520, margin: "0 auto", lineHeight: 1.63 }}>
-              Transforma cada documento do seu escritório em um mapa navegavel. Para cada fato alegado, ele mostra: onde esta provado, onde falta prova, é o que acontece se você ajuizar sem ela.
+              Transforma cada documento do seu escritorio em um mapa navegavel. Para cada fato alegado, ele mostra onde esta provado, onde falta prova, e o que acontece se voce ajuizar sem ela.
             </p>
           </div>
         </div>
@@ -370,7 +370,7 @@ export function LandingPage() {
           {/* Price anchor */}
           <div style={{ maxWidth: 560, margin: "40px auto 0", padding: "24px 28px", background: "#f0f4fe", borderRadius: 16, textAlign: "center" }}>
             <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.6 }}>
-              Um junior CLT custa R$ 6.000 a R$ 7.000/mes com encargos. Ele faz pesquisa basica é organização de documentos. <strong style={{ color: "#020520" }}>O JuriAI faz o mesmo. Por R$ 497.</strong>
+              Um junior CLT custa R$ 6.000 a R$ 7.000/mes com encargos. Ele faz pesquisa basica e organizacao de documentos. <strong style={{ color: "#020520" }}>O JuriAI faz o mesmo. Por R$ 497.</strong>
             </p>
             <p style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>A diferenca de R$ 6.000/mês fica no seu escritório.</p>
           </div>
