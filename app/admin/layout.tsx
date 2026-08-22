@@ -30,7 +30,7 @@ export default async function AdminLayout({
         workspaceName: ctx.workspaceName,
         workspaceKind: ctx.workspaceKind,
         authenticated: !!sessionUserId,
-        isWorkspaceAdmin,
+        isWorkspaceAdmin: isMasterAdmin,
       }}
     >
       {children}
