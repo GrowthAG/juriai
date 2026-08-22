@@ -242,19 +242,13 @@ function buildGeminiClientForConfig(input?: {
   region?: string | null;
   projectId?: string | null;
 }): LlmClient {
-  const region = input?.region?.trim();
-  const projectId = getVertexProjectId(input);
-  if (!region || !projectId) {
-    throw new LlmRuntimeError(
-      "missing_config",
-      "A configuração do Gemini Vertex está incompleta.",
-    );
-  }
+  const region = input?.region?.trim() || "us-central1";
+  const projectId = getVertexProjectId(input) || "juriai-app";
   return buildGeminiVertexClient(region, projectId) as unknown as LlmClient;
 }
 
 function resolveModel(overrideModel: string | null | undefined) {
-  return overrideModel?.trim() || process.env.JURIAI_LLM_MODEL?.trim() || null;
+  return overrideModel?.trim() || process.env.JURIAI_LLM_MODEL?.trim() || "gemini-3.6-flash";
 }
 
 function resolveProviderName(
@@ -418,14 +412,13 @@ async function resolveLlmRuntime(): Promise<LlmRuntimeResolution> {
     };
   }
 
-  // env só entra como default quando o workspace não define nada explícito.
-  // Se nem workspace nem env definirem modelo, a política automática decide
-  // (hoje resolve para MODEL, sem economic/balanced/max_quality ainda).
+  // env ou fallback padrão (Gemini 3.6 Flash) quando o workspace não define nada explícito.
   const configuredProvider =
     workspaceLlm.llmProvider ??
-    resolveProviderName(process.env.JURIAI_LLM_PROVIDER?.trim());
+    resolveProviderName(process.env.JURIAI_LLM_PROVIDER?.trim()) ??
+    "google-vertex-gemini";
   const model =
-    workspaceLlm.llmModel ?? resolveModel(null) ?? resolveAutomaticPolicyModel();
+    workspaceLlm.llmModel ?? resolveModel(null) ?? resolveAutomaticPolicyModel() ?? "gemini-3.6-flash";
 
   if (!configuredProvider || !model) {
     return {
