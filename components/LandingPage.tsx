@@ -51,21 +51,21 @@ export function LandingPage() {
 
           {/* Headline — hook na dor */}
           <h1 style={{ fontSize: "clamp(34px, 5vw, 56px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.51px", color: "#020520", maxWidth: 820, margin: "0 auto", marginBottom: 22 }}>
-            Todo escritorio tem fatos que nao conseguiu provar. O seu nao precisa ser um deles.
+            Todo escritório tem fatos que não conseguiu provar. O seu não precisa ser um deles.
           </h1>
 
           {/* Subheadline */}
           <p style={{ fontSize: 18, lineHeight: 1.63, color: "#374151", maxWidth: 560, margin: "0 auto", marginBottom: 36 }}>
-            O JuriAI conecta cada alegacao da sua peca ao documento que a sustenta. Quando um fato nao tem prova, voce sabe <strong style={{ color: "#020520" }}>antes do juiz perguntar.</strong>
+            O JuriAI conecta cada alegação da sua peça ao documento que a sustenta. Quando um fato não tem prova, você sabe <strong style={{ color: "#020520" }}>antes do juiz perguntar.</strong>
           </p>
 
           {/* CTAs */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
             <Link href="/cadastro" style={{ display: "inline-flex", alignItems: "center", height: 46, padding: "0 36px", borderRadius: 9999, border: "1px solid #145aff", background: "#145aff", color: "white", fontSize: 15, fontWeight: 600, textDecoration: "none", boxShadow: "0 0 100px -28px rgba(20,90,255,0.3)" }}>
-              Verificar meu escritorio
+              Verificar meu escritório
             </Link>
             <Link href="/demo/dashboard" style={{ display: "inline-flex", alignItems: "center", height: 46, padding: "0 36px", borderRadius: 9999, border: "1px solid #e2e8f0", background: "white", color: "#14141e", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>
-              Ver demonstracao
+              Ver demonstração
             </Link>
           </div>
           <p style={{ fontSize: 12, color: "#6b7280", marginTop: 14 }}>14 dias gratis. Sem cartao de credito. Cancele quando quiser.</p>
@@ -95,10 +95,10 @@ export function LandingPage() {
       <section style={{ padding: "40px 0", borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
           <p style={{ fontSize: 11, fontWeight: 500, color: "#9ca3af", marginBottom: 24, letterSpacing: "0.07em", textTransform: "uppercase" }}>
-            Escritorios de advocacia ja utilizando o JuriAI
+            Escritórios de advocacia ja utilizando o JuriAI
           </p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 48, flexWrap: "wrap", opacity: 0.35, filter: "grayscale(100%)" }}>
-            {["Escritorio Alpha", "Banca Beta", "Camara Gamma", "Sociedade Delta", "Associacao Epsilon", "Instituto Zeta"].map(name => (
+            {["Escritório Alpha", "Banca Beta", "Câmara Gamma", "Sociedade Delta", "Associação Epsilon", "Instituto Zeta"].map(name => (
               <span key={name} style={{ fontSize: 14, fontWeight: 600, color: "#14141e", letterSpacing: "-0.01em" }}>{name}</span>
             ))}
           </div>
@@ -111,10 +111,10 @@ export function LandingPage() {
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>O problema</p>
             <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.48px", color: "#020520", marginBottom: 16 }}>
-              O que voce faz quando o juiz pergunta "e onde esta isso?"
+              O que você faz quando o juiz pergunta "e onde esta isso?"
             </h2>
             <p style={{ fontSize: 17, color: "#374151", maxWidth: 520, margin: "0 auto", lineHeight: 1.63 }}>
-              Voce tem 3 segundos para responder. Se nao tiver o documento na mao — a clausula, a data do e-mail, o valor do boleto — voce perdeu o ponto. E talvez o caso.
+              Você tem 3 segundos para responder. Se não tiver o documento na mão — a cláusula, a data do e-mail, o valor do boleto — você perdeu o ponto. E talvez o caso.
             </p>
           </div>
 
@@ -122,16 +122,16 @@ export function LandingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 56 }}>
             {[
               {
-                t: "O socio nao confia na pesquisa",
-                d: "Associados produzem pecas com fatos que nao dao para provar. O socio titular relê tudo antes de protocolar. Sao 3 horas de trabalho braçal por peca."
+                t: "O socio não confia na pesquisa",
+                d: "Associados produzem peças com fatos que não dao para provar. O socio titular relê tudo antes de protocolar. Sao 3 horas de trabalho braçal por peça."
               },
               {
                 t: "A lacuna aparece no tribunal",
-                d: "O juiz pergunta pelo documento. O advogado nao tem. Perde o ponto. O caso vira uma discussao sobre a ausencia de prova — nao sobre o merito."
+                d: "O juiz pergunta pelo documento. O advogado não tem. Perde o ponto. O caso vira uma discussao sobre a ausencia de prova — não sobre o merito."
               },
               {
-                t: "O escritorio nao escala",
-                d: "Para crescer, voce precisa de mais gente. Mais gente significa mais custo fixo, mais gestao, mais risco. E voce continua fazendo a mesma quantidade de trabalho estrategico."
+                t: "O escritório não escala",
+                d: "Para crescer, você precisa de mais gente. Mais gente significa mais custo fixo, mais gestao, mais risco. E você continua fazendo a mesma quantidade de trabalho estrategico."
               }
             ].map(pain => (
               <div key={pain.t} style={{ background: "white", borderRadius: 16, padding: 28, border: "1px solid #e2e8f0" }}>
@@ -145,10 +145,10 @@ export function LandingPage() {
           {/* Transition to mechanism */}
           <div style={{ textAlign: "center", padding: "0 24px" }}>
             <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.48px", color: "#020520", marginBottom: 16 }}>
-              O JuriAI mostra exatamente o que voce tem antes de voce ajuizar.
+              O JuriAI mostra exatamente o que você tem antes de você ajuizar.
             </h2>
             <p style={{ fontSize: 17, color: "#374151", maxWidth: 520, margin: "0 auto", lineHeight: 1.63 }}>
-              Transforma cada documento do seu escritorio em um mapa navegavel. Para cada fato alegado, ele mostra: onde esta provado, onde falta prova, e o que acontece se voce ajuizar sem ela.
+              Transforma cada documento do seu escritório em um mapa navegavel. Para cada fato alegado, ele mostra: onde esta provado, onde falta prova, é o que acontece se você ajuizar sem ela.
             </p>
           </div>
         </div>
@@ -160,19 +160,19 @@ export function LandingPage() {
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>Como funciona</p>
             <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.48px", color: "#020520", marginBottom: 14 }}>
-              Quatro etapas. Do documento a peca auditada.
+              Quatro etapas. Do documento a peça auditada.
             </h2>
             <p style={{ fontSize: 16, color: "#374151", maxWidth: 480, margin: "0 auto" }}>
-              De contratos e e-mails a uma minuta rastreavel. Sem adivinhacao. Sem [FATO ALEGADO] que voce nao saiba explicar.
+              De contratos é e-mails a uma minuta rastreavel. Sem adivinhação. Sem [FATO ALEGADO] que você não saiba explicar.
             </p>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
             {[
-              { n: "01", t: "Custodia de Provas", d: "Upload de contratos, e-mails e prints. Cada arquivo recebe hash SHA-256. A integridade do documento esta garantida desde o primeiro segundo." },
-              { n: "02", t: "Matriz Fato x Prova", d: "O JuriAI extrai cada fato alegado e o vincula ao trecho exato do documento de origem. Quando nao encontra prova, marca [FATO ALEGADO]." },
-              { n: "03", t: "Auditoria de Lacunas", d: "O sistema identifica o que falta para cada tese prosperar. Se voce ajuizar sem esse documento, o juiz vai perguntar. E voce vai ter que responder." },
-              { n: "04", t: "Minuta Rastreavel", d: "Cada paragrafo da peca cita a prova de origem. Voce revisa. Voce aprova. Voce protocola. Com certeza." },
+              { n: "01", t: "Custodia de Provas", d: "Upload de contratos, e-mails é prints. Cada arquivo recebe hash SHA-256. A integridade do documento esta garantida desde o primeiro segundo." },
+              { n: "02", t: "Matriz Fato x Prova", d: "O JuriAI extrai cada fato alegado é o vincula ao trecho exato do documento de origem. Quando não encontra prova, marca [FATO ALEGADO]." },
+              { n: "03", t: "Auditoria de Lacunas", d: "O sistema identifica o que falta para cada tese prosperar. Se você ajuizar sem esse documento, o juiz vai perguntar. E você vai ter que responder." },
+              { n: "04", t: "Minuta Rastreável", d: "Cada parágrafo da peça cita a prova de origem. Você revisão. Você aprova. Você protocola. Com certeza." },
             ].map(step => (
               <div key={step.n} style={{ background: "white", borderRadius: 16, padding: 28, border: "1px solid #e2e8f0" }}>
                 <span style={{ fontSize: 11, fontFamily: "monospace", fontWeight: 700, color: "#145aff", display: "block", marginBottom: 14 }}>{step.n}</span>
@@ -213,19 +213,19 @@ export function LandingPage() {
             <div>
               <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>O mecanismo</p>
               <h2 style={{ fontSize: "clamp(24px, 3.5vw, 36px)", fontWeight: 600, lineHeight: 1.1, letterSpacing: "-1.2px", color: "#020520", marginBottom: 20 }}>
-                [FATO ALEGADO] nao e um aviso. E uma protecao.
+                [FATO ALEGADO] não é um aviso. E uma protecao.
               </h2>
               <p style={{ fontSize: 16, color: "#374151", lineHeight: 1.63, marginBottom: 16 }}>
-                Quando um fato nao tem documento que o sustente, o JuriAI marca [FATO ALEGADO]. Isso nao e uma falha do sistema. E a funcao dele.
+                Quando um fato não tem documento que o sustente, o JuriAI marca [FATO ALEGADO]. Isso não é uma falha do sistema. E a funcao dele.
               </p>
               <p style={{ fontSize: 16, color: "#374151", lineHeight: 1.63, marginBottom: 24 }}>
-                A questao nao e se a IA vai inventar jurisprudencia. A questao e se <strong style={{ color: "#020520" }}>voce sabe o que nao conseguiu provar</strong> antes de ajuizar.
+                A questao não é se a IA vai inventar jurisprudência. A questao é se <strong style={{ color: "#020520" }}>você sabe o que não conseguiu provar</strong> antes de ajuizar.
               </p>
               <div style={{ background: "#fff8f0", border: "1px solid #fed7aa", borderRadius: 12, padding: "20px 24px", marginBottom: 24 }}>
                 <p style={{ fontSize: 13, fontFamily: "monospace", color: "#92400e", lineHeight: 1.6 }}>
-                  "Esse e o unico software juridico que me diz o que EU NAO SEI. Antes do juiz me perguntar."
+                  "Esse é o único software jurídico que me diz o que EU NÃO SEI. Antes do juiz me perguntar."
                 </p>
-                <p style={{ fontSize: 11, color: "#b45309", marginTop: 8 }}>Socio titular — escritorio de 12 advogados, SP</p>
+                <p style={{ fontSize: 11, color: "#b45309", marginTop: 8 }}>Socio titular — escritório de 12 advogados, SP</p>
               </div>
               <Link href="/cadastro" style={{ display: "inline-flex", alignItems: "center", height: 44, padding: "0 28px", borderRadius: 9999, border: "1px solid #145aff", color: "#145aff", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>
                 Ver como funciona na pratica
@@ -238,11 +238,11 @@ export function LandingPage() {
                   <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em" }}>MATRIZ FATO x PROVA — Caso 0847/2024</span>
                 </div>
                 {[
-                  { fat: "Contrato assinado em 12/03/2024", doc: "Contrato Social — fl. 3, clausula 4.2", tag: "OK" },
+                  { fat: "Contrato assinado em 12/03/2024", doc: "Contrato Social — fl. 3, cláusula 4.2", tag: "OK" },
                   { fat: "Inadimplemento a partir de 01/06/2024", doc: "Extrato Bancario — fl. 18, linha 4", tag: "OK" },
-                  { fat: "Notificacao extrajudicial enviada em 10/06", doc: "Nao encontrado", tag: "ALEG" },
+                  { fat: "Notificação extrajudicial enviada em 10/06", doc: "Não encontrado", tag: "ALEG" },
                   { fat: "Valor de R$ 47.200,00 em aberto", doc: "Planilha Excel — fl. 22", tag: "OK" },
-                  { fat: "Juros de mora de 1% a.m.", doc: "Nao encontrado", tag: "ALEG" },
+                  { fat: "Juros de mora de 1% a.m.", doc: "Não encontrado", tag: "ALEG" },
                 ].map((row, i) => (
                   <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, padding: "10px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.05)" : "none", alignItems: "center" }}>
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}>{row.fat}</span>
@@ -253,7 +253,7 @@ export function LandingPage() {
                   </div>
                 ))}
                 <div style={{ marginTop: 16, padding: "10px 14px", background: "rgba(242,96,82,0.1)", borderRadius: 8, border: "1px solid rgba(242,96,82,0.2)" }}>
-                  <p style={{ fontSize: 11, color: "#f26052", fontWeight: 500 }}>2 fatos nao comprovados. Revise antes de ajuizar.</p>
+                  <p style={{ fontSize: 11, color: "#f26052", fontWeight: 500 }}>2 fatos não comprovados. Revise antes de ajuizar.</p>
                 </div>
               </div>
             </div>
@@ -267,17 +267,17 @@ export function LandingPage() {
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>Para quem e</p>
             <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.48px", color: "#020520", marginBottom: 14 }}>
-              5 perguntas que voce precisa fazer antes de usar qualquer IA juridica.
+              5 perguntas que você precisa fazer antes de usar qualquer IA juridica.
             </h2>
           </div>
 
           <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              { q: "Onde os dados dos meus clientes ficam?", a: "No Brasil. Contrato de prestacao de servicos (Art. 7, V da LGPD). Arquivos com hash SHA-256 no upload. Nunca compartilhados com terceiros." },
-              { q: "A IA pode inventar jurisprudencia ou norma?", a: "A nossa nao. [FATO ALEGADO] marca o que ela nao encontra. O sistema nunca gera citacao de precedente: isso e responsabilidade do advogado." },
-              { q: "Se eu for punido pela OAB por usar a ferramenta, quem responde?", a: "Voce. E por isso a minuta e rascunho, nao peca final. O socio titular revisa, aprova e protocola. Sempre." },
-              { q: "Posso auditar o que a IA fez?", a: "Sim. Trilha de auditoria completa com timestamp e usuario para cada acao. Historico de versoes de cada minuta." },
-              { q: "O que acontece se eu perder um prazo por culpa da ferramenta?", a: "Voce responde. E por isso nao substituimos decisao humana. O JuriAI organiza, mostra e alerta. A escolha de ajuizar e sempre sua." },
+              { q: "Onde os dados dos meus clientes ficam?", a: "No Brasil. Contrato de prestação de servicos (Art. 7, V da LGPD). Arquivos com hash SHA-256 no upload. Nunca compartilhados com terceiros." },
+              { q: "A IA pode inventar jurisprudência ou norma?", a: "A nossa não. [FATO ALEGADO] marca o que ela não encontra. O sistema nunca gera citação de precedente: isso é responsabilidade do advogado." },
+              { q: "Se eu for punido pela OAB por usar a ferramenta, quem responde?", a: "Você. E por isso a minuta é rascunho, não peça final. O socio titular revisão, aprova é protocola. Sempre." },
+              { q: "Posso auditar o que a IA fez?", a: "Sim. Trilha de auditoria completa com timestamp é usuário para cada ação. Histórico de versões de cada minuta." },
+              { q: "O que acontece se eu perder um prazo por culpa da ferramenta?", a: "Você responde. E por isso não substituímos decisão humana. O JuriAI organiza, mostra é alerta. A escolha de ajuizar é sempre sua." },
             ].map((item, i) => (
               <details key={i} style={{ background: "white", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
                 <summary style={{ padding: "18px 24px", fontSize: 15, fontWeight: 500, color: "#020520", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
@@ -298,11 +298,11 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* PRECOS */}
+      {/* PREÇOS */}
       <section id="quanto-custa" style={{ padding: "96px 0", background: "#fcfcfc" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>Precificacao</p>
+            <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>Precificação</p>
             <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.48px", color: "#020520", marginBottom: 14 }}>
               R$ 497/mês. Menos que 1 hora de audiencia por semana.
             </h2>
@@ -321,7 +321,7 @@ export function LandingPage() {
                 <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>Cobrado mensalmente. Cancele quando quiser.</p>
               </div>
               <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
-                {["Casos ilimitados","Upload ilimitado de documentos","Matriz Fato x Prova automatica","Auditoria de lacunas probatorias","Exportacao rastreavel em timbre","90+ tribunais DataJud integrados","Sigilo SHA-256 por arquivo","Suporte em 24h"].map(feat => (
+                {["Casos ilimitados","Upload ilimitado de documentos","Matriz Fato x Prova automatica","Auditoria de lacunas probatorias","Exportação rastreavel em timbre","90+ tribunais DataJud integrados","Sigilo SHA-256 por arquivo","Suporte em 24h"].map(feat => (
                   <li key={feat} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, color: "#374151" }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16ca2e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
                       <polyline points="20 6 9 17 4 12"/>
@@ -349,7 +349,7 @@ export function LandingPage() {
                 <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>Cobrado mensalmente. Cancele quando quiser.</p>
               </div>
               <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
-                {["Tudo do plano Pro","ate 5 subcontas","Pipeline de casos com graficos","Automacao de alertas de prazo","Historico de versoes de minutas","API de integracao","Priority support ate 4h","Onboarding assistido"].map(feat => (
+                {["Tudo do plano Pro","ate 5 subcontas","Pipeline de casos com graficos","Automação de alertas de prazo","Histórico de versões de minutas","API de integração","Priority support ate 4h","Onboarding assistido"].map(feat => (
                   <li key={feat} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, color: "#374151" }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16ca2e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
                       <polyline points="20 6 9 17 4 12"/>
@@ -367,9 +367,9 @@ export function LandingPage() {
           {/* Price anchor */}
           <div style={{ maxWidth: 560, margin: "40px auto 0", padding: "24px 28px", background: "#f0f4fe", borderRadius: 16, textAlign: "center" }}>
             <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.6 }}>
-              Um junior CLT custa R$ 6.000 a R$ 7.000/mes com encargos. Ele faz pesquisa basica e organizacao de documentos. <strong style={{ color: "#020520" }}>O JuriAI faz o mesmo. Por R$ 497.</strong>
+              Um junior CLT custa R$ 6.000 a R$ 7.000/mes com encargos. Ele faz pesquisa basica é organização de documentos. <strong style={{ color: "#020520" }}>O JuriAI faz o mesmo. Por R$ 497.</strong>
             </p>
-            <p style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>A diferenca de R$ 6.000/mês fica no seu escritorio.</p>
+            <p style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>A diferenca de R$ 6.000/mês fica no seu escritório.</p>
           </div>
         </div>
       </section>
@@ -404,17 +404,17 @@ export function LandingPage() {
       <section style={{ padding: "96px 0", background: "#fcfcfc" }}>
         <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
           <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.48px", color: "#020520", marginBottom: 16 }}>
-            Da proxima vez que o juiz perguntar "e onde esta isso?", voce vai querer ter a resposta.
+            Da proxima vez que o juiz perguntar "e onde esta isso?", você vai querer ter a resposta.
           </h2>
           <p style={{ fontSize: 16, color: "#374151", lineHeight: 1.63, marginBottom: 32 }}>
-            14 dias gratis. Sem cartao de credito. O escritorio opera 24 horas enquanto voce dorme.
+            14 dias gratis. Sem cartao de credito. O escritório opera 24 horas enquanto você dorme.
           </p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
             <Link href="/cadastro" style={{ display: "inline-flex", alignItems: "center", height: 48, padding: "0 36px", borderRadius: 9999, border: "1px solid #145aff", background: "#145aff", color: "white", fontSize: 15, fontWeight: 600, textDecoration: "none", boxShadow: "0 0 100px -28px rgba(20,90,255,0.3)" }}>
-              Criar conta do escritorio
+              Criar conta do escritório
             </Link>
             <Link href="/demo/dashboard" style={{ display: "inline-flex", alignItems: "center", height: 48, padding: "0 36px", borderRadius: 9999, border: "1px solid #e2e8f0", background: "white", color: "#14141e", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>
-              Ver demonstracao
+              Ver demonstração
             </Link>
           </div>
         </div>
@@ -443,7 +443,7 @@ export function LandingPage() {
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 24, paddingTop: 20, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>JuriAI Solucoes Tecnologicas LTDA. CNPJ sob consulta.</p>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Base legal: Contrato de Prestacao Art. 7 V LGPD.</p>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Base legal: Contrato de Prestação Art. 7 V LGPD.</p>
           </div>
         </div>
       </footer>
@@ -452,10 +452,10 @@ export function LandingPage() {
 }
 
 const FAQ_DATA = [
-  { q: "O advogado pode ser punido pela OAB por usar IA juridica?", a: "A OAB permite o uso de IA desde que a saida seja revisada integralmente antes de uso em processo. O advogado permanece responsavel. O JuriAI nunca substitui o julgamento profissional: reduz o trabalho de organizacao factual para que o socio titular dedique mais tempo a estrategia." },
+  { q: "O advogado pode ser punido pela OAB por usar IA juridica?", a: "A OAB permite o uso de IA desde que a saida seja revisãoda integralmente antes de uso em processo. O advogado permanece responsavel. O JuriAI nunca substitui o julgamento profissional: reduz o trabalho de organização factual para que o socio titular dedique mais tempo a estrategia." },
   { q: "Como funciona a cobranca?", a: "R$ 497/mês para o plano Pro, cobrado mensalmente. Cancele quando quiser na sua conta. Periodo de teste gratuito de 14 dias, sem cartao de credito upfront." },
-  { q: "O JuriAI garante que nao vai inventar jurisprudencia?", a: "O mecanismo de Anti-Alucinacao marca todo fato sem documento comprovatorio como [FATO ALEGADO]. A IA nunca gera minuta final sem que o socio titular revise. O sistema nunca gera citacao de norma ou precedente: isso e responsabilidade do advogado." },
-  { q: "Posso usar com meu escritorio de varios advogados?", a: "Sim. O plano Gold suporta ate 5 subcontas simultaneas. Cada advogado acessa com login proprio, e a trilha de auditoria registra quem fez cada alteracao." },
-  { q: "Preciso ter experiencia com tecnologia?", a: "Nao. Sao 3 etapas: upload de documentos, revisao da matriz, exportacao da minuta. Onboarding de 30 minutos incluido." },
-  { q: "Os dados dos meus clientes estao seguros?", a: "Sim. Infraestrutura em territorio brasileiro. Arquivos com hash SHA-256. Base legal: contrato de prestacao de servicos Art. 7, V da LGPD. Nunca compartilhados com terceiros." },
+  { q: "O JuriAI garante que não vai inventar jurisprudência?", a: "O mecanismo de Anti-Alucinação marca todo fato sem documento comprovatorio como [FATO ALEGADO]. A IA nunca gera minuta final sem que o socio titular revise. O sistema nunca gera citação de norma ou precedente: isso é responsabilidade do advogado." },
+  { q: "Posso usar com meu escritório de varios advogados?", a: "Sim. O plano Gold suporta ate 5 subcontas simultaneas. Cada advogado acessa com login proprio, é a trilha de auditoria registra quem fez cada alteração." },
+  { q: "Preciso ter experiencia com tecnologia?", a: "Não. Sao 3 etapas: upload de documentos, revisãoo da matriz, exportação da minuta. Onboarding de 30 minutos incluido." },
+  { q: "Os dados dos meus clientes estao seguros?", a: "Sim. Infraestrutura em territorio brasileiro. Arquivos com hash SHA-256. Base legal: contrato de prestação de servicos Art. 7, V da LGPD. Nunca compartilhados com terceiros." },
 ];
