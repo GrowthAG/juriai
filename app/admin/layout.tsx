@@ -13,13 +13,12 @@ export default async function AdminLayout({
   const sessionUserId = await getSessionUserId();
   const ctx = await getActorContext();
 
-  const isWorkspaceAdmin =
-    ctx.isSuperAdmin || ctx.workspaceRole === "WORKSPACE_ADMIN";
+  const isMasterAdmin =
+    ctx.isSuperAdmin || ctx.workspaceKind === "MASTER";
 
-  // Mesma regra de app/actions/admin.ts (requireAdmin): sem isso, um usuário
-  // autenticado sem permissão via aqui direto no erro não tratado das
-  // funções de dados (getAdminOverview etc.), em vez de um redirect limpo.
-  if (!isWorkspaceAdmin) {
+  // Apenas o Super Admin ou o workspace MASTER podem acessar o console administrativo.
+  // Subcontas / clientes são estritamente redirecionados para o Cockpit /workspace.
+  if (!isMasterAdmin) {
     redirect("/workspace");
   }
 
