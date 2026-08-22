@@ -71,20 +71,72 @@ export function LandingPage() {
           <p style={{ fontSize: 12, color: "#6b7280", marginTop: 14 }}>14 dias gratis. Sem cartao de credito. Cancele quando quiser.</p>
         </div>
 
-        {/* Dashboard screenshot */}
+        {/* Product Mockup — interface real do JuriAI */}
         <div style={{ maxWidth: 1100, margin: "48px auto 0", padding: "0 24px" }}>
           <div style={{ background: "white", borderRadius: 20, boxShadow: "0 0.36px 1.8px -1.4px rgba(0,0,0,0.08), 0 1.37px 6.87px -2.8px rgba(0,0,0,0.07), 0 6px 30px -4.25px rgba(0,0,0,0.016)", overflow: "hidden" }}>
+            {/* Chrome bar */}
             <div style={{ background: "#f1f5f9", borderBottom: "1px solid #e2e8f0", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ display: "flex", gap: 5 }}>
                 {[1,2,3].map(i => <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: "#e2e8f0" }} />)}
               </div>
               <span style={{ fontSize: 11, fontFamily: "monospace", color: "#6b7280", marginLeft: 8 }}>juriai.app / workspace</span>
             </div>
-            <Image src="/site/juriai-dashboard-real.png" width={1512} height={880}
-              alt="Matriz Fato x Prova no JuriAI — cada fato conectado ao documento de origem"
-              style={{ width: "100%", height: "auto", display: "block" }} unoptimized />
+            {/* App interface */}
+            <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", minHeight: 380 }}>
+              {/* Sidebar */}
+              <div style={{ background: "#f8f9fa", borderRight: "1px solid #e2e8f0", padding: "16px 0" }}>
+                <div style={{ padding: "0 12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                    <div style={{ width: 24, height: 24, background: "#145aff", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ color: "white", fontSize: 10, fontWeight: 700 }}>JA</span>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#020520" }}>JuriAI</span>
+                  </div>
+                  {["Casos","Documentos","Modelos","Jurisprudencia"].map((item, i) => (
+                    <div key={item} style={{ padding: "8px 12px", borderRadius: 6, background: i === 0 ? "#145aff" : "transparent", marginBottom: 2, cursor: "pointer" }}>
+                      <span style={{ fontSize: 12, fontWeight: i === 0 ? 500 : 400, color: i === 0 ? "white" : "#374151" }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Main content */}
+              <div style={{ padding: "20px 24px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                  <div>
+                    <h3 style={{ fontSize: 14, fontWeight: 600, color: "#020520", marginBottom: 2 }}>Caso: Cobranca de Alugueis Inadimplidos</h3>
+                    <span style={{ fontSize: 11, color: "#6b7280" }}>ID 0847/2024 — Atualizado em 22/08/2026</span>
+                  </div>
+                  <button style={{ height: 30, padding: "0 14px", borderRadius: 6, border: "none", background: "#145aff", color: "white", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>Nova Peca</button>
+                </div>
+                {/* Status badges */}
+                <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                  {[{l:"12 fatos",c:"#145aff",bg:"#eff6ff"},{l:"9 provados",c:"#16ca2e",bg:"#f0fdf4"},{l:"3 alegados",c:"#f26052",bg:"#fef2f2"}].map(b => (
+                    <span key={b.l} style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 9999, background: b.bg, color: b.c }}>{b.l}</span>
+                  ))}
+                </div>
+                {/* Table */}
+                <div style={{ border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px", background: "#f8f9fa", padding: "8px 12px", borderBottom: "1px solid #e2e8f0" }}>
+                    {["Fato alegado","Documento","Status"].map(h => (
+                      <span key={h} style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>{h}</span>
+                    ))}
+                  </div>
+                  {[
+                    {f:"Contrato firmado em 15/01/2023", d:"Contrato.pdf — Clausula 1a, pag.1", s:"PROVADO", c:"#16ca2e", bg:"#f0fdf4"},
+                    {f:"Inadimplemento a partir de 01/04/2024", d:"Extrato Nubank PJ — fl.14, linha 3", s:"PROVADO", c:"#16ca2e", bg:"#f0fdf4"},
+                    {f:"R$ 18.750,00 em alugueis atrasados", d:"Planilha de calculo — fl.31", s:"PROVADO", c:"#16ca2e", bg:"#f0fdf4"},
+                    {f:"Notificacao extrajudicial em 10/05/2024", d:"AR digital — nao verificado", s:"ALEGADO", c:"#f26052", bg:"#fef2f2"},
+                  ].map((row, i) => (
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px", padding: "10px 12px", borderBottom: i < 3 ? "1px solid #f1f5f9" : "none", background: "white" }}>
+                      <span style={{ fontSize: 11, color: "#14141e" }}>{row.f}</span>
+                      <span style={{ fontSize: 11, color: row.s === "ALEGADO" ? "#f26052" : "#6b7280", fontStyle: row.s === "ALEGADO" ? "italic" : "normal" }}>{row.d}</span>
+                      <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, background: row.bg, color: row.c, alignSelf: "center" }}>{row.s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-          {/* Caption */}
           <p style={{ fontSize: 12, color: "#6b7280", textAlign: "center", marginTop: 12, fontFamily: "monospace" }}>
             Matriz Fato x Prova — cada linha vinculada ao documento de origem. Sem [FATO ALEGADO] onde ha prova.
           </p>
@@ -178,99 +230,105 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+          {/* Steps are shown below in the clean feature cards */}
+
+          {/* Feature cards — como cada etapa funciona na pratica */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20, marginTop: 40 }}>
             {[
-              { n: "01", t: "Custodia de Provas", d: "Upload de contratos, e-mails é prints. Cada arquivo recebe hash SHA-256. A integridade do documento esta garantida desde o primeiro segundo." },
-              { n: "02", t: "Matriz Fato x Prova", d: "O JuriAI extrai cada fato alegado é o vincula ao trecho exato do documento de origem. Quando não encontra prova, marca [FATO ALEGADO]." },
-              { n: "03", t: "Auditoria de Lacunas", d: "O sistema identifica o que falta para cada tese prosperar. Se você ajuizar sem esse documento, o juiz vai perguntar. E você vai ter que responder." },
-              { n: "04", t: "Minuta Rastreável", d: "Cada parágrafo da peça cita a prova de origem. Você revisão. Você aprova. Você protocola. Com certeza." },
+              {
+                n: "01",
+                t: "Upload de Documentos",
+                d: "Arraste contratos, e-mails, boletos e prints. Cada arquivo recebe hash SHA-256. A integridade do documento esta garantida desde o primeiro segundo.",
+                icon: "upload"
+              },
+              {
+                n: "02",
+                t: "IA Extrai os Fatos",
+                d: "O JuriAI le cada documento e extrai todos os fatos alegados. Vincula cada um ao trecho exato de origem. Quando nao encontra prova, marca [FATO ALEGADO].",
+                icon: "ai"
+              },
+              {
+                n: "03",
+                t: "Auditoria de Lacunas",
+                d: "O sistema identifica automaticamente o que falta para cada tese prosperar. Se voce ajuizar sem esse documento, o juiz vai perguntar. E voce vai ter que responder.",
+                icon: "audit"
+              },
+              {
+                n: "04",
+                t: "Minuta Rastreavel",
+                d: "Cada paragrafo da peca cita a prova de origem. Voce revisa. Voce aprova. Voce protocola. Com certeza.",
+                icon: "export"
+              },
             ].map(step => (
               <div key={step.n} style={{ background: "white", borderRadius: 16, padding: 28, border: "1px solid #e2e8f0" }}>
                 <span style={{ fontSize: 11, fontFamily: "monospace", fontWeight: 700, color: "#145aff", display: "block", marginBottom: 14 }}>{step.n}</span>
-                <h3 style={{ fontSize: 16, fontWeight: 600, color: "#020520", marginBottom: 10, lineHeight: 1.3 }}>{step.t}</h3>
-                <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>{step.d}</p>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: "#020520", marginBottom: 10, lineHeight: 1.3 }}>{step.t}</h3>
+                <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.6 }}>{step.d}</p>
               </div>
             ))}
-          </div>
-
-          {/* Screenshots */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 20, marginTop: 32 }}>
-            <div style={{ background: "white", borderRadius: 20, overflow: "hidden", boxShadow: "0 0.36px 1.8px -1.4px rgba(0,0,0,0.08), 0 1.37px 6.87px -2.8px rgba(0,0,0,0.07)" }}>
-              <div style={{ background: "#f1f5f9", borderBottom: "1px solid #e2e8f0", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ display: "flex", gap: 5 }}>
-                  {[1,2,3].map(i => <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: "#e2e8f0" }} />)}
-                </div>
-                <span style={{ fontSize: 11, fontFamily: "monospace", color: "#6b7280", marginLeft: 8 }}>juriai.app / novo-caso</span>
-              </div>
-              <Image src="/site/juriai-wizard-real.png" width={1512} height={880} alt="Wizard de novo caso no JuriAI" style={{ width: "100%", height: "auto", display: "block" }} unoptimized />
-            </div>
-            <div style={{ background: "white", borderRadius: 20, overflow: "hidden", boxShadow: "0 0.36px 1.8px -1.4px rgba(0,0,0,0.08), 0 1.37px 6.87px -2.8px rgba(0,0,0,0.07)" }}>
-              <div style={{ background: "#f1f5f9", borderBottom: "1px solid #e2e8f0", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ display: "flex", gap: 5 }}>
-                  {[1,2,3].map(i => <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: "#e2e8f0" }} />)}
-                </div>
-                <span style={{ fontSize: 11, fontFamily: "monospace", color: "#6b7280", marginLeft: 8 }}>juriai.app / matriz-fato-prova</span>
-              </div>
-              <Image src="/site/juriai-dashboard-real.png" width={1512} height={880} alt="Matriz Fato x Prova no JuriAI" style={{ width: "100%", height: "auto", display: "block" }} unoptimized />
-            </div>
           </div>
         </div>
       </section>
 
-      {/* [FATO ALEGADO] MECHANISM — a diferenca */}
-      <section style={{ padding: "96px 0", background: "#fcfcfc" }}>
+      {/* [FATO ALEGADO] MECHANISM — a diferenca, light card */}
+      <section style={{ padding: "96px 0", background: "#f0f4fe" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 64, alignItems: "center" }}>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>O mecanismo</p>
-              <h2 style={{ fontSize: "clamp(24px, 3.5vw, 36px)", fontWeight: 600, lineHeight: 1.1, letterSpacing: "-1.2px", color: "#020520", marginBottom: 20 }}>
-                [FATO ALEGADO] não é um aviso. E uma protecao.
-              </h2>
-              <p style={{ fontSize: 16, color: "#374151", lineHeight: 1.63, marginBottom: 16 }}>
-                Quando um fato não tem documento que o sustente, o JuriAI marca [FATO ALEGADO]. Isso não é uma falha do sistema. E a funcao dele.
-              </p>
-              <p style={{ fontSize: 16, color: "#374151", lineHeight: 1.63, marginBottom: 24 }}>
-                A questao não é se a IA vai inventar jurisprudência. A questao é se <strong style={{ color: "#020520" }}>você sabe o que não conseguiu provar</strong> antes de ajuizar.
-              </p>
-              <div style={{ background: "#fff8f0", border: "1px solid #fed7aa", borderRadius: 12, padding: "20px 24px", marginBottom: 24 }}>
-                <p style={{ fontSize: 13, fontFamily: "monospace", color: "#92400e", lineHeight: 1.6 }}>
-                  "Eu preciso saber exatamente quais fatos consigo provar antes de entrar com uma ação. O JuriAI me mostra isso em minutos. Se eu não conseguir provar, prefiro saber agora — não no meio de uma audiência."
-                </p>
-                <p style={{ fontSize: 11, color: "#b45309", marginTop: 8 }}>Early adopter — beta fechado, 2024</p>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>O mecanismo</p>
+            <h2 style={{ fontSize: "clamp(24px, 3.5vw, 36px)", fontWeight: 600, lineHeight: 1.1, letterSpacing: "-1.2px", color: "#020520", marginBottom: 16 }}>
+              [FATO ALEGADO] não é um aviso. É uma proteção.
+            </h2>
+            <p style={{ fontSize: 16, color: "#374151", lineHeight: 1.63, maxWidth: 520, margin: "0 auto" }}>
+              Quando um fato não tem documento que o sustente, o JuriAI marca [FATO ALEGADO]. Isso não é uma falha do sistema. É a função dele. A questão não é se a IA vai inventar jurisprudência. A questão é se <strong style={{ color: "#020520" }}>você sabe o que não conseguiu provar</strong> antes de ajuizar.
+            </p>
+          </div>
+
+          {/* Light card — matriz Fato x Prova em branco */}
+          <div style={{ maxWidth: 900, margin: "0 auto", background: "white", borderRadius: 20, boxShadow: "0 0.36px 1.8px -1.4px rgba(0,0,0,0.08), 0 1.37px 6.87px -2.8px rgba(0,0,0,0.07), 0 6px 30px -4.25px rgba(0,0,0,0.016)", overflow: "hidden" }}>
+            {/* Header */}
+            <div style={{ padding: "16px 24px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#16ca2e", display: "inline-block" }} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#020520" }}>MATRIZ FATO x PROVA</span>
+                <span style={{ fontSize: 11, color: "#6b7280", marginLeft: 4 }}>Caso: Cobrança de Aluguéis</span>
               </div>
-              <Link href="/cadastro" style={{ display: "inline-flex", alignItems: "center", height: 44, padding: "0 28px", borderRadius: 9999, border: "1px solid #145aff", color: "#145aff", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>
-                Ver como funciona na pratica
-              </Link>
+              <div style={{ display: "flex", gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 9999, background: "#f0fdf4", color: "#16ca2e" }}>9 provados</span>
+                <span style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 9999, background: "#fef2f2", color: "#f26052" }}>2 alegados</span>
+              </div>
             </div>
+            {/* Table */}
             <div>
-              <div style={{ background: "#020520", borderRadius: 16, padding: "28px 28px", fontFamily: "monospace" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 16 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16ca2e", display: "inline-block" }} />
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em" }}>MATRIZ FATO x PROVA — Cobrança Alugueis / 2024</span>
-                </div>
-                {/* Caso real: Cobrança de aluguéis inadimplidos — ação de despejo c/c Cobrança */}
-              {[
-                  { fat: "Contrato de locação firmado em 15/01/2023", doc: "Contrato.pdf — Cláusula 1ª, pág. 1", tag: "OK" },
-                  { fat: "Cláusula de reajuste de 5% ao ano", doc: "Contrato.pdf — Cláusula 3ª, pág. 2", tag: "OK" },
-                  { fat: "Inadimplemento a partir de 01/04/2024 (3 meses)", doc: "Extrato Nubank PJ — fl. 14", tag: "OK" },
-                  { fat: "Valor de R$ 18.750,00 em aluguéis atrasados", doc: "Planilha de cálculo — fl. 31", tag: "OK" },
-                  { fat: "Notificação extrajudicial entregue em 10/05/2024", doc: "AR digital — não verificado", tag: "ALEG" },
-                  { fat: "Multa contratual de 2 meses de aluguel", doc: "Não encontrado", tag: "ALEG" },
-                ].map((row, i) => (
-                  <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, padding: "10px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.05)" : "none", alignItems: "center" }}>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}>{row.fat}</span>
-                    <span style={{ fontSize: 11, color: row.tag === "ALEG" ? "#f26052" : "rgba(255,255,255,0.5)", lineHeight: 1.4, fontStyle: row.tag === "ALEG" ? "italic" : "normal" }}>{row.doc}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 9999, background: row.tag === "OK" ? "rgba(22,202,46,0.15)" : "rgba(242,96,82,0.15)", color: row.tag === "OK" ? "#16ca2e" : "#f26052" }}>
-                      {row.tag === "OK" ? "PROVADO" : "ALEGADO"}
-                    </span>
-                  </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 90px", background: "#f8f9fa", padding: "10px 24px", borderBottom: "1px solid #e2e8f0" }}>
+                {["Fato alegado","Documento de origem","Status"].map(h => (
+                  <span key={h} style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>{h}</span>
                 ))}
-                <div style={{ marginTop: 16, padding: "10px 14px", background: "rgba(242,96,82,0.1)", borderRadius: 8, border: "1px solid rgba(242,96,82,0.2)" }}>
-                  <p style={{ fontSize: 11, color: "#f26052", fontWeight: 500 }}>2 fatos sem comprovação documental. Revise antes de ajuizar.</p>
-                </div>
               </div>
+              {[
+                { f: "Contrato de locação firmado em 15/01/2023", d: "Contrato.pdf — Cláusula 1ª, pág. 1", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
+                { f: "Cláusula de reajuste de 5% ao ano", d: "Contrato.pdf — Cláusula 3ª, pág. 2", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
+                { f: "Inadimplemento a partir de 01/04/2024 (3 meses)", d: "Extrato Nubank PJ — fl. 14, linha 3", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
+                { f: "Valor de R$ 18.750,00 em aluguéis atrasados", d: "Planilha de cálculo — fl. 31", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
+                { f: "Notificação extrajudicial entregue em 10/05/2024", d: "AR digital — não verificado", s: "ALEGADO", c: "#f26052", bg: "#fef2f2" },
+                { f: "Multa contratual de 2 meses de aluguel", d: "Não encontrado", s: "ALEGADO", c: "#f26052", bg: "#fef2f2" },
+              ].map((row, i) => (
+                <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 90px", padding: "12px 24px", borderBottom: i < 5 ? "1px solid #f1f5f9" : "none", background: "white" }}>
+                  <span style={{ fontSize: 12, color: "#14141e", lineHeight: 1.4 }}>{row.f}</span>
+                  <span style={{ fontSize: 12, color: row.s === "ALEGADO" ? "#f26052" : "#6b7280", fontStyle: row.s === "ALEGADO" ? "italic" : "normal", lineHeight: 1.4 }}>{row.d}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 9999, background: row.bg, color: row.c, alignSelf: "center" }}>{row.s}</span>
+                </div>
+              ))}
+            </div>
+            {/* Alert bar */}
+            <div style={{ padding: "14px 24px", background: "#fef2f2", borderTop: "1px solid #fecaca", display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#f26052", display: "inline-block", flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: "#991b1b", fontWeight: 500 }}>2 fatos sem comprovação documental. Revise antes de ajuizar.</span>
             </div>
           </div>
+
+          <p style={{ fontSize: 13, color: "#6b7280", textAlign: "center", marginTop: 20, maxWidth: 560, margin: "20px auto 0", lineHeight: 1.6 }}>
+            A questão não é se a IA vai inventar jurisprudência. A questão é se você sabe o que não conseguiu provar antes de ajuizar.
+          </p>
         </div>
       </section>
 
