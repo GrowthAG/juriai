@@ -35,47 +35,37 @@ export function LandingPage() {
         </div>
       </nav>
 
-      {/* HERO — tight, integrated, no wasted space */}
-      <section style={{ background: "#fcfcfc", paddingTop: 60, paddingBottom: 80 }}>
+      {/* HERO — centered headline, dashboard screenshot */}
+      <section style={{ background: "#fcfcfc", paddingTop: 64, paddingBottom: 72 }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "7fr 8fr", gap: 32, alignItems: "center" }}>
-            {/* Left — copy, tight */}
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 600, color: "#145aff", marginBottom: 14, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Inteligencia forense
-              </p>
-              <h1 style={{ fontSize: "clamp(26px, 3vw, 40px)", fontWeight: 600, lineHeight: 1.12, letterSpacing: "-0.8px", color: "#020520", marginBottom: 16 }}>
-                Todo escritorio tem fatos que nao conseguiu provar.
-              </h1>
-              <p style={{ fontSize: 15, lineHeight: 1.65, color: "#374151", marginBottom: 24 }}>
-                O JuriAI conecta cada alegacao da sua peca ao documento que a sustenta. Quando um fato nao tem prova, voce sabe antes do juiz perguntar.
-              </p>
-              <div style={{ display: "flex", gap: 12 }}>
-                <Link href="/cadastro" style={{ padding: "10px 20px", background: "#020520", color: "white", fontSize: 13, fontWeight: 500, textDecoration: "none" }}>
-                  Testar 14 dias
-                </Link>
-                <Link href="/demo/dashboard" style={{ padding: "10px 20px", color: "#374151", fontSize: 13, textDecoration: "none" }}>
-                  Ver demo
-                </Link>
-              </div>
-              <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 10 }}>Sem cartao de credito upfront.</p>
+          {/* Headline centered */}
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", marginBottom: 12, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              Inteligencia forense para advocacia civil
+            </p>
+            <h1 style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 600, lineHeight: 1.12, letterSpacing: "-0.8px", color: "#020520", marginBottom: 14 }}>
+              Todo escritorio tem fatos que nao conseguiu provar.
+            </h1>
+            <p style={{ fontSize: 16, lineHeight: 1.65, color: "#374151", maxWidth: 500, margin: "0 auto 24px" }}>
+              O JuriAI conecta cada alegacao da sua peca ao documento que a sustenta. Quando um fato nao tem prova, voce sabe antes do juiz perguntar.
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              <Link href="/cadastro" style={{ padding: "10px 22px", background: "#020520", color: "white", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>
+                Testar 14 dias
+              </Link>
+              <Link href="/demo/dashboard" style={{ padding: "10px 22px", color: "#374151", fontSize: 14, textDecoration: "none" }}>
+                Ver demo
+              </Link>
             </div>
-
-            {/* Right — product screenshot, browser-framed */}
-            <div style={{ background: "#f4f4f5", borderRadius: 12, padding: "10px 10px 0", border: "1px solid #e2e8f0" }}>
-              {/* Browser chrome */}
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, paddingLeft: 4 }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f26052", display: "inline-block" }} />
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f5c542", display: "inline-block" }} />
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#16ca2e", display: "inline-block" }} />
-              </div>
-              <img
-                src="/site/juriai-wizard-real.png"
-                alt="JuriAI em acao"
-                style={{ width: "100%", height: "auto", display: "block", borderRadius: "0 0 8px 8px", border: "1px solid #e2e8f0", borderTop: "none" }}
-              />
-            </div>
+            <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 10 }}>Sem cartao de credito upfront.</p>
           </div>
+
+          {/* Dashboard screenshot full-width */}
+          <img
+            src="/site/juriai-dashboard-real.png"
+            alt="JuriAI dashboard mostrando matriz Fato x Prova"
+            style={{ width: "100%", height: "auto", display: "block", borderRadius: 12, border: "1px solid #e2e8f0" }}
+          />
         </div>
       </section>
 
