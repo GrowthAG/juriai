@@ -1,156 +1,159 @@
-import { SiteReveal } from "./SiteReveal";
+"use client";
 
-const TIERS = [
-  {
-    name: "Silver",
-    price: "497",
-    blurb: "Escritório pequeno validando sozinho.",
-    features: [
-      "1 a 3 advogados",
-      "Wizard + análise anti-alucinação",
-      "Limite de análises/mês",
-      "Suporte por e-mail",
-    ],
-    highlighted: false,
-  },
-  {
-    name: "Gold",
-    price: "697",
-    blurb: "O plano default do escritório cível B2B.",
-    features: [
-      "Mais volume de análises",
-      "Mais usuários no workspace",
-      "Exportação de peças",
-      "Prioridade de suporte",
-      "Onboarding assistido no beta",
-    ],
-    highlighted: true,
-  },
-  {
-    name: "Platinum",
-    price: "1.997",
-    blurb: "Alto volume, marca do escritório, prioridade.",
-    features: [
-      "Alto volume de análises",
-      "White-label (cor + logo)",
-      "Onboarding prioritário",
-      "Caminho para operação maior",
-    ],
-    highlighted: false,
-  },
-];
+import Link from "next/link";
+import { useState } from "react";
 
 export function PricingSection() {
-  return (
-    <section
-      id="precos"
-      className="scroll-mt-16 border-b border-[var(--border)] bg-white"
-    >
-      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24">
-        <SiteReveal>
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-              Preço
-            </p>
-            <h2 className="mt-4 font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
-              Um estagiário custa R$&nbsp;1.200. Um analista, R$&nbsp;4.200.
-            </h2>
-            <p className="mt-5 text-lg leading-relaxed text-[var(--muted)]">
-              O JuriAI Gold custa R$&nbsp;697, trabalha 24/7 e não inventa
-              jurisprudência. Por escritório, não por assento na v1.
-            </p>
-          </div>
-        </SiteReveal>
+  const [annual, setAnnual] = useState(true);
 
-        <div className="mt-12 grid gap-4 lg:grid-cols-3">
-          {TIERS.map((tier, i) => (
-            <SiteReveal key={tier.name} delayMs={i * 60}>
-              <div
-                className={[
-                  "flex h-full flex-col rounded-sm border px-6 py-7",
-                  tier.highlighted
-                    ? "border-[var(--primary)] bg-[var(--background)]"
-                    : "border-[var(--border)] bg-[var(--surface)]",
-                ].join(" ")}
-              >
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-[var(--foreground)]">
-                    {tier.name}
-                  </h3>
-                  {tier.highlighted ? (
-                    <span className="rounded bg-[var(--primary)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                      Default
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-4 font-serif text-4xl font-semibold tracking-tight tabular-nums">
-                  R$&nbsp;{tier.price}
-                  <span className="ml-1 font-sans text-sm font-medium text-[var(--muted)]">
-                    /mês
-                  </span>
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-                  {tier.blurb}
-                </p>
-                <ul className="mt-6 flex flex-1 flex-col gap-2.5">
-                  {tier.features.map((f) => (
-                    <li
-                      key={f}
-                      className="flex gap-2 text-sm leading-snug text-[var(--foreground)]"
-                    >
-                      <span
-                        className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]"
-                        aria-hidden="true"
-                      />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  href="mailto:contato@juriai.com.br?subject=Demo%20JuriAI%20-%20plano%20"
-                  className={[
-                    "mt-8 inline-flex h-11 items-center justify-center rounded-lg text-sm font-semibold transition-colors",
-                    tier.highlighted
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]"
-                      : "border border-[var(--border-strong)] bg-white text-[var(--foreground)] hover:bg-[var(--background)]",
-                  ].join(" ")}
-                >
-                  Agendar demo
-                </a>
-              </div>
-            </SiteReveal>
-          ))}
+  return (
+    <section id="precos" className="border-b border-[var(--border)] bg-white py-20 sm:py-28">
+      <div className="mx-auto max-w-6xl px-6">
+        {/* Section Header */}
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="text-xs font-semibold uppercase tracking-widest text-[var(--primary)]">
+            Planos &amp; Investimento
+          </span>
+          <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">
+            Preço fixo por escritório. Sem cobrança por caso.
+          </h2>
+          <p className="mt-4 text-base text-[var(--muted)] leading-relaxed">
+            Uma fração do custo de um estagiário ou analista júnior, com capacidade operacional contínua e isolamento seguro de dados.
+          </p>
+
+          {/* Toggle Mensal / Anual */}
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <span className={`text-xs font-medium ${!annual ? "text-[var(--foreground)]" : "text-[var(--muted)]"}`}>
+              Mensal
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={annual}
+              onClick={() => setAnnual(!annual)}
+              className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-900 transition-colors focus:outline-none"
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                  annual ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+            <span className={`text-xs font-medium ${annual ? "text-[var(--foreground)]" : "text-[var(--muted)]"}`}>
+              Anual <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">2 meses grátis</span>
+            </span>
+          </div>
         </div>
 
-        <SiteReveal delayMs={120}>
-          <div className="mt-10 grid gap-6 rounded-sm border border-[var(--border)] bg-[var(--background)] p-6 sm:grid-cols-[1fr_auto] sm:items-center sm:p-8">
+        {/* Pricing Cards Grid */}
+        <div className="mt-14 grid gap-8 lg:grid-cols-2 max-w-4xl mx-auto">
+          {/* Card 1: Plano Pro */}
+          <div className="flex flex-col justify-between rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface)] p-8 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
-                Garantia de processo · 30 dias
+              <div className="flex items-center justify-between">
+                <h3 className="font-serif text-xl font-semibold text-[var(--foreground)]">Plano Pro</h3>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 font-mono">
+                  Boutique / Pequeno Porte
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-[var(--muted)]">
+                Para escritórios boutique com 1 a 3 advogados focados em agilidade processual.
               </p>
-              <p className="mt-3 text-base font-medium leading-relaxed text-[var(--foreground)] sm:text-lg">
-                Monte um caso real com mapa de provas e lacunas. Se não for
-                mais rápido que o fluxo atual do escritório, devolvemos o mês
-                ou estendemos o onboarding sem custo.
-              </p>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                Não garantimos mérito nem ganhar causa. Garantimos processo e
-                tempo de montagem.
-              </p>
-            </div>
-            <a
-              href="mailto:contato@juriai.com.br?subject=Demo%20JuriAI%20com%20caso%20real"
-              className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)] px-6 text-sm font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary-hover)]"
-            >
-              Agendar demo com caso real
-            </a>
-          </div>
-        </SiteReveal>
 
-        <p className="mt-6 text-center text-xs text-[var(--muted)]">
-          Anual: 10 meses no preço de 12. Piso R$&nbsp;497 (sem tier de
-          “brinquedo” a R$&nbsp;197).
-        </p>
+              <div className="mt-6 flex items-baseline gap-1 border-y border-[var(--border)] py-4">
+                <span className="text-sm font-medium text-[var(--muted)]">R$</span>
+                <span className="text-4xl font-bold tracking-tight text-[var(--foreground)] font-mono">
+                  {annual ? "497" : "597"}
+                </span>
+                <span className="text-xs text-[var(--muted)]">/mês no plano {annual ? "anual" : "mensal"}</span>
+              </div>
+
+              <ul className="mt-6 space-y-3 text-xs text-[var(--foreground)]">
+                <li className="flex items-center gap-2.5">
+                  <span className="text-emerald-600 font-bold">✓</span> Até 50 casos ativos simultâneos
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <span className="text-emerald-600 font-bold">✓</span> Até 3 advogados no workspace
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <span className="text-emerald-600 font-bold">✓</span> Extração de fatos e linha do tempo com IA
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <span className="text-emerald-600 font-bold">✓</span> Geração de minutas com pedidos em 3 níveis
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <span className="text-emerald-600 font-bold">✓</span> Consulta DataJud em 90+ tribunais
+                </li>
+              </ul>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-[var(--border)]">
+              <Link
+                href="/cadastro"
+                className="flex h-11 w-full items-center justify-center rounded-[var(--radius)] border border-[var(--border-strong)] bg-white text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--background)] shadow-sm"
+              >
+                Criar conta no Plano Pro →
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 2: Plano Gold (Destaque) */}
+          <div className="relative flex flex-col justify-between rounded-[var(--radius)] border-2 border-[var(--primary)] bg-[var(--surface)] p-8 shadow-lg shadow-blue-600/10">
+            <div className="absolute -top-3 right-6 rounded-full bg-[var(--primary)] px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+              Mais Escolhido
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <h3 className="font-serif text-xl font-semibold text-[var(--foreground)]">Plano Gold</h3>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[var(--primary)] font-mono">
+                  Média &amp; Grande Banca
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-[var(--muted)]">
+                Para bancas que precisam de volume ilimitado, copiloto de estratégia e controle de equipe.
+              </p>
+
+              <div className="mt-6 flex items-baseline gap-1 border-y border-[var(--border)] py-4">
+                <span className="text-sm font-medium text-[var(--muted)]">R$</span>
+                <span className="text-4xl font-bold tracking-tight text-[var(--primary)] font-mono">
+                  {annual ? "697" : "797"}
+                </span>
+                <span className="text-xs text-[var(--muted)]">/mês no plano {annual ? "anual" : "mensal"}</span>
+              </div>
+
+              <ul className="mt-6 space-y-3 text-xs text-[var(--foreground)]">
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="text-emerald-600 font-bold">✓</span> Casos ativos ilimitados
+                </li>
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="text-emerald-600 font-bold">✓</span> Membros e estagiários ilimitados
+                </li>
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="text-emerald-600 font-bold">✓</span> Copilot conversacional dedicado no caso
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <span className="text-emerald-600 font-bold">✓</span> Auditoria obrigatória de conformidade OAB
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <span className="text-emerald-600 font-bold">✓</span> Papel timbrado e identidade visual personalizada
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <span className="text-emerald-600 font-bold">✓</span> Suporte prioritário via WhatsApp com time técnico
+                </li>
+              </ul>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-[var(--border)]">
+              <Link
+                href="/cadastro"
+                className="flex h-11 w-full items-center justify-center rounded-[var(--radius)] bg-[var(--primary)] text-xs font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary-hover)] shadow-md shadow-blue-600/20"
+              >
+                Criar conta no Plano Gold →
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

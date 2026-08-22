@@ -1,67 +1,42 @@
 "use client";
 
-import Image from "next/image";
-import { motion } from "motion/react";
-import { SiteReveal } from "./SiteReveal";
+import Link from "next/link";
 
 export function FinalCta() {
   return (
-    <section className="relative overflow-hidden border-b border-[var(--border)]">
-      <div className="absolute inset-0">
-        <Image
-          src="/site/human-office-meeting.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-center"
-          aria-hidden="true"
-        />
-        <div
-          className="absolute inset-0 bg-white/90 backdrop-blur-[2px]"
-          aria-hidden="true"
-        />
-      </div>
+    <section className="bg-slate-950 py-20 sm:py-28 text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none" />
+      <div className="mx-auto max-w-4xl px-6 text-center relative z-10">
+        <span className="inline-flex items-center rounded-full bg-blue-500/10 border border-blue-400/20 px-3.5 py-1 text-xs font-semibold text-blue-300">
+          Operação Inteligente &amp; Rigor Forense
+        </span>
+        <h2 className="mt-5 font-serif text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl leading-tight">
+          Assuma o controle operacional do seu contencioso hoje.
+        </h2>
+        <p className="mx-auto mt-5 max-w-2xl text-base text-slate-400 leading-relaxed">
+          Estruture seu primeiro caso real em minutos. Crie a conta do seu escritório e experimente a velocidade e a precisão do JuriAI na prática.
+        </p>
 
-      <div className="relative mx-auto max-w-6xl px-6 py-24 sm:py-28">
-        <SiteReveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-              Beta assistido · vagas de onboarding limitadas
-            </p>
-            <h2 className="mt-4 font-serif text-2xl font-semibold leading-tight tracking-tight sm:text-[2.15rem]">
-              Pare de pagar salário cheio por trabalho bracal que uma máquina
-              pode fazer sem inventar fonte.
-            </h2>
-            <p className="mx-auto mt-6 max-w-lg text-lg leading-relaxed text-[var(--muted)]">
-              Leve um caso real para a demo. Em uma sessão você vê mapa, lacunas
-              e o contraste anti-alucinação. Se em 30 dias a montagem não for
-              mais rápida, devolvemos o mês.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <motion.a
-                href="mailto:contato@juriai.com.br?subject=Demo%20JuriAI%20com%20caso%20real"
-                className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--primary)] px-8 text-base font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary-hover)]"
-                whileHover={{ scale: 1.015 }}
-                whileTap={{ scale: 0.985 }}
-              >
-                Agendar demo com caso real
-              </motion.a>
-              <motion.a
-                href="#precos"
-                className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border-strong)] bg-white px-8 text-base font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--background)]"
-                whileHover={{ scale: 1.015 }}
-                whileTap={{ scale: 0.985 }}
-              >
-                Ver planos
-              </motion.a>
-            </div>
-            <p className="mx-auto mt-8 max-w-md text-sm font-medium leading-relaxed text-[var(--foreground)]">
-              A única coisa que com certeza não resolve a releitura eterna é
-              fechar esta página e abrir o Word de novo.
-            </p>
-          </div>
-        </SiteReveal>
+        <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link
+            href="/cadastro"
+            className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-[var(--radius)] bg-[var(--primary)] px-8 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary-hover)] shadow-lg shadow-blue-600/30"
+          >
+            Criar conta do escritório →
+          </Link>
+          <Link
+            href="/demo/dashboard"
+            className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-[var(--radius)] border border-slate-700 bg-slate-900 px-6 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800"
+          >
+            Ver demonstração interativa
+          </Link>
+        </div>
+
+        <p className="mt-8 text-xs text-slate-500 font-mono">
+          Sem necessidade de cartão de crédito. Acesso imediato ao Cockpit.
+        </p>
       </div>
     </section>
   );
 }
+

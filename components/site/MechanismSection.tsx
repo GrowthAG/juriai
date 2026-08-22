@@ -7,28 +7,23 @@ import { SiteReveal } from "./SiteReveal";
 const STEPS = [
   {
     n: "01",
-    title: "Abrir o caso",
-    desc: "Wizard guiado: tipo, área, partes e resumo. Contexto no dossiê desde o primeiro minuto. Sem prompt aberto.",
+    title: "Ingestão e Custódia",
+    desc: "Contratos, notificações, faturas e e-mails entram no dossiê. O sistema extrai metadados e sinaliza incompatibilidades documentais.",
   },
   {
     n: "02",
-    title: "Anexar provas",
-    desc: "Documentos entram no caso. Extração do que importa e sinal quando o material não bate com o dossiê.",
+    title: "Matriz Fato x Prova",
+    desc: "Estruturação automática da linha do tempo cronológica. O que tem documento é vinculado; o que não tem vira [FATO ALEGADO].",
   },
   {
     n: "03",
-    title: "Mapear e analisar",
-    desc: "Fatos, timeline e lacunas a partir do material. O que não tem prova vira [FATO ALEGADO], não vira inventado.",
+    title: "Mapeamento de Lacunas",
+    desc: "A IA audita o dossiê e aponta perguntas pendentes e provas faltantes antes do ajuizamento, reduzindo o risco de improcedência.",
   },
   {
     n: "04",
-    title: "Redigir com lastro",
-    desc: "Rascunho fundamentado com fontes rastreadas. PDF para revisão. Você assina o que aprova.",
-  },
-  {
-    n: "05",
-    title: "Revisar e decidir",
-    desc: "Nada sai como verdade automática. O advogado aprova, ajusta e responde pelo resultado.",
+    title: "Redação em Papel Timbrado",
+    desc: "Geração de minutas completas com pedidos em 3 níveis e exportação em PDF aplicando automaticamente o papel timbrado do seu escritório.",
   },
 ];
 

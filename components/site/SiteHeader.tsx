@@ -7,20 +7,21 @@ import { useState } from "react";
 const NAV_LINKS = [
   { label: "Produto", href: "#produto-em-acao" },
   { label: "Como funciona", href: "#como-funciona" },
+  { label: "Módulos", href: "#modulos" },
   { label: "Preços", href: "#precos" },
   { label: "Para quem", href: "#para-quem" },
-  { label: "Confiança", href: "#seguranca" },
+  { label: "Segurança", href: "#seguranca" },
 ];
 
-export function SiteHeader({ appLoginUrl }: { appLoginUrl: string }) {
+export function SiteHeader({ appLoginUrl = "/login" }: { appLoginUrl?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/92 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur-md">
       <div className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between gap-4 px-6">
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-serif text-lg font-semibold tracking-tight"
+          className="flex items-center gap-2.5 font-serif text-lg font-semibold tracking-tight group"
           aria-label="JuriAI, página inicial"
           onClick={() => setOpen(false)}
         >
@@ -31,9 +32,10 @@ export function SiteHeader({ appLoginUrl }: { appLoginUrl: string }) {
             alt=""
             aria-hidden="true"
             unoptimized
+            className="transition-transform group-hover:scale-105"
           />
-          <span>
-            Juri<span className="font-sans text-[var(--accent)]">AI</span>
+          <span className="font-serif text-[19px] font-semibold text-[var(--foreground)]">
+            Juri<span className="font-sans text-[var(--primary)] font-bold">AI</span>
           </span>
         </Link>
 
@@ -49,83 +51,21 @@ export function SiteHeader({ appLoginUrl }: { appLoginUrl: string }) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Link
             href={appLoginUrl}
-            className="hidden rounded-lg px-3 py-2 text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)] sm:inline-flex"
+            className="hidden rounded-[var(--radius)] px-3.5 py-2 text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)] sm:inline-flex"
           >
             Entrar
           </Link>
-          <a
-            href="mailto:contato@juriai.com.br?subject=Demo%20JuriAI%20com%20caso%20real"
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-[var(--primary)] px-3 text-sm font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary-hover)] sm:px-5"
+          <Link
+            href="/cadastro"
+            className="inline-flex h-10 items-center justify-center rounded-[var(--radius)] bg-[var(--primary)] px-4 text-xs font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-[var(--primary-hover)] shadow-sm"
           >
-            <span className="sm:hidden">Demo</span>
-            <span className="hidden sm:inline">Agendar demo</span>
-          </a>
-          <button
-            type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--foreground)] md:hidden"
-            aria-expanded={open}
-            aria-controls="site-mobile-nav"
-            aria-label={open ? "Fechar menu" : "Abrir menu"}
-            onClick={() => setOpen((v) => !v)}
-          >
-            <span className="sr-only">{open ? "Fechar" : "Menu"}</span>
-            <span aria-hidden="true" className="flex flex-col gap-1.5">
-              <span
-                className={[
-                  "block h-0.5 w-4 bg-current transition-transform",
-                  open ? "translate-y-2 rotate-45" : "",
-                ].join(" ")}
-              />
-              <span
-                className={[
-                  "block h-0.5 w-4 bg-current transition-opacity",
-                  open ? "opacity-0" : "",
-                ].join(" ")}
-              />
-              <span
-                className={[
-                  "block h-0.5 w-4 bg-current transition-transform",
-                  open ? "-translate-y-2 -rotate-45" : "",
-                ].join(" ")}
-              />
-            </span>
-          </button>
+            Criar conta →
+          </Link>
         </div>
       </div>
-
-      {open && (
-        <nav
-          id="site-mobile-nav"
-          className="border-t border-[var(--border)] bg-[var(--surface)] md:hidden"
-          aria-label="Mobile"
-        >
-          <ul className="mx-auto flex max-w-6xl flex-col px-6 py-3">
-            {NAV_LINKS.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="block py-3 text-sm font-medium text-[var(--foreground)]"
-                  onClick={() => setOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link
-                href={appLoginUrl}
-                className="block py-3 text-sm font-medium text-[var(--muted)]"
-                onClick={() => setOpen(false)}
-              >
-                Entrar
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      )}
     </header>
   );
 }

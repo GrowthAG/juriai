@@ -2,20 +2,20 @@ import { SiteReveal } from "./SiteReveal";
 
 const SIGNALS = [
   {
-    title: "Anti-alucinação",
-    body: "Fato sem prova vira [FATO ALEGADO]. Sem inventar artigo.",
+    title: "Anti-alucinação forense",
+    body: "Fato sem documento vira [FATO ALEGADO]. Sem inventar artigos ou decisões.",
   },
   {
-    title: "Vs. folha de pagamento",
-    body: "Gold a R$ 697. Um analista custa cerca de R$ 4.200.",
+    title: "Vs. folha de equipe",
+    body: "Planos a partir de R$ 497/mês vs. custo de analista júnior de ~R$ 4.200.",
   },
   {
-    title: "Revisão humana",
-    body: "Nada sai como verdade automática. O advogado decide.",
+    title: "Revisão humana obrigatória",
+    body: "Nada sai como verdade automática. O advogado titular aprova e assina.",
   },
   {
-    title: "Wizard, não chat",
-    body: "Fluxo de caso guiado. Junior não precisa saber prompt.",
+    title: "Esteira de caso, não chat",
+    body: "Fluxo de dossiê guiado por área. Sua equipe não precisa saber engenharia de prompt.",
   },
 ];
 
@@ -50,3 +50,4 @@ export function TrustStrip() {
     </section>
   );
 }
+
