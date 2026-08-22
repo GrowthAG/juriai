@@ -12,136 +12,96 @@ export function LandingPage() {
   return (
     <main style={{ background: "#fcfcfc", color: "#14141e", fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif", minHeight: "100vh", fontSize: 16, lineHeight: 1.63 }}>
 
-      {/* NAV */}
+      {/* NAV — simple editorial, no pills */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "#fcfcfc", borderBottom: "1px solid #e2e8f0" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-            <Image src="/brand/gavel-tile.svg" width={28} height={28} alt="JuriAI" unoptimized />
-            <span style={{ fontSize: 18, fontWeight: 600, letterSpacing: "-0.02em", color: "#020520" }}>
+            <Image src="/brand/gavel-tile.svg" width={26} height={26} alt="JuriAI" unoptimized />
+            <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em", color: "#020520" }}>
               Juri<span style={{ color: "#145aff" }}>AI</span>
             </span>
           </Link>
-          <ul style={{ display: "flex", alignItems: "center", gap: 28, listStyle: "none" }}>
-            {["Como funciona", "Quanto custa", "Para quem e"].map(item => (
-              <li key={item}>
-                <a href={`#${item.toLowerCase().replace(" ", "-")}`}
-                  style={{ fontSize: 15, fontWeight: 500, color: "#14141e", textDecoration: "none" }}>
-                  {item}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: "#14141e", textDecoration: "none" }}>Entrar</Link>
-            <Link href="/cadastro" style={{ display: "inline-flex", alignItems: "center", height: 38, padding: "0 20px", borderRadius: 9999, border: "1px solid #145aff", color: "#145aff", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+            <a href="#como-funciona" style={{ fontSize: 14, fontWeight: 400, color: "#374151", textDecoration: "none" }}>Como funciona</a>
+            <a href="#precos" style={{ fontSize: 14, fontWeight: 400, color: "#374151", textDecoration: "none" }}>Precos</a>
+            <a href="#para-quem-e" style={{ fontSize: 14, fontWeight: 400, color: "#374151", textDecoration: "none" }}>Para quem e</a>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <Link href="/login" style={{ fontSize: 14, color: "#374151", textDecoration: "none" }}>Entrar</Link>
+            <Link href="/cadastro" style={{ fontSize: 14, fontWeight: 500, padding: "8px 18px", background: "#020520", color: "white", textDecoration: "none" }}>
               Criar conta
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* HERO — Hook direto na dor */}
-      <section style={{ background: "linear-gradient(to bottom, #f0f4fe, #fcfcfc)", paddingTop: 88, paddingBottom: 88 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
-          {/* Label */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "white", border: "1px solid #e2e8f0", borderRadius: 9999, padding: "6px 14px", marginBottom: 28, fontSize: 12, fontWeight: 500, color: "#374151" }}>
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#145aff", display: "inline-block" }} />
-            Inteligencia forense para advocacia civil
-          </div>
-
-          {/* Headline — hook na dor */}
-          <h1 style={{ fontSize: "clamp(34px, 5vw, 56px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.51px", color: "#020520", maxWidth: 820, margin: "0 auto", marginBottom: 22 }}>
-            Todo escritório tem fatos que não conseguiu provar. O seu não precisa ser um deles.
-          </h1>
-
-          {/* Subheadline */}
-          <p style={{ fontSize: 18, lineHeight: 1.63, color: "#374151", maxWidth: 560, margin: "0 auto", marginBottom: 36 }}>
-            O JuriAI conecta cada alegação da sua peça ao documento que a sustenta. Quando um fato não tem prova, você sabe <strong style={{ color: "#020520" }}>antes do juiz perguntar.</strong>
-          </p>
-
-          {/* CTAs */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-            <Link href="/cadastro" style={{ display: "inline-flex", alignItems: "center", height: 46, padding: "0 36px", borderRadius: 9999, border: "1px solid #145aff", background: "#145aff", color: "white", fontSize: 15, fontWeight: 600, textDecoration: "none", boxShadow: "0 0 100px -28px rgba(20,90,255,0.3)" }}>
-              Verificar meu escritório
-            </Link>
-            <Link href="/demo/dashboard" style={{ display: "inline-flex", alignItems: "center", height: 46, padding: "0 36px", borderRadius: 9999, border: "1px solid #e2e8f0", background: "white", color: "#14141e", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>
-              Ver demonstração
-            </Link>
-          </div>
-          <p style={{ fontSize: 12, color: "#6b7280", marginTop: 14 }}>14 dias gratis. Sem cartao de credito. Cancele quando quiser.</p>
-        </div>
-
-        {/* Product Mockup — interface real do JuriAI */}
-        <div style={{ maxWidth: 1100, margin: "48px auto 0", padding: "0 24px" }}>
-          <div style={{ background: "white", borderRadius: 20, boxShadow: "0 0.36px 1.8px -1.4px rgba(0,0,0,0.08), 0 1.37px 6.87px -2.8px rgba(0,0,0,0.07), 0 6px 30px -4.25px rgba(0,0,0,0.016)", overflow: "hidden" }}>
-            {/* Chrome bar */}
-            <div style={{ background: "#f1f5f9", borderBottom: "1px solid #e2e8f0", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ display: "flex", gap: 5 }}>
-                {[1,2,3].map(i => <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: "#e2e8f0" }} />)}
+      {/* HERO — clean editorial, no gradient, no pills */}
+      <section style={{ background: "#fcfcfc", paddingTop: 72, paddingBottom: 72 }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
+            {/* Left — copy */}
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 500, color: "#145aff", marginBottom: 16, letterSpacing: "0.01em" }}>
+                Inteligencia forense para advocacia civil
+              </p>
+              <h1 style={{ fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 600, lineHeight: 1.1, letterSpacing: "-1px", color: "#020520", marginBottom: 20 }}>
+                Todo escritorio tem fatos que nao conseguiu provar. O seu nao precisa ser um deles.
+              </h1>
+              <p style={{ fontSize: 16, lineHeight: 1.65, color: "#374151", marginBottom: 32, maxWidth: 440 }}>
+                O JuriAI conecta cada alegacao da sua peca ao documento que a sustenta. Quando um fato nao tem prova, voce sabe antes do juiz perguntar.
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <Link href="/cadastro" style={{ display: "inline-block", padding: "12px 24px", background: "#020520", color: "white", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>
+                  Verificar meu escritorio
+                </Link>
+                <Link href="/demo/dashboard" style={{ display: "inline-block", padding: "12px 24px", color: "#374151", fontSize: 14, textDecoration: "none" }}>
+                  Ver demonstracao
+                </Link>
               </div>
-              <span style={{ fontSize: 11, fontFamily: "monospace", color: "#6b7280", marginLeft: 8 }}>juriai.app / workspace</span>
+              <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 14 }}>14 dias gratis. Sem cartao de credito upfront.</p>
             </div>
-            {/* App interface */}
-            <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", minHeight: 380 }}>
-              {/* Sidebar */}
-              <div style={{ background: "#f8f9fa", borderRight: "1px solid #e2e8f0", padding: "16px 0" }}>
-                <div style={{ padding: "0 12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                    <div style={{ width: 24, height: 24, background: "#145aff", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ color: "white", fontSize: 10, fontWeight: 700 }}>JA</span>
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#020520" }}>JuriAI</span>
+
+            {/* Right — simplified product table */}
+            <div>
+              <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 12, overflow: "hidden" }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#020520" }}>MATRIZ FATO x PROVA</span>
+                    <span style={{ fontSize: 11, color: "#9ca3af" }}>Caso: Cobranca Alugueis</span>
                   </div>
-                  {["Casos","Documentos","Modelos","Jurisprudencia"].map((item, i) => (
-                    <div key={item} style={{ padding: "8px 12px", borderRadius: 6, background: i === 0 ? "#145aff" : "transparent", marginBottom: 2, cursor: "pointer" }}>
-                      <span style={{ fontSize: 12, fontWeight: i === 0 ? 500 : 400, color: i === 0 ? "white" : "#374151" }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Main content */}
-              <div style={{ padding: "20px 24px" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                  <div>
-                    <h3 style={{ fontSize: 14, fontWeight: 600, color: "#020520", marginBottom: 2 }}>Caso: Cobranca de Alugueis Inadimplidos</h3>
-                    <span style={{ fontSize: 11, color: "#6b7280" }}>ID 0847/2024 — Atualizado em 22/08/2026</span>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <span style={{ fontSize: 10, padding: "2px 8px", background: "#f0fdf4", color: "#16ca2e", fontWeight: 500 }}>9 provados</span>
+                    <span style={{ fontSize: 10, padding: "2px 8px", background: "#fef2f2", color: "#f26052", fontWeight: 500 }}>3 alegados</span>
                   </div>
-                  <button style={{ height: 30, padding: "0 14px", borderRadius: 6, border: "none", background: "#145aff", color: "white", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>Nova Peca</button>
                 </div>
-                {/* Status badges */}
-                <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                  {[{l:"12 fatos",c:"#145aff",bg:"#eff6ff"},{l:"9 provados",c:"#16ca2e",bg:"#f0fdf4"},{l:"3 alegados",c:"#f26052",bg:"#fef2f2"}].map(b => (
-                    <span key={b.l} style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 9999, background: b.bg, color: b.c }}>{b.l}</span>
-                  ))}
-                </div>
-                {/* Table */}
-                <div style={{ border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px", background: "#f8f9fa", padding: "8px 12px", borderBottom: "1px solid #e2e8f0" }}>
-                    {["Fato alegado","Documento","Status"].map(h => (
-                      <span key={h} style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>{h}</span>
-                    ))}
+                <div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 90px", padding: "8px 20px", background: "#f8f9fa", borderBottom: "1px solid #f1f5f9" }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>Fato</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>Status</span>
                   </div>
                   {[
-                    {f:"Contrato firmado em 15/01/2023", d:"Contrato.pdf — Clausula 1a, pag.1", s:"PROVADO", c:"#16ca2e", bg:"#f0fdf4"},
-                    {f:"Inadimplemento a partir de 01/04/2024", d:"Extrato Nubank PJ — fl.14, linha 3", s:"PROVADO", c:"#16ca2e", bg:"#f0fdf4"},
-                    {f:"R$ 18.750,00 em alugueis atrasados", d:"Planilha de calculo — fl.31", s:"PROVADO", c:"#16ca2e", bg:"#f0fdf4"},
-                    {f:"Notificacao extrajudicial em 10/05/2024", d:"AR digital — nao verificado", s:"ALEGADO", c:"#f26052", bg:"#fef2f2"},
+                    { f: "Contrato firmado em 15/01/2023", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
+                    { f: "Inadimplemento a partir de 01/04/2024", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
+                    { f: "R$ 18.750,00 em alugueis atrasados", s: "PROVADO", c: "#16ca2e", bg: "#f0fdf4" },
+                    { f: "Notificacao extrajudicial em 10/05/2024", s: "ALEGADO", c: "#f26052", bg: "#fef2f2" },
+                    { f: "Multa contratual de 2 meses", s: "ALEGADO", c: "#f26052", bg: "#fef2f2" },
                   ].map((row, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px", padding: "10px 12px", borderBottom: i < 3 ? "1px solid #f1f5f9" : "none", background: "white" }}>
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 90px", padding: "10px 20px", borderBottom: i < 4 ? "1px solid #f1f5f9" : "none", background: "white" }}>
                       <span style={{ fontSize: 11, color: "#14141e" }}>{row.f}</span>
-                      <span style={{ fontSize: 11, color: row.s === "ALEGADO" ? "#f26052" : "#6b7280", fontStyle: row.s === "ALEGADO" ? "italic" : "normal" }}>{row.d}</span>
-                      <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, background: row.bg, color: row.c, alignSelf: "center" }}>{row.s}</span>
+                      <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 4, background: row.bg, color: row.c, alignSelf: "center" }}>{row.s}</span>
                     </div>
                   ))}
+                  <div style={{ padding: "10px 20px", background: "#fef2f2", borderTop: "1px solid #fecaca" }}>
+                    <p style={{ fontSize: 11, color: "#991b1b", fontWeight: 500 }}>2 fatos sem comprovacao. Revise antes de ajuizar.</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <p style={{ fontSize: 12, color: "#6b7280", textAlign: "center", marginTop: 12, fontFamily: "monospace" }}>
-            Matriz Fato x Prova — cada linha vinculada ao documento de origem. Sem [FATO ALEGADO] onde ha prova.
-          </p>
         </div>
       </section>
+
+      {/* HERO ends above */}
 
       {/* LOGO STRIP */}
       {/* TRUST STRIP — integrations + compliance badges */}
@@ -293,8 +253,8 @@ export function LandingPage() {
                 <span style={{ fontSize: 11, color: "#6b7280", marginLeft: 4 }}>Caso: Cobrança de Aluguéis</span>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 9999, background: "#f0fdf4", color: "#16ca2e" }}>9 provados</span>
-                <span style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 9999, background: "#fef2f2", color: "#f26052" }}>2 alegados</span>
+                <span style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 4, background: "#f0fdf4", color: "#16ca2e" }}>9 provados</span>
+                <span style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 4, background: "#fef2f2", color: "#f26052" }}>2 alegados</span>
               </div>
             </div>
             {/* Table */}
@@ -315,7 +275,7 @@ export function LandingPage() {
                 <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 90px", padding: "12px 24px", borderBottom: i < 5 ? "1px solid #f1f5f9" : "none", background: "white" }}>
                   <span style={{ fontSize: 12, color: "#14141e", lineHeight: 1.4 }}>{row.f}</span>
                   <span style={{ fontSize: 12, color: row.s === "ALEGADO" ? "#f26052" : "#6b7280", fontStyle: row.s === "ALEGADO" ? "italic" : "normal", lineHeight: 1.4 }}>{row.d}</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 9999, background: row.bg, color: row.c, alignSelf: "center" }}>{row.s}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 4, background: row.bg, color: row.c, alignSelf: "center" }}>{row.s}</span>
                 </div>
               ))}
             </div>
@@ -382,7 +342,7 @@ export function LandingPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20, maxWidth: 760, margin: "0 auto" }}>
             {/* Pro */}
-            <div style={{ background: "white", borderRadius: 40, padding: 40, border: "1px solid #e2e8f0" }}>
+            <div style={{ background: "white", borderRadius: 12, padding: 36, border: "1px solid #e2e8f0" }}>
               <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: 24, marginBottom: 24 }}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>JuriAI Pro</p>
                 <div style={{ display: "flex", alignItems: "flex-end", gap: 4 }}>
@@ -401,17 +361,17 @@ export function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/cadastro" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 46, borderRadius: 9999, border: "1px solid #e2e8f0", background: "white", color: "#14141e", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>
+              <Link href="/cadastro" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "12px 24px", color: "#374151", fontSize: 14, textDecoration: "none" }}>
                 Comecar teste gratis
               </Link>
             </div>
 
             {/* Gold */}
-            <div style={{ background: "white", borderRadius: 40, padding: 40, border: "2px solid #145aff", boxShadow: "0 0 100px -28px rgba(20,90,255,0.1)" }}>
+            <div style={{ background: "white", borderRadius: 12, padding: 36, border: "1px solid #e2e8f0" }}>
               <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: 24, marginBottom: 24 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                   <span style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.08em" }}>JuriAI Gold</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, background: "#145aff", color: "white", padding: "2px 8px", borderRadius: 9999 }}>Popular</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, background: "#145aff", color: "white", padding: "2px 8px", borderRadius: 4 }}>Popular</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "flex-end", gap: 4 }}>
                   <span style={{ fontSize: 42, fontWeight: 600, color: "#020520", letterSpacing: "-1px" }}>R$ 697</span>
@@ -429,7 +389,7 @@ export function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/cadastro" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 46, borderRadius: 9999, border: "1px solid #145aff", background: "#145aff", color: "white", fontSize: 15, fontWeight: 600, textDecoration: "none", boxShadow: "0 0 80px -20px rgba(20,90,255,0.3)" }}>
+              <Link href="/cadastro" style={{ display: "block", padding: "12px 24px", background: "#020520", color: "white", fontSize: 14, fontWeight: 500, textDecoration: "none", textAlign: "center" }}>
                 Comecar teste gratis
               </Link>
             </div>
@@ -481,11 +441,11 @@ export function LandingPage() {
             14 dias gratis. Sem cartao de credito. O escritório opera 24 horas enquanto você dorme.
           </p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-            <Link href="/cadastro" style={{ display: "inline-flex", alignItems: "center", height: 48, padding: "0 36px", borderRadius: 9999, border: "1px solid #145aff", background: "#145aff", color: "white", fontSize: 15, fontWeight: 600, textDecoration: "none", boxShadow: "0 0 100px -28px rgba(20,90,255,0.3)" }}>
-              Criar conta do escritório
+            <Link href="/cadastro" style={{ display: "inline-block", padding: "12px 24px", background: "#020520", color: "white", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>
+              Criar conta do escritorio
             </Link>
-            <Link href="/demo/dashboard" style={{ display: "inline-flex", alignItems: "center", height: 48, padding: "0 36px", borderRadius: 9999, border: "1px solid #e2e8f0", background: "white", color: "#14141e", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>
-              Ver demonstração
+            <Link href="/demo/dashboard" style={{ display: "inline-block", padding: "12px 24px", color: "#374151", fontSize: 14, textDecoration: "none" }}>
+              Ver demonstracao
             </Link>
           </div>
         </div>
