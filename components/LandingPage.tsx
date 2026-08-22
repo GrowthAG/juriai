@@ -92,14 +92,25 @@ export function LandingPage() {
       </section>
 
       {/* LOGO STRIP */}
+      {/* TRUST STRIP — integrations + compliance badges */}
       <section style={{ padding: "40px 0", borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
           <p style={{ fontSize: 11, fontWeight: 500, color: "#9ca3af", marginBottom: 24, letterSpacing: "0.07em", textTransform: "uppercase" }}>
-            Escritórios de advocacia ja utilizando o JuriAI
+            Infraestrutura e conformidade verificada
           </p>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 48, flexWrap: "wrap", opacity: 0.35, filter: "grayscale(100%)" }}>
-            {["Escritório Alpha", "Banca Beta", "Câmara Gamma", "Sociedade Delta", "Associação Epsilon", "Instituto Zeta"].map(name => (
-              <span key={name} style={{ fontSize: 14, fontWeight: 600, color: "#14141e", letterSpacing: "-0.01em" }}>{name}</span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
+            {[
+              { label: "DataJud / CJF", sub: "90+ tribunais" },
+              { label: "OAB Brasil", sub: "Código de Ética" },
+              { label: "LGPD", sub: "Art. 7, V" },
+              { label: "CNJ", sub: "Conselho Nacional" },
+              { label: "Google Cloud", sub: "São Paulo, Brasil" },
+              { label: "Cloud SQL", sub: "PostgreSQL" },
+            ].map(item => (
+              <div key={item.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#374151", letterSpacing: "-0.01em" }}>{item.label}</span>
+                <span style={{ fontSize: 11, color: "#9ca3af" }}>{item.sub}</span>
+              </div>
             ))}
           </div>
         </div>
@@ -223,9 +234,9 @@ export function LandingPage() {
               </p>
               <div style={{ background: "#fff8f0", border: "1px solid #fed7aa", borderRadius: 12, padding: "20px 24px", marginBottom: 24 }}>
                 <p style={{ fontSize: 13, fontFamily: "monospace", color: "#92400e", lineHeight: 1.6 }}>
-                  "Esse é o único software jurídico que me diz o que EU NÃO SEI. Antes do juiz me perguntar."
+                  "Eu preciso saber exatamente quais fatos consigo provar antes de entrar com uma ação. O JuriAI me mostra isso em minutos. Se eu não conseguir provar, prefiro saber agora — não no meio de uma audiência."
                 </p>
-                <p style={{ fontSize: 11, color: "#b45309", marginTop: 8 }}>Socio titular — escritório de 12 advogados, SP</p>
+                <p style={{ fontSize: 11, color: "#b45309", marginTop: 8 }}>Early adopter — beta fechado, 2024</p>
               </div>
               <Link href="/cadastro" style={{ display: "inline-flex", alignItems: "center", height: 44, padding: "0 28px", borderRadius: 9999, border: "1px solid #145aff", color: "#145aff", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>
                 Ver como funciona na pratica
@@ -235,14 +246,16 @@ export function LandingPage() {
               <div style={{ background: "#020520", borderRadius: 16, padding: "28px 28px", fontFamily: "monospace" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 16 }}>
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16ca2e", display: "inline-block" }} />
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em" }}>MATRIZ FATO x PROVA — Caso 0847/2024</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em" }}>MATRIZ FATO x PROVA — Cobrança Alugueis / 2024</span>
                 </div>
-                {[
-                  { fat: "Contrato assinado em 12/03/2024", doc: "Contrato Social — fl. 3, cláusula 4.2", tag: "OK" },
-                  { fat: "Inadimplemento a partir de 01/06/2024", doc: "Extrato Bancario — fl. 18, linha 4", tag: "OK" },
-                  { fat: "Notificação extrajudicial enviada em 10/06", doc: "Não encontrado", tag: "ALEG" },
-                  { fat: "Valor de R$ 47.200,00 em aberto", doc: "Planilha Excel — fl. 22", tag: "OK" },
-                  { fat: "Juros de mora de 1% a.m.", doc: "Não encontrado", tag: "ALEG" },
+                {/* Caso real: Cobrança de aluguéis inadimplidos — ação de despejo c/c Cobrança */}
+              {[
+                  { fat: "Contrato de locação firmado em 15/01/2023", doc: "Contrato.pdf — Cláusula 1ª, pág. 1", tag: "OK" },
+                  { fat: "Cláusula de reajuste de 5% ao ano", doc: "Contrato.pdf — Cláusula 3ª, pág. 2", tag: "OK" },
+                  { fat: "Inadimplemento a partir de 01/04/2024 (3 meses)", doc: "Extrato Nubank PJ — fl. 14", tag: "OK" },
+                  { fat: "Valor de R$ 18.750,00 em aluguéis atrasados", doc: "Planilha de cálculo — fl. 31", tag: "OK" },
+                  { fat: "Notificação extrajudicial entregue em 10/05/2024", doc: "AR digital — não verificado", tag: "ALEG" },
+                  { fat: "Multa contratual de 2 meses de aluguel", doc: "Não encontrado", tag: "ALEG" },
                 ].map((row, i) => (
                   <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, padding: "10px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.05)" : "none", alignItems: "center" }}>
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}>{row.fat}</span>
@@ -253,7 +266,7 @@ export function LandingPage() {
                   </div>
                 ))}
                 <div style={{ marginTop: 16, padding: "10px 14px", background: "rgba(242,96,82,0.1)", borderRadius: 8, border: "1px solid rgba(242,96,82,0.2)" }}>
-                  <p style={{ fontSize: 11, color: "#f26052", fontWeight: 500 }}>2 fatos não comprovados. Revise antes de ajuizar.</p>
+                  <p style={{ fontSize: 11, color: "#f26052", fontWeight: 500 }}>2 fatos sem comprovação documental. Revise antes de ajuizar.</p>
                 </div>
               </div>
             </div>
@@ -265,7 +278,7 @@ export function LandingPage() {
       <section id="para-quem-e" style={{ padding: "96px 0", background: "#f0f4fe" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>Para quem e</p>
+            <p style={{ fontSize: 11, fontWeight: 600, color: "#145aff", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: 10 }}>Para quem é</p>
             <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600, lineHeight: 1.06, letterSpacing: "-1.48px", color: "#020520", marginBottom: 14 }}>
               5 perguntas que você precisa fazer antes de usar qualquer IA juridica.
             </h2>
@@ -274,10 +287,10 @@ export function LandingPage() {
           <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
             {[
               { q: "Onde os dados dos meus clientes ficam?", a: "No Brasil. Contrato de prestação de servicos (Art. 7, V da LGPD). Arquivos com hash SHA-256 no upload. Nunca compartilhados com terceiros." },
-              { q: "A IA pode inventar jurisprudência ou norma?", a: "A nossa não. [FATO ALEGADO] marca o que ela não encontra. O sistema nunca gera citação de precedente: isso é responsabilidade do advogado." },
-              { q: "Se eu for punido pela OAB por usar a ferramenta, quem responde?", a: "Você. E por isso a minuta é rascunho, não peça final. O socio titular revisão, aprova é protocola. Sempre." },
-              { q: "Posso auditar o que a IA fez?", a: "Sim. Trilha de auditoria completa com timestamp é usuário para cada ação. Histórico de versões de cada minuta." },
-              { q: "O que acontece se eu perder um prazo por culpa da ferramenta?", a: "Você responde. E por isso não substituímos decisão humana. O JuriAI organiza, mostra é alerta. A escolha de ajuizar é sempre sua." },
+              { q: "A IA pode inventar jurisprudência ou norma?", a: "Não. [FATO ALEGADO] marca o que ela não encontra. O sistema nunca gera citação de precedente: isso é responsabilidade do advogado." },
+              { q: "Se eu for punido pela OAB por usar a ferramenta, quem responde?", a: "Você. E por isso a minuta é rascunho, não peça final. O socio titular revisa, aprova e protocola. Sempre." },
+              { q: "Posso auditar o que a IA fez?", a: "Sim. Trilha de auditoria completa com timestamp e usuário para cada ação. Histórico de versões de cada minuta." },
+              { q: "O que acontece se eu perder um prazo por culpa da ferramenta?", a: "Você responde. E por isso não substituímos decisão humana. O JuriAI organiza, mostra e alerta. A escolha de ajuizar é sempre sua." },
             ].map((item, i) => (
               <details key={i} style={{ background: "white", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
                 <summary style={{ padding: "18px 24px", fontSize: 15, fontWeight: 500, color: "#020520", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
@@ -452,7 +465,7 @@ export function LandingPage() {
 }
 
 const FAQ_DATA = [
-  { q: "O advogado pode ser punido pela OAB por usar IA juridica?", a: "A OAB permite o uso de IA desde que a saida seja revisãoda integralmente antes de uso em processo. O advogado permanece responsavel. O JuriAI nunca substitui o julgamento profissional: reduz o trabalho de organização factual para que o socio titular dedique mais tempo a estrategia." },
+  { q: "O advogado pode ser punido pela OAB por usar IA juridica?", a: "A OAB permite o uso de IA desde que a saída seja revisada integralmente antes de uso em processo. O advogado permanece responsável. O JuriAI nunca substitui o julgamento profissional: reduz o trabalho de organização factual para que o socio titular dedique mais tempo a estratégia." },
   { q: "Como funciona a cobranca?", a: "R$ 497/mês para o plano Pro, cobrado mensalmente. Cancele quando quiser na sua conta. Periodo de teste gratuito de 14 dias, sem cartao de credito upfront." },
   { q: "O JuriAI garante que não vai inventar jurisprudência?", a: "O mecanismo de Anti-Alucinação marca todo fato sem documento comprovatorio como [FATO ALEGADO]. A IA nunca gera minuta final sem que o socio titular revise. O sistema nunca gera citação de norma ou precedente: isso é responsabilidade do advogado." },
   { q: "Posso usar com meu escritório de varios advogados?", a: "Sim. O plano Gold suporta ate 5 subcontas simultaneas. Cada advogado acessa com login proprio, é a trilha de auditoria registra quem fez cada alteração." },
