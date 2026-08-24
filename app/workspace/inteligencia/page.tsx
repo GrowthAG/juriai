@@ -50,34 +50,15 @@ export default function InteligenciaPage() {
     setCnpjData(null);
 
     try {
-      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${clean}`);
+      const resp = await fetch(`/api/intelligence/cnpj?cnpj=${clean}`);
       const data = await resp.json();
       if (!resp.ok) {
-        setCnpjError("CNPJ não localizado na base pública da Receita.");
+        setCnpjError(data.error || "CNPJ não localizado na base pública da Receita Federal.");
       } else {
-        const masked = clean.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
-        const end = `${data.descricao_tipo_de_logradouro || data.logradouro || "Rua"}, ${data.numero || "s/n"}, Bairro ${data.bairro || "Centro"}, CEP ${data.cep || ""}, ${data.municipio || ""}/${data.uf || ""}`;
-        const qsa = Array.isArray(data.qsa) ? data.qsa : [];
-        const adminNames = qsa.map((s: any) => s.nome_socio).slice(0, 2).join(" e ") || "seus administradores legais";
-        const qualif = `${data.razao_social}, pessoa jurídica de direito privado inscrita no CNPJ sob o nº ${masked}, com sede na ${end}, representada por ${adminNames}`;
-
-        setCnpjData({
-          razao_social: data.razao_social,
-          nome_fantasia: data.nome_fantasia || "-",
-          cnpj_formatado: masked,
-          situacao: data.descricao_situacao_cadastral || "ATIVA",
-          abertura: data.data_inicio_atividade || "-",
-          capital_social: Number(data.capital_social || 0),
-          cnae: `${data.cnae_fiscal || ""} - ${data.cnae_fiscal_descricao || ""}`,
-          natureza: data.natureza_juridica || "-",
-          endereco: end,
-          qsa: qsa,
-          qualificacao: qualif,
-          is_jec: (data.porte === "MICRO EMPRESA" || data.porte === "EMPRESA DE PEQUENO PORTE" || data.opcao_pelo_simples === true)
-        });
+        setCnpjData(data);
       }
     } catch (err) {
-      setCnpjError("Erro de conexão ao consultar Receita Federal.");
+      setCnpjError("Erro de conexão ao consultar Receita Federal. Tente novamente em instantes.");
     } finally {
       setCnpjLoading(false);
     }

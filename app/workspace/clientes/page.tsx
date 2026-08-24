@@ -100,23 +100,21 @@ export default function ClientesPage() {
     }
     setCnpjLoading(true);
     try {
-      const resp = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${clean}`);
+      const resp = await fetch(`/api/intelligence/cnpj?cnpj=${clean}`);
       if (resp.ok) {
         const data = await resp.json();
         setNameInput(data.razao_social || "");
-        setTradeNameInput(data.nome_fantasia || "");
+        setTradeNameInput(data.nome_fantasia && data.nome_fantasia !== "-" ? data.nome_fantasia : "");
         setCapitalInput(String(data.capital_social || ""));
-        setCnaeInput(`${data.cnae_fiscal || ""} - ${data.cnae_fiscal_descricao || ""}`);
-        
-        const end = `${data.descricao_tipo_de_logradouro || data.logradouro || "Rua"}, ${data.numero || "s/n"}${data.complemento ? " (" + data.complemento + ")" : ""}, Bairro ${data.bairro || "Centro"}, CEP ${data.cep || ""}, ${data.municipio || "São Paulo"}/${data.uf || "SP"}`;
-        setAddressInput(end);
+        setCnaeInput(data.cnae || "");
+        setAddressInput(data.endereco || "");
 
         const socios = Array.isArray(data.qsa)
           ? data.qsa.map((s: any) => ({
-              nome: s.nome_socio || s.nome_representante_legal || "Sócio",
-              cargo: s.qualificacao_socio || s.qualificacao_representante_legal || "Sócio",
-              cpf: s.cnpj_cpf_do_socio || "-",
-              participacao: s.percentual_capital_social ? s.percentual_capital_social + "%" : "-"
+              nome: s.nome_socio || s.nome || "Sócio",
+              cargo: s.qualificacao_socio || s.qualificacao || "Sócio",
+              cpf: s.cpf || "-",
+              participacao: "-"
             }))
           : [];
         setQsaList(socios);
@@ -126,10 +124,11 @@ export default function ClientesPage() {
           setRepRole(socios[0].cargo);
         }
       } else {
-        alert("CNPJ não localizado na Receita Federal pública.");
+        const err = await resp.json().catch(() => ({}));
+        alert(err.error || "CNPJ não localizado na Receita Federal pública.");
       }
     } catch (e) {
-      alert("Erro ao conectar à Receita Federal.");
+      alert("Erro ao conectar à Receita Federal. Tente novamente em instantes.");
     } finally {
       setCnpjLoading(false);
     }
