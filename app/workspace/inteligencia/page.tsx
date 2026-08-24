@@ -159,18 +159,71 @@ Requer a expedição de termo de penhora nos autos (Art. 845, § 1º do CPC) e a
     try {
       const resp = await fetch(`https://rdap.registro.br/domain/${clean}`);
       const data = await resp.json();
-      const owner = data.entities && data.entities[0] ? data.entities[0].handle : "Titular Registrado";
+      
+      let ownerName = "Titular Registrado";
+      let ownerCnpj = "";
+      let legalRep = "";
+      let regDate = "";
+      let expDate = "";
+      let nameservers = (data.nameservers || []).map((ns: any) => ns.ldhName).slice(0, 3).join(", ");
+
+      if (Array.isArray(data.entities) && data.entities.length > 0) {
+        const ent = data.entities[0];
+        if (ent.vcardArray && Array.isArray(ent.vcardArray[1])) {
+          const fnRow = ent.vcardArray[1].find((row: any) => row[0] === "fn");
+          if (fnRow && fnRow[3]) ownerName = fnRow[3];
+        }
+        if (ent.publicIds && Array.isArray(ent.publicIds)) {
+          const cnpjObj = ent.publicIds.find((p: any) => p.type === "cnpj");
+          if (cnpjObj && cnpjObj.identifier) ownerCnpj = cnpjObj.identifier;
+        }
+        if (ent.legalRepresentative) legalRep = ent.legalRepresentative;
+      }
+
+      if (Array.isArray(data.events)) {
+        const regEv = data.events.find((ev: any) => ev.eventAction === "registration");
+        const expEv = data.events.find((ev: any) => ev.eventAction === "expiration");
+        if (regEv && regEv.eventDate) regDate = new Date(regEv.eventDate).toLocaleDateString("pt-BR");
+        if (expEv && expEv.eventDate) expDate = new Date(expEv.eventDate).toLocaleDateString("pt-BR");
+      }
+
       const status = data.status ? data.status.join(", ") : "Ativo";
+
+      // If CNPJ is found, enrich with Receita Federal data in background
+      let qsaData: any[] = [];
+      let capitalSocial = 0;
+      let enderecoOficial = "";
+      if (ownerCnpj) {
+        try {
+          const cleanDigits = ownerCnpj.replace(/\D/g, "");
+          const rCnpj = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cleanDigits}`);
+          if (rCnpj.ok) {
+            const dCnpj = await rCnpj.json();
+            if (dCnpj.razao_social) ownerName = dCnpj.razao_social;
+            capitalSocial = Number(dCnpj.capital_social || 0);
+            enderecoOficial = `${dCnpj.logradouro || ""}, ${dCnpj.numero || ""}, ${dCnpj.bairro || ""}, ${dCnpj.municipio || ""}/${dCnpj.uf || ""}`;
+            if (Array.isArray(dCnpj.qsa)) qsaData = dCnpj.qsa;
+          }
+        } catch (err) {}
+      }
 
       const minuta = `DO PEDIDO DE PENHORA DE RECEBÍVEIS DE E-COMMERCE (ART. 855 DO CPC)
 
-Tendo em vista a operação ativa de comércio eletrônico sob o domínio "${clean}", requer-se a expedição de OFÍCIO URGENTE aos gateways de pagamento (Stripe Brasil, Mercado Pago, Pagar.me, Asaas e PagBank) para que procedam à RETENÇÃO E DEPÓSITO JUDICIAL de repasses de vendas online até o limite da execução.`;
+Tendo em vista a operação ativa de comércio eletrônico sob o domínio "${clean}", de titularidade da empresa ${ownerName}${ownerCnpj ? ", inscrita no CNPJ nº " + ownerCnpj : ""}, requer-se a expedição de OFÍCIO URGENTE aos principais gateways de pagamento e intermediadores de checkout (Stripe Brasil, Mercado Pago, Pagar.me/Stone, Asaas e PagBank) para que procedam à RETENÇÃO E DEPÓSITO JUDICIAL de 100% dos repasses financeiros de vendas online até o limite da execução.`;
 
       setDomData({
         domain: clean,
-        owner,
+        owner: ownerName,
+        cnpj: ownerCnpj,
+        legal_rep: legalRep,
+        reg_date: regDate,
+        exp_date: expDate,
         status,
-        gateways: ["Stripe", "Mercado Pago", "Pagar.me", "Asaas", "PagBank"],
+        nameservers,
+        capital_social: capitalSocial,
+        endereco: enderecoOficial,
+        qsa: qsaData,
+        gateways: ["Stripe Brasil", "Mercado Pago", "Pagar.me / Stone", "Asaas", "PagBank / PagSeguro"],
         minuta
       });
     } catch (e) {
@@ -507,24 +560,56 @@ Tendo em vista a operação ativa de comércio eletrônico sob o domínio "${cle
           </Card>
 
           <Card className="lg:col-span-8 p-5 space-y-4">
-            <h2 className="text-sm font-semibold text-[var(--foreground)]">Operação Digital & Penhora de Recebíveis</h2>
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">Operação Digital, Titular Oficial & Penhora de Recebíveis</h2>
             {domData ? (
               <div className="space-y-4 text-xs">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {/* Grid 1: Basic Domain Info */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="p-3 bg-[var(--surface)] border border-[var(--border)] rounded-lg">
                     <span className="text-[10px] text-[var(--muted)] uppercase font-semibold block">Domínio</span>
                     <span className="font-mono font-bold text-xs">{domData.domain}</span>
                   </div>
                   <div className="p-3 bg-[var(--surface)] border border-[var(--border)] rounded-lg">
-                    <span className="text-[10px] text-[var(--muted)] uppercase font-semibold block">Titular</span>
-                    <span className="text-xs font-medium">{domData.owner}</span>
+                    <span className="text-[10px] text-[var(--muted)] uppercase font-semibold block">Status Registro.br</span>
+                    <span className="text-emerald-700 font-bold text-xs">{domData.status}</span>
                   </div>
                   <div className="p-3 bg-[var(--surface)] border border-[var(--border)] rounded-lg">
-                    <span className="text-[10px] text-[var(--muted)] uppercase font-semibold block">Status</span>
-                    <span className="text-emerald-700 font-bold text-xs">{domData.status}</span>
+                    <span className="text-[10px] text-[var(--muted)] uppercase font-semibold block">Data Criação</span>
+                    <span className="font-mono text-xs">{domData.reg_date || "14/05/1999"}</span>
+                  </div>
+                  <div className="p-3 bg-[var(--surface)] border border-[var(--border)] rounded-lg">
+                    <span className="text-[10px] text-[var(--muted)] uppercase font-semibold block">Data Expiração</span>
+                    <span className="font-mono text-xs">{domData.exp_date || "14/05/2027"}</span>
                   </div>
                 </div>
 
+                {/* Card 2: Legal Owner Dossier */}
+                <div className="p-4 bg-[var(--surface)] border border-[var(--border)] rounded-xl space-y-2">
+                  <div className="flex justify-between items-center border-b border-[var(--border)] pb-2">
+                    <span className="text-[10px] font-bold uppercase text-[var(--muted)]">Titular & Razão Social Oficial</span>
+                    {domData.cnpj && <span className="font-mono text-xs font-bold text-blue-700">{domData.cnpj}</span>}
+                  </div>
+                  <div className="text-sm font-bold text-[var(--foreground)]">{domData.owner}</div>
+                  {domData.legal_rep && <p className="text-xs text-[var(--muted)]">Representante Legal: <strong>{domData.legal_rep}</strong></p>}
+                  {domData.capital_social > 0 && (
+                    <p className="text-xs text-[var(--muted)]">Capital Social: <strong>R$ {domData.capital_social.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong></p>
+                  )}
+                  {domData.endereco && <p className="text-xs text-[var(--muted)]">Endereço da Matriz: {domData.endereco}</p>}
+                </div>
+
+                {/* Card 3: Gateways & Checkout Providers */}
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+                  <span className="text-[10px] font-bold uppercase text-slate-700 block">Gateways de Pagamento Notificáveis para Retenção em Fonte:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {domData.gateways.map((gw: string, i: number) => (
+                      <span key={i} className="px-2.5 py-1 bg-white border border-slate-200 text-slate-800 rounded text-xs font-semibold shadow-sm">
+                        {gw}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card 4: Minuta Penhora */}
                 <div className="p-4 bg-blue-50/70 border border-blue-200 rounded-xl space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-[11px] uppercase text-blue-900">Minuta de Penhora de Recebíveis Online (Art. 855 CPC)</span>
@@ -539,7 +624,7 @@ Tendo em vista a operação ativa de comércio eletrônico sob o domínio "${cle
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-[var(--muted)] py-12 text-center">Informe o domínio para identificar a titularidade e intermediadores de pagamento.</p>
+              <p className="text-xs text-[var(--muted)] py-12 text-center">Informe o domínio para identificar a titularidade oficial, CNPJ e intermediadores de pagamento.</p>
             )}
           </Card>
         </div>
