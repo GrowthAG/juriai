@@ -7,10 +7,10 @@ export default function InteligenciaPage() {
   const [activeTab, setActiveTab] = useState<"cnpj" | "veiculo" | "juiz" | "dominio">("cnpj");
 
   // Common Case Context for Petitions
-  const [exequente, setExequente] = useState("RevTech Systems Ltda.");
-  const [processNum, setProcessNum] = useState("1029384-55.2023.8.26.0100");
-  const [lawyer, setLawyer] = useState("Dr. Giulliano Alves (OAB/SP 123456)");
-  const [claimValue, setClaimValue] = useState("16590.23");
+  const [exequente, setExequente] = useState("");
+  const [processNum, setProcessNum] = useState("");
+  const [lawyer, setLawyer] = useState("");
+  const [claimValue, setClaimValue] = useState("");
 
   // 1. CNPJ State
   const [cnpj, setCnpj] = useState("");
@@ -26,8 +26,8 @@ export default function InteligenciaPage() {
 
   // 3. Judge State
   const [court, setCourt] = useState("TJSP");
-  const [judgeName, setJudgeName] = useState("Dr. Claudio Antonio Marquesi");
-  const [topic, setTopic] = useState("Trava CERC / Retenção de Recebíveis");
+  const [judgeName, setJudgeName] = useState("");
+  const [topic, setTopic] = useState("Inadimplemento Contratual");
   const [judgeLoading, setJudgeLoading] = useState(false);
   const [judgeData, setJudgeData] = useState<any>(null);
 

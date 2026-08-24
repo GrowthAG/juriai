@@ -4,9 +4,9 @@ import { useState } from "react";
 import { Card } from "@/components/ui";
 
 export default function CalculadoraPage() {
-  const [principal, setPrincipal] = useState<string>("16590.23");
-  const [startDate, setStartDate] = useState<string>("2024-01-15");
-  const [endDate, setEndDate] = useState<string>("2026-08-20");
+  const [principal, setPrincipal] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const [interestType, setInterestType] = useState<"selic" | "simple">("selic");
   const [finePct, setFinePct] = useState<string>("2");
   const [honorariosPct, setHonorariosPct] = useState<string>("10");

@@ -26,36 +26,22 @@ const INITIAL_USERS: UserMember[] = [
     role: "OWNER",
     role_label: "Sócio Titular (Acesso Total)",
     status: "Ativo",
-    permissions: ["Acesso Administrativo Irrestrito", "Gestão de Equipe", "Faturamento", "DJEN"],
-    created_at: "2026-01-10"
-  },
-  {
-    id: "USR-002",
-    name: "Dra. Mariana Dias",
-    email: "mariana.dias@escritorio.adv.br",
-    oab: "389201/SP",
-    role: "LAWYER",
-    role_label: "Advogada Associada",
-    status: "Ativo",
-    permissions: ["Gestão de Casos", "Redação de Peças", "Auditoria de Matriz", "DJEN"],
-    created_at: "2026-03-15"
-  },
-  {
-    id: "USR-003",
-    name: "Lucas Prado",
-    email: "lucas.prado@escritorio.adv.br",
-    oab: "Estagiário / OAB-E",
-    role: "INTERN",
-    role_label: "Assistente Jurídico",
-    status: "Ativo",
-    permissions: ["Upload de Provas", "Consultas Processuais DataJud/DJEN"],
-    created_at: "2026-05-20"
+    permissions: ["Acesso Total", "Gestão da Banca", "Faturamento"],
+    created_at: new Date().toISOString().split("T")[0]
   }
 ];
 
 export default function ConfiguracoesPage() {
   const [activeTab, setActiveTab] = useState<"users" | "workspace" | "rbac">("users");
-  const [users, setUsers] = useState<UserMember[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<UserMember[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("juriai_users");
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return INITIAL_USERS;
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State for New Member

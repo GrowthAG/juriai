@@ -49,83 +49,7 @@ type ClientItem = {
   };
 };
 
-const INITIAL_CLIENTS: ClientItem[] = [
-  {
-    id: "CLI-2026-001",
-    name: "RevTech Systems Ltda.",
-    trade_name: "RevTech Solutions",
-    document: "16.746.009/0001-86",
-    type: "PJ",
-    email: "giulliano@usefunnels.io",
-    phone: "+55 11 99999-9999",
-    address: "Av. Brigadeiro Faria Lima, 3477, Itaim Bibi, São Paulo/SP",
-    city_state: "São Paulo / SP",
-    status: "Ativo",
-    cases_count: 2,
-    capital_social: 100000.0,
-    cnae: "62.01-5-01 - Desenvolvimento de programas de computador",
-    created_at: "2026-01-10",
-    legal_representative: {
-      name: "Dr. Giulliano Alves",
-      cpf: "000.000.000-00",
-      role: "Sócio Administrador",
-      email: "giulliano@usefunnels.io",
-      phone: "+55 11 99999-9999"
-    },
-    qsa: [
-      { nome: "Giulliano Alves", cargo: "Sócio-Administrador", participacao: "100%" }
-    ]
-  },
-  {
-    id: "CLI-2026-002",
-    name: "Locadora Alpha Imóveis Ltda.",
-    trade_name: "Alpha Prime Locações",
-    document: "12.345.678/0001-90",
-    type: "PJ",
-    email: "contato@alphalocadora.com.br",
-    phone: "+55 11 3232-0000",
-    address: "Rua Vergueiro, 1000, Paraíso, São Paulo/SP",
-    city_state: "São Paulo / SP",
-    status: "Ativo",
-    cases_count: 1,
-    capital_social: 500000.0,
-    cnae: "68.10-2-02 - Aluguel de imóveis próprios",
-    created_at: "2026-02-15",
-    legal_representative: {
-      name: "Mariana Dias",
-      cpf: "111.222.333-44",
-      role: "Diretora Presidente",
-      email: "mariana@alphalocadora.com.br",
-      phone: "+55 11 98888-7777"
-    },
-    qsa: [
-      { nome: "Mariana Dias", cargo: "Diretora Presidente", participacao: "60%" },
-      { nome: "Carlos Eduardo Dias", cargo: "Sócio", participacao: "40%" }
-    ]
-  },
-  {
-    id: "CLI-2026-003",
-    name: "Roberto Mendes de Carvalho",
-    document: "234.567.890-12",
-    type: "PF",
-    email: "roberto.mendes@email.com",
-    phone: "+55 11 97777-6666",
-    address: "Rua Bela Cintra, 450, apto 82, Consolação, São Paulo/SP",
-    city_state: "São Paulo / SP",
-    status: "Ativo",
-    cases_count: 1,
-    rg: "34.567.890-X SSP/SP",
-    marital_status: "Casado",
-    profession: "Engenheiro de Software",
-    created_at: "2026-03-01",
-    bank_data: {
-      bank: "Banco do Brasil (001)",
-      agency: "1234-5",
-      account: "54321-0",
-      pix: "roberto.mendes@email.com"
-    }
-  }
-];
+const INITIAL_CLIENTS: ClientItem[] = [];
 
 export default function ClientesPage() {
   const [clients, setClients] = useState<ClientItem[]>(() => {
@@ -474,64 +398,84 @@ export default function ClientesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
-              {filteredClients.map((c) => (
-                <tr key={c.id} className="hover:bg-[var(--surface)] transition">
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-[var(--foreground)] text-sm">{c.name}</div>
-                    <div className="text-[11px] text-[var(--muted)]">{c.trade_name || c.profession || c.address}</div>
-                  </td>
-                  <td className="px-6 py-4 font-mono font-medium text-[var(--foreground)]">
-                    {c.document}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                      c.type === "PJ" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-purple-50 text-purple-700 border-purple-200"
-                    }`}>
-                      {c.type === "PJ" ? "Pessoa Jurídica" : "Pessoa Física"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-xs text-[var(--foreground)]">
-                    <div>{c.email}</div>
-                    <div className="text-[11px] text-[var(--muted)]">{c.phone}</div>
-                  </td>
-                  <td className="px-6 py-4 text-center font-bold font-mono">
-                    <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800">
-                      {c.cases_count} {c.cases_count === 1 ? "caso" : "casos"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      {c.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right space-x-1.5">
-                    <button
-                      onClick={() => setSelectedClient(c)}
-                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded text-xs font-medium border border-slate-200 transition"
-                    >
-                      Dossiê 360º
-                    </button>
-                    <button
-                      onClick={() => handleEditClient(c)}
-                      className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-xs font-semibold border border-blue-200 transition"
-                    >
-                      Editar
-                    </button>
-                    <Link
-                      href={`/casos/novo?clientId=${c.id}&clientName=${encodeURIComponent(c.name)}`}
-                      className="px-2.5 py-1 bg-[var(--primary)] hover:opacity-90 text-[var(--primary-foreground)] rounded text-xs font-semibold transition inline-block"
-                    >
-                      + Caso
-                    </Link>
-                    <button
-                      onClick={() => handleDeleteClient(c.id)}
-                      className="px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded text-xs font-medium transition"
-                    >
-                      Excluir
-                    </button>
+              {filteredClients.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-16 text-center text-xs text-[var(--muted)]">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                      </div>
+                      <p className="font-semibold text-slate-800 text-sm">Nenhum cliente cadastrado ainda</p>
+                      <p className="text-slate-500 max-w-sm">Cadastre o primeiro cliente da banca preenchendo o CNPJ da empresa na Receita Federal ou os dados da pessoa física.</p>
+                      <button
+                        onClick={() => { resetForm(); setIsModalOpen(true); }}
+                        className="mt-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-semibold rounded-lg hover:opacity-90 transition shadow-sm"
+                      >
+                        + Cadastrar Primeiro Cliente
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredClients.map((c) => (
+                  <tr key={c.id} className="hover:bg-[var(--surface)] transition">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-[var(--foreground)] text-sm">{c.name}</div>
+                      <div className="text-[11px] text-[var(--muted)]">{c.trade_name || c.profession || c.address}</div>
+                    </td>
+                    <td className="px-6 py-4 font-mono font-medium text-[var(--foreground)]">
+                      {c.document}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                        c.type === "PJ" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-purple-50 text-purple-700 border-purple-200"
+                      }`}>
+                        {c.type === "PJ" ? "Pessoa Jurídica" : "Pessoa Física"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-xs text-[var(--foreground)]">
+                      <div>{c.email}</div>
+                      <div className="text-[11px] text-[var(--muted)]">{c.phone}</div>
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold font-mono">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800">
+                        {c.cases_count} {c.cases_count === 1 ? "caso" : "casos"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right space-x-1.5">
+                      <button
+                        onClick={() => setSelectedClient(c)}
+                        className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded text-xs font-medium border border-slate-200 transition"
+                      >
+                        Dossiê 360º
+                      </button>
+                      <button
+                        onClick={() => handleEditClient(c)}
+                        className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-xs font-semibold border border-blue-200 transition"
+                      >
+                        Editar
+                      </button>
+                      <Link
+                        href={`/casos/novo?clientId=${c.id}&clientName=${encodeURIComponent(c.name)}`}
+                        className="px-2.5 py-1 bg-[var(--primary)] hover:opacity-90 text-[var(--primary-foreground)] rounded text-xs font-semibold transition inline-block"
+                      >
+                        + Caso
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteClient(c.id)}
+                        className="px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded text-xs font-medium transition"
+                      >
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
