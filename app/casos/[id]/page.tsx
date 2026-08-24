@@ -352,11 +352,12 @@ export default async function CasoPage({
                     {caso.drafts.length === 1 ? "" : "s"}
                   </span>
                 </div>
-                <details className="mt-3">
-                  <summary className="flex cursor-pointer list-none items-center justify-between rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)] [&::-webkit-details-marker]:hidden">
-                    <span>Nova minuta</span>
+                <details className="mt-3" open={caso.drafts.length === 0}>
+                  <summary className="flex cursor-pointer list-none items-center justify-between rounded-[var(--radius-card)] border border-blue-300 bg-blue-50/70 px-4 py-2.5 text-sm font-semibold text-[var(--primary)] hover:bg-blue-100/80 transition [&::-webkit-details-marker]:hidden">
+                    <span>+ Gerar Petição Inicial / Nova Minuta</span>
+                    <span className="text-xs font-normal text-blue-600">Clique para abrir o formulário de redação</span>
                   </summary>
-                  <div className="mt-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-3 py-3">
+                  <div className="mt-2 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
                     <GenerateDraftForm
                       caseId={caso.id}
                       caseType={caso.type}
@@ -530,8 +531,7 @@ function nextSuggestedStep({
 }) {
   if (evidenceCount === 0) return "adicionar a primeira prova do caso.";
   if (timelineCount === 0 && gapCount === 0) return "gerar a análise do dossiê.";
-  if (gapCount > 0) return "validar a lacuna aberta antes de redigir.";
-  if (draftCount === 0) return "abrir Nova minuta e gerar o primeiro rascunho.";
+  if (draftCount === 0) return "gerar o primeiro rascunho de petição.";
   return "revisar o rascunho mais recente ou baixar o PDF.";
 }
 

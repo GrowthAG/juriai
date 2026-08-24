@@ -15,15 +15,18 @@ export function hasMinimumDraftContext({
   timelineCount,
   gapCount,
 }: MinimumDraftContextInput): boolean {
+  // Se o caso já possui provas anexadas OU fatos na linha do tempo OU lacunas mapeadas,
+  // já possui base documental suficiente para a IA redigir a peça.
+  if (evidenceCount > 0 || timelineCount > 0 || gapCount > 0) return true;
+
+  // Caso não tenha documentos anexados, permite se o advogado forneceu instruções / contexto textual
   const notes = conversationNotes
     .map((note) => note.trim())
-    .filter((note) => note.length > 8);
+    .filter((note) => note.length > 3);
   const combinedLength = notes.join(" ").length;
 
-  if (notes.length >= 3) return true;
-  if (combinedLength >= 180) return true;
-  if (evidenceCount > 0 && notes.length >= 1) return true;
-  if ((timelineCount > 0 || gapCount > 0) && notes.length >= 1) return true;
+  if (notes.length >= 1 || combinedLength >= 20) return true;
+
   return false;
 }
 
