@@ -39,16 +39,32 @@ const CONSOLE_NAV: NavItem[] = [
 ];
 
 const WORKSPACE_NAV: NavItem[] = [
+  // OPERAÇÃO
   { href: "/workspace", label: "Visão geral", section: "Operação" },
-  { href: "/workspace/casos", label: "Casos", section: "Operação" },
+  { href: "/workspace/casos", label: "Casos & Dossiês", section: "Operação" },
+  { href: "/casos/novo", label: "Novo caso", section: "Operação" },
+
+  // INTELIGÊNCIA FORENSE
   {
     href: "/workspace/monitoramento",
-    label: "Monitoramento",
-    section: "Operação",
-    adminOnly: true,
+    label: "Diário Oficial (DJEN)",
+    section: "Inteligência Forense",
   },
-  { href: "/casos/novo", label: "Novo caso", section: "Operação" },
-  { href: "/configuracoes", label: "Configurações", section: "Gestão do Escritório" },
+  {
+    href: "/workspace/inteligencia",
+    label: "Investigação de Ativos",
+    section: "Inteligência Forense",
+  },
+
+  // CÁLCULOS & PERÍCIA
+  {
+    href: "/workspace/calculadora",
+    label: "Calculadora SELIC / BCB",
+    section: "Cálculos & Perícia",
+  },
+
+  // GESTÃO DA BANCA
+  { href: "/configuracoes", label: "Configurações & Equipe", section: "Gestão da Banca" },
 ];
 
 export function Sidebar({ user }: { user: SidebarUser }) {
