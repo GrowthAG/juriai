@@ -42,6 +42,7 @@ const WORKSPACE_NAV: NavItem[] = [
   // OPERAÇÃO
   { href: "/workspace", label: "Visão geral", section: "Operação" },
   { href: "/workspace/casos", label: "Casos & Dossiês", section: "Operação" },
+  { href: "/workspace/clientes", label: "Clientes & Partes", section: "Operação" },
   { href: "/casos/novo", label: "Novo caso", section: "Operação" },
 
   // INTELIGÊNCIA FORENSE
