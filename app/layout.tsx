@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://app.juriai.adv.br/brand/og-juriai-cover.png",
+        url: "https://app.juriai.adv.br/brand/og-juriai-cover.png?v=20260824v2",
         width: 1200,
         height: 630,
         alt: "JuriAI : Inteligência Forense para Advocacia Cível",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     title: "JuriAI : Inteligência Forense & Gestão de Contencioso Cível",
     description:
       "Todo escritório tem fatos que não conseguiu provar. O seu não precisa ser um deles. Matriz Fato x Prova, Diário Oficial DJEN e Jurimetria.",
-    images: ["https://app.juriai.adv.br/brand/og-juriai-cover.png"],
+    images: ["https://app.juriai.adv.br/brand/og-juriai-cover.png?v=20260824v2"],
   },
 };
 
