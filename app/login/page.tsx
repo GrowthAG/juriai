@@ -170,18 +170,12 @@ export default async function LoginPage({
           </div>
         </div>
 
-        {/* ── COLUNA DIREITA: EDITORIAL HERO IMAGE (7 colunas no desktop) ── */}
-        <div className="relative hidden lg:col-span-7 xl:col-span-7 lg:flex flex-col justify-between overflow-hidden bg-slate-900 p-12 lg:p-16">
-          {/* Background image com overlay elegante */}
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="/site/hero-human-desk.jpg"
-              alt="Mesa de trabalho com documentos jurídicos"
-              fill
-              priority
-              className="object-cover object-center opacity-40 mix-blend-luminosity filter contrast-125"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-900/40" />
+        {/* ── COLUNA DIREITA: PAINEL EDITORIAL (7 colunas no desktop) ── */}
+        <div className="relative hidden lg:col-span-7 xl:col-span-7 lg:flex flex-col justify-between overflow-hidden bg-slate-950 p-12 lg:p-16">
+          {/* Background sofisticado com gradiente e ambient glow */}
+          <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-900 to-[#0A192F]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,90,255,0.15),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(15,43,72,0.4),transparent_50%)]" />
           </div>
 
           {/* Topo do painel editorial */}

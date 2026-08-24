@@ -403,17 +403,11 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* ── COLUNA DIREITA: IMAGEM EDITORIAL ── */}
-        <div className="relative hidden lg:col-span-6 xl:col-span-7 lg:flex flex-col justify-between overflow-hidden bg-slate-900 p-12 lg:p-16">
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="/site/hero-human-desk.jpg"
-              alt="Ambiente de trabalho contemporâneo e documental"
-              fill
-              priority
-              className="object-cover object-center opacity-35 mix-blend-luminosity filter contrast-125"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-900/40" />
+        {/* ── COLUNA DIREITA: PAINEL EDITORIAL ── */}
+        <div className="relative hidden lg:col-span-6 xl:col-span-7 lg:flex flex-col justify-between overflow-hidden bg-slate-950 p-12 lg:p-16">
+          <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-900 to-[#0A192F]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,90,255,0.15),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(15,43,72,0.4),transparent_50%)]" />
           </div>
 
           <div className="relative z-10">
