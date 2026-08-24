@@ -71,7 +71,7 @@ export default async function NovoCasoContextoPage({
             depois, já dentro do caso.
           </p>
 
-          {/* Stepper do wizard — etapa 2 ativa */}
+          {/* Stepper do wizard: etapa 2 ativa */}
           <ol className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
             {STEPPER_STAGES.map((stage, i) => (
               <li key={stage} className="flex items-center gap-2">
@@ -95,11 +95,11 @@ export default async function NovoCasoContextoPage({
             ))}
           </ol>
 
-          {/* Etapa 2 — Contexto do caso (formulário real) */}
+          {/* Etapa 2: Contexto do caso (formulário real) */}
           <Card className="mt-6 p-5 sm:p-6">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="text-sm font-semibold text-[var(--foreground)]">
-                Etapa 2 · Contexto do caso — {label}
+                Etapa 2 · Contexto do caso: {label}
               </h2>
               <span className="font-mono text-[10px] uppercase tracking-wide text-[var(--muted)]">
                 Etapa 2 de {STEPPER_STAGES.length}
@@ -134,11 +134,11 @@ export default async function NovoCasoContextoPage({
                   required
                   maxLength={200}
                   autoFocus
-                  placeholder="Ex: Rescisão contratual — Onboard S.A."
+                  placeholder="Ex: Rescisão contratual: Onboard S.A."
                   className={fieldClass}
                 />
                 <span className="text-xs text-[var(--muted)]">
-                  Nome objetivo (assunto — parte envolvida), não a narrativa em
+                  Nome objetivo (assunto: parte envolvida), não a narrativa em
                   primeira pessoa.
                 </span>
               </label>

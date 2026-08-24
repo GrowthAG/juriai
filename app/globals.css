@@ -74,12 +74,12 @@ body {
   will-change: transform;
 }
 
-/* Reveal no mount (hero) — uma vez, curto */
+/* Reveal no mount (hero): uma vez, curto */
 .site-reveal {
   animation: site-reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Reveal no scroll (seções) — controlado por .is-visible via SiteReveal */
+/* Reveal no scroll (seções): controlado por .is-visible via SiteReveal */
 .site-reveal-scroll {
   opacity: 0;
   transform: translateY(14px);
@@ -199,7 +199,7 @@ body {
   background: #f3f2ef;
 }
 
-/* Troca de tela no showcase — entrada curta */
+/* Troca de tela no showcase: entrada curta */
 .site-product-stage {
   animation: site-stage-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -215,7 +215,7 @@ body {
   }
 }
 
-/* Float institucional — amplitude baixa, sem “bounce de template” */
+/* Float institucional: amplitude baixa, sem bounce de template */
 .site-float-slow {
   animation: site-float 9s ease-in-out infinite;
 }

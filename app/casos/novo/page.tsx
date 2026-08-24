@@ -3,7 +3,7 @@ import { Card } from "@/components/ui";
 import { DOMAIN_LABEL } from "@/lib/case-labels";
 
 // Áreas derivadas da fonte canônica (lib/case-labels.ts). O slug de rota é a
-// chave do domínio em minúsculas — sem lista paralela manual.
+// chave do domínio em minúsculas, sem lista paralela manual.
 const DOMAIN_OPTIONS = Object.entries(DOMAIN_LABEL).map(([key, label]) => ({
   slug: key.toLowerCase(),
   label,
@@ -69,7 +69,7 @@ export default function NovoCasoWizardPage() {
             ))}
           </ol>
 
-          {/* Etapa 1 — Área do caso */}
+          {/* Etapa 1: Área do caso */}
           <Card className="mt-6 p-5 sm:p-6">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="text-sm font-semibold text-[var(--foreground)]">

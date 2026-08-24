@@ -12,7 +12,7 @@ type RouteContext = {
  * Exporta uma minuta em PDF.
  * Segurança: a minuta só é servida se o caso pai passar por getAccessibleCase
  * (workspace do ator + papel/owner/CaseMember). Draft isolado sem caso acessível
- * retorna 404 — nunca vaza conteúdo cross-workspace.
+ * retorna 404: nunca vaza conteúdo cross-workspace.
  */
 export async function GET(_request: Request, context: RouteContext) {
   const sessionUserId = await getSessionUserId();
@@ -41,7 +41,7 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Minuta não encontrada" }, { status: 404 });
   }
 
-  // Guard de caso/workspace — ponto crítico anti-vazamento.
+  // Guard de caso/workspace: ponto crítico anti-vazamento.
   const caso = await getAccessibleCase(draft.caseId);
   if (!caso || caso.id !== draft.caseId) {
     return NextResponse.json({ error: "Minuta não encontrada" }, { status: 404 });

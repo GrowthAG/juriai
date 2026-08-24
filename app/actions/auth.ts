@@ -52,7 +52,7 @@ export async function loginWithGoogle() {
 
 export async function logout() {
   // Limpa também o cookie de sessão próprio do Auth.js (se existir), sem
-  // deixar que ele controle o redirect — quem decide o destino é o JuriAI.
+  // deixar que ele controle o redirect: quem decide o destino é o JuriAI.
   await authSignOut({ redirect: false });
   await clearSession();
   await clearImpersonator();

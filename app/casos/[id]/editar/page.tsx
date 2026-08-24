@@ -71,7 +71,7 @@ export default async function EditarCasoPage({
                 className={fieldClass}
               />
               <span className="text-xs text-[var(--muted)]">
-                Nome objetivo (assunto — parte envolvida), não a narrativa em
+                Nome objetivo (assunto: parte envolvida), não a narrativa em
                 primeira pessoa.
               </span>
             </label>

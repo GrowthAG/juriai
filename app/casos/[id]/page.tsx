@@ -175,8 +175,8 @@ export default async function CasoPage({
       )}
 
       {/*
-        Desktop: 2 colunas — dossiê à esquerda, assistente sticky à direita.
-        Mobile: 1 coluna — assistente logo após o header (ordem lógica de ação).
+        Desktop: 2 colunas, dossiê à esquerda, assistente sticky à direita.
+        Mobile: 1 coluna, assistente logo após o header (ordem lógica de ação).
       */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(20rem,24rem)] lg:items-start xl:grid-cols-[minmax(0,1.75fr)_minmax(22rem,26rem)]">
         {/* Coluna lateral: estado + análise + conversa */}
@@ -556,7 +556,7 @@ function Section({
 }
 
 // Estrutura própria (não o Row genérico) para já reservar o espaço à direita
-// para futuras ações de editar/excluir metadados da prova — sem implementá-
+// para futuras ações de editar/excluir metadados da prova, sem implementá-
 // las ainda, já que isso exige novas server actions (fora do patch mínimo).
 function EvidenceRow({
   id,
