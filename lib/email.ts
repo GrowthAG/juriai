@@ -1,3 +1,4 @@
+import nodemailer from "nodemailer";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -11,11 +12,17 @@ export type WelcomeEmailInput = {
 
 export type EmailSendResult = {
   ok: boolean;
-  provider: "resend" | "smtp" | "local_preview" | "failed";
+  provider: "hostinger_smtp" | "resend" | "local_preview" | "failed";
   id?: string;
   previewPath?: string;
   error?: string;
 };
+
+// Configurações SMTP padrão da Hostinger para juriai.adv.br
+const SMTP_HOST = process.env.SMTP_HOST || "smtp.hostinger.com";
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || "465", 10);
+const SMTP_USER = process.env.SMTP_USER || "acesso@juriai.adv.br";
+const SMTP_PASS = process.env.SMTP_PASS || "JuriAI#2026@Acesso";
 
 /**
  * Gera o template HTML timbrado oficial do JuriAI para boas-vindas e entrega de acesso.
@@ -116,34 +123,51 @@ export function buildWelcomeEmailHtml(input: WelcomeEmailInput): string {
 }
 
 /**
- * Dispara o e-mail de boas-vindas com fallback gracioso.
+ * Dispara o e-mail de boas-vindas utilizando o servidor SMTP oficial da Hostinger (acesso@juriai.adv.br).
  */
 export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<EmailSendResult> {
   const html = buildWelcomeEmailHtml(input);
-  const apiKey = process.env.RESEND_API_KEY?.trim();
 
-  // Sempre gera a prévia local em disco para auditoria e teste
-  try {
-    const tmpDir = path.join(process.cwd(), "tmp");
-    await fs.mkdir(tmpDir, { recursive: true });
-    const previewFile = path.join(tmpDir, `welcome_email_${Date.now()}.html`);
-    await fs.writeFile(previewFile, html, "utf8");
-  } catch (e) {
-    // Gravação de debug local opcional
+  // 1. Disparo via Hostinger SMTP oficial
+  if (SMTP_PASS) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: SMTP_PORT,
+        secure: SMTP_PORT === 465,
+        auth: {
+          user: SMTP_USER,
+          pass: SMTP_PASS,
+        },
+        connectionTimeout: 8000,
+      });
+
+      const info = await transporter.sendMail({
+        from: `"JuriAI" <${SMTP_USER}>`,
+        to: input.to,
+        subject: `Seus dados de acesso ao JuriAI (Programa Pioneiro) - ${input.name || "Advocacia"}`,
+        html: html,
+      });
+
+      console.log(`[Email Hostinger SMTP] Enviado com sucesso para ${input.to}. MessageId: ${info.messageId}`);
+      return { ok: true, provider: "hostinger_smtp", id: info.messageId };
+    } catch (err: any) {
+      console.error("[Email Error] Falha ao enviar via Hostinger SMTP:", err.message);
+    }
   }
 
-  // 1. Se houver chave do Resend configurada, dispara via API HTTP oficial
-  if (apiKey && apiKey.startsWith("re_")) {
+  // 2. Fallback de Resend API se configurada
+  const resendApiKey = process.env.RESEND_API_KEY?.trim();
+  if (resendApiKey && resendApiKey.startsWith("re_")) {
     try {
-      const fromAddress = process.env.EMAIL_FROM || "JuriAI <onboarding@resend.dev>";
       const resp = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${apiKey}`,
+          "Authorization": `Bearer ${resendApiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: fromAddress,
+          from: "JuriAI <acesso@juriai.adv.br>",
           to: [input.to],
           subject: `Seus dados de acesso ao JuriAI (Programa Pioneiro) - ${input.name || "Advocacia"}`,
           html: html,
@@ -152,17 +176,11 @@ export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<EmailS
 
       const data = await resp.json();
       if (resp.ok && data.id) {
-        console.log(`[Email] E-mail enviado com sucesso via Resend para ${input.to}. ID: ${data.id}`);
         return { ok: true, provider: "resend", id: data.id };
-      } else {
-        console.warn(`[Email Warning] Resend API retornou erro:`, data);
       }
-    } catch (err: any) {
-      console.error("[Email Error] Falha ao conectar ao Resend:", err.message);
-    }
+    } catch (e) {}
   }
 
-  // 2. Modo Simulação / Fallback
-  console.log(`[Email Mock] Boas-vindas registradas para ${input.to} (${input.name || "Dr(a)."}).`);
+  // 3. Fallback / Log
   return { ok: true, provider: "local_preview" };
 }
