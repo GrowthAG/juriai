@@ -181,8 +181,8 @@ export default function ClientesPage() {
           ? data.qsa.map((s: any) => ({
               nome: s.nome_socio || s.nome_representante_legal || "Sócio",
               cargo: s.qualificacao_socio || s.qualificacao_representante_legal || "Sócio",
-              cpf: s.cnpj_cpf_do_socio || "—",
-              participacao: s.percentual_capital_social ? s.percentual_capital_social + "%" : "—"
+              cpf: s.cnpj_cpf_do_socio || "-",
+              participacao: s.percentual_capital_social ? s.percentual_capital_social + "%" : "-"
             }))
           : [];
         setQsaList(socios);
@@ -229,7 +229,7 @@ export default function ClientesPage() {
       qsa: qsaList.length > 0 ? qsaList : undefined,
       legal_representative: repName ? {
         name: repName,
-        cpf: repCpf || "—",
+        cpf: repCpf || "-",
         role: repRole,
         email: emailInput,
         phone: phoneInput
@@ -239,8 +239,8 @@ export default function ClientesPage() {
       profession: profInput.trim() || undefined,
       bank_data: bankPixInput ? {
         bank: "Banco Informado",
-        agency: "—",
-        account: "—",
+        agency: "-",
+        account: "-",
         pix: bankPixInput
       } : undefined
     };
@@ -769,7 +769,7 @@ export default function ClientesPage() {
               {selectedClient.type === "PF" && (
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                   <span className="text-[10px] font-bold uppercase text-slate-500 block">Qualificação Pessoal:</span>
-                  <p className="text-slate-800">RG: {selectedClient.rg || "—"} • Estado Civil: {selectedClient.marital_status || "—"} • Profissão: {selectedClient.profession || "—"}</p>
+                  <p className="text-slate-800">RG: {selectedClient.rg || "-"} • Estado Civil: {selectedClient.marital_status || "-"} • Profissão: {selectedClient.profession || "-"}</p>
                   {selectedClient.bank_data && (
                     <p className="text-purple-700 font-medium pt-1">Chave PIX: {selectedClient.bank_data.pix}</p>
                   )}

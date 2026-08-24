@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 /* ================================================================
-   JuriAI — Landing Page v4 Enterprise
+   JuriAI : Landing Page v4 Enterprise
    Design: Relate SaaS Enterprise Edition
    Container: 1320px max-width
    Section: 80px vertical padding
@@ -109,7 +109,7 @@ export function LandingPage() {
   return (
     <main style={{ background: "#fcfcfc", color: "#14141e", fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif", minHeight: "100vh", fontSize: 16, lineHeight: 1.6 }}>
 
-      {/* NAV — enterprise, sticky */}
+      {/* NAV : enterprise, sticky */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(252, 252, 252, 0.85)", backdropFilter: "saturate(180%) blur(8px)", borderBottom: "1px solid #eef0f4" }}>
         <div style={{ ...containerStyle, height: 68, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
@@ -130,11 +130,11 @@ export function LandingPage() {
         </div>
       </nav>
 
-      {/* HERO — split enterprise, headline left + dashboard right */}
+      {/* HERO : split enterprise, headline left + dashboard right */}
       <section style={{ background: "linear-gradient(180deg, #fcfcfc 0%, #fafbff 100%)", paddingTop: 64, paddingBottom: 80, borderBottom: "1px solid #eef0f4" }}>
         <div style={containerStyle}>
           <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.05fr)", gap: 56, alignItems: "center" }}>
-            {/* LEFT — Copy */}
+            {/* LEFT : Copy */}
             <div>
               <p style={{ ...eyebrowStyle, marginBottom: 16 }}>
                 Inteligência forense para advocacia civil
@@ -162,7 +162,7 @@ export function LandingPage() {
                 <Stat value="0" label="fatos inventados" />
               </div>
             </div>
-            {/* RIGHT — Dashboard mockup */}
+            {/* RIGHT : Dashboard mockup */}
             <div style={{ position: "relative" }}>
               <DashboardMockup />
               <div style={{
@@ -188,7 +188,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* TRUST BAR — infraestrutura verificada */}
+      {/* TRUST BAR : infraestrutura verificada */}
       <section style={{ padding: "36px 0", borderBottom: "1px solid #eef0f4", background: "#fcfcfc" }}>
         <div style={containerStyle}>
           <p style={{ ...eyebrowStyle, color: "#94a3b8", textAlign: "center", marginBottom: 24 }}>
@@ -212,7 +212,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* PROBLEMA — a dor que o sócio sente */}
+      {/* PROBLEMA : a dor que o sócio sente */}
       <section id="problema" style={{ ...sectionPadding, ...sectionWash }}>
         <div style={containerStyle}>
           <div style={{ maxWidth: 760, marginBottom: 56 }}>
@@ -221,7 +221,7 @@ export function LandingPage() {
               O que você faz quando o juiz pergunta &ldquo;e onde está isso?&rdquo;
             </h2>
             <p style={{ ...bodyStyle, fontSize: 18 }}>
-              Você tem 3 segundos para responder. Se não tiver o documento na mão — a cláusula, a data do e-mail, o valor do boleto — você perdeu o ponto. E talvez o caso.
+              Você tem 3 segundos para responder. Se não tiver o documento na mão : a cláusula, a data do e-mail, o valor do boleto : você perdeu o ponto. E talvez o caso.
             </p>
           </div>
 
@@ -233,7 +233,7 @@ export function LandingPage() {
               },
               {
                 t: "A lacuna aparece no tribunal",
-                d: "O juiz pergunta pelo documento. O advogado não tem. Perde o ponto. O caso vira uma discussão sobre a ausência de prova — não sobre o mérito.",
+                d: "O juiz pergunta pelo documento. O advogado não tem. Perde o ponto. O caso vira uma discussão sobre a ausência de prova : não sobre o mérito.",
               },
               {
                 t: "O escritório não escala",
@@ -264,7 +264,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* MECANISMO — [FATO ALEGADO] */}
+      {/* MECANISMO : [FATO ALEGADO] */}
       <section id="mecanismo" style={{ ...sectionPadding, background: "#fcfcfc" }}>
         <div style={containerStyle}>
           <div style={{ maxWidth: 800, marginBottom: 48 }}>
@@ -285,7 +285,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ESTEIRA FORENSE — copy à esquerda + grid 2x2 à direita */}
+      {/* ESTEIRA FORENSE : copy à esquerda + grid 2x2 à direita */}
       <section style={{ ...sectionPadding, ...sectionWash }}>
         <div style={containerStyle}>
           <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.3fr)", gap: 56, alignItems: "flex-start" }}>
@@ -365,7 +365,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* SEGURANÇA — 5 perguntas em grid 2 colunas */}
+      {/* SEGURANÇA : 5 perguntas em grid 2 colunas */}
       <section id="para-quem-e" style={{ ...sectionPadding, background: "#fcfcfc" }}>
         <div style={containerStyle}>
           <div style={{ maxWidth: 800, marginBottom: 48 }}>
@@ -551,7 +551,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* FOOTER — enterprise 5 colunas */}
+      {/* FOOTER : enterprise 5 colunas */}
       <footer style={{ background: "#0a0e1a", color: "rgba(255,255,255,0.55)", padding: "64px 0 32px" }}>
         <div style={containerStyle}>
           <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr 1fr", gap: 40, marginBottom: 48 }}>
@@ -680,11 +680,11 @@ function DashboardMockup() {
       </div>
       <div style={{ padding: "8px 0" }}>
         {[
-          { f: "Contrato de locação firmado em 15/01/2023", d: "Contrato.pdf — Cláusula 1ª, pág. 1", s: "PROVADO" },
-          { f: "Cláusula de reajuste de 5% ao ano", d: "Contrato.pdf — Cláusula 3ª, pág. 2", s: "PROVADO" },
-          { f: "Inadimplemento a partir de 01/04/2024 (3 meses)", d: "Extrato Nubank PJ — fl. 14, linha 3", s: "PROVADO" },
-          { f: "Valor de R$ 18.750,00 em aluguéis atrasados", d: "Planilha de cálculo — fl. 31", s: "PROVADO" },
-          { f: "Notificação extrajudicial entregue em 10/05/2024", d: "AR digital — não verificado", s: "ALEGADO" },
+          { f: "Contrato de locação firmado em 15/01/2023", d: "Contrato.pdf : Cláusula 1ª, pág. 1", s: "PROVADO" },
+          { f: "Cláusula de reajuste de 5% ao ano", d: "Contrato.pdf : Cláusula 3ª, pág. 2", s: "PROVADO" },
+          { f: "Inadimplemento a partir de 01/04/2024 (3 meses)", d: "Extrato Nubank PJ : fl. 14, linha 3", s: "PROVADO" },
+          { f: "Valor de R$ 18.750,00 em aluguéis atrasados", d: "Planilha de cálculo : fl. 31", s: "PROVADO" },
+          { f: "Notificação extrajudicial entregue em 10/05/2024", d: "AR digital : não verificado", s: "ALEGADO" },
         ].map((row, i) => (
           <div key={i} style={{
             padding: "12px 24px",
@@ -758,11 +758,11 @@ function MatrizMockup() {
           ))}
         </div>
         {[
-          { f: "Contrato de locação firmado em 15/01/2023", d: "Contrato.pdf — Cláusula 1ª, pág. 1", s: "PROVADO" },
-          { f: "Cláusula de reajuste de 5% ao ano", d: "Contrato.pdf — Cláusula 3ª, pág. 2", s: "PROVADO" },
-          { f: "Inadimplemento a partir de 01/04/2024 (3 meses)", d: "Extrato Nubank PJ — fl. 14, linha 3", s: "PROVADO" },
-          { f: "Valor de R$ 18.750,00 em aluguéis atrasados", d: "Planilha de cálculo — fl. 31", s: "PROVADO" },
-          { f: "Notificação extrajudicial entregue em 10/05/2024", d: "AR digital — não verificado", s: "ALEGADO" },
+          { f: "Contrato de locação firmado em 15/01/2023", d: "Contrato.pdf : Cláusula 1ª, pág. 1", s: "PROVADO" },
+          { f: "Cláusula de reajuste de 5% ao ano", d: "Contrato.pdf : Cláusula 3ª, pág. 2", s: "PROVADO" },
+          { f: "Inadimplemento a partir de 01/04/2024 (3 meses)", d: "Extrato Nubank PJ : fl. 14, linha 3", s: "PROVADO" },
+          { f: "Valor de R$ 18.750,00 em aluguéis atrasados", d: "Planilha de cálculo : fl. 31", s: "PROVADO" },
+          { f: "Notificação extrajudicial entregue em 10/05/2024", d: "AR digital : não verificado", s: "ALEGADO" },
           { f: "Multa contratual de 2 meses de aluguel", d: "Não encontrado", s: "ALEGADO" },
         ].map((row, i) => (
           <div key={i} style={{

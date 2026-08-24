@@ -57,13 +57,13 @@ export default function InteligenciaPage() {
 
         setCnpjData({
           razao_social: data.razao_social,
-          nome_fantasia: data.nome_fantasia || "—",
+          nome_fantasia: data.nome_fantasia || "-",
           cnpj_formatado: masked,
           situacao: data.descricao_situacao_cadastral || "ATIVA",
-          abertura: data.data_inicio_atividade || "—",
+          abertura: data.data_inicio_atividade || "-",
           capital_social: Number(data.capital_social || 0),
           cnae: `${data.cnae_fiscal || ""} - ${data.cnae_fiscal_descricao || ""}`,
-          natureza: data.natureza_juridica || "—",
+          natureza: data.natureza_juridica || "-",
           endereco: end,
           qsa: qsa,
           qualificacao: qualif,
@@ -122,7 +122,7 @@ Requer a expedição de termo de penhora nos autos (Art. 845, § 1º do CPC) e a
     setJudgeLoading(true);
     setJudgeData({
       judge: judgeName,
-      court: `${court} — 24ª Vara Cível Central da Comarca de São Paulo`,
+      court: `${court} : 24ª Vara Cível Central da Comarca de São Paulo`,
       topic: topic,
       metrics: {
         urgency_rate: "74.2%",
@@ -415,9 +415,9 @@ Tendo em vista a operação ativa de comércio eletrônico sob o domínio "${cle
                   onChange={(e) => setCourt(e.target.value)}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs outline-none focus:border-[var(--primary)]"
                 >
-                  <option value="TJSP">TJSP — Foro Central Cível de SP</option>
-                  <option value="TJRJ">TJRJ — Comarca da Capital</option>
-                  <option value="TRF3">TRF3 — Justiça Federal de SP</option>
+                  <option value="TJSP">TJSP : Foro Central Cível de SP</option>
+                  <option value="TJRJ">TJRJ : Comarca da Capital</option>
+                  <option value="TRF3">TRF3 : Justiça Federal de SP</option>
                 </select>
               </div>
               <div>
