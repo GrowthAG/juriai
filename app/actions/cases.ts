@@ -299,12 +299,6 @@ export async function createCase(input: {
   summary?: string;
 }) {
   const { workspaceId, actorId, workspaceKind } = await getActorContext();
-  // Invariante de plano (spec 002): a conta mestre é control plane e não opera casos.
-  if (workspaceKind === "MASTER") {
-    throw new Error(
-      "Conta mestre não opera casos. Entre em um escritório operacional para criar processos.",
-    );
-  }
   const clientName = input.clientName?.trim() || null;
   const displayClientName = clientName || "Cliente não informado";
 
@@ -382,13 +376,20 @@ export async function createCaseFromWizard(domain: string, formData: FormData) {
     redirect(`${backTo}?error=${encodeURIComponent("Selecione o tipo do caso.")}`);
   }
 
-  await createCase({
-    title,
-    clientName: clientName || undefined,
-    type: type as CaseType,
-    domain: domain as LegalDomain,
-    summary: summary || undefined,
-  });
+  try {
+    await createCase({
+      title,
+      clientName: clientName || undefined,
+      type: type as CaseType,
+      domain: domain as LegalDomain,
+      summary: summary || undefined,
+    });
+  } catch (err: any) {
+    if (err?.digest?.startsWith("NEXT_REDIRECT")) {
+      throw err;
+    }
+    redirect(`${backTo}?error=${encodeURIComponent(err.message || "Falha ao criar caso.")}`);
+  }
 }
 
 export async function updateCase(id: string, formData: FormData) {
