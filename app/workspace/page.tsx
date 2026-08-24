@@ -229,6 +229,33 @@ export default async function WorkspacePage() {
 
   return (
     <main className="flex-1 px-8 py-8">
+      {/* Banner de Acesso Antecipado / Beta */}
+      <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50/70 p-4 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                Acesso Antecipado : Beta v3.0
+              </span>
+              <span className="text-xs font-semibold text-blue-950">
+                Programa de Escritórios Pioneiros
+              </span>
+            </div>
+            <p className="text-xs text-slate-600">
+              Seu escritório está operando a versão antecipada com inteligência forense, DJEN ao vivo, auditoria documental e jurimetria do magistrado.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/workspace/inteligencia"
+              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500 transition"
+            >
+              Explorar Inteligência
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">

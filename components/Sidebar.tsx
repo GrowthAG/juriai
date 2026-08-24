@@ -163,16 +163,21 @@ function SidebarContent({
 
   return (
     <>
-      <div className="flex h-16 items-center gap-2.5 border-b border-[var(--border)] px-5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/brand/gavel-tile.svg"
-          alt=""
-          aria-hidden="true"
-          className="h-8 w-8"
-        />
-        <span className="font-serif text-lg font-semibold tracking-tight">
-          Juri<span className="font-sans text-[var(--accent)]">AI</span>
+      <div className="flex h-16 items-center justify-between border-b border-[var(--border)] px-4">
+        <div className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/gavel-tile.svg"
+            alt=""
+            aria-hidden="true"
+            className="h-7 w-7"
+          />
+          <span className="font-serif text-lg font-semibold tracking-tight">
+            Juri<span className="font-sans text-[var(--accent)]">AI</span>
+          </span>
+        </div>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wide">
+          Beta v3.0
         </span>
       </div>
 
@@ -198,7 +203,16 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="border-t border-[var(--border)] px-5 py-4">
+      <div className="border-t border-[var(--border)] px-4 py-3">
+        <div className="mb-3 rounded-lg bg-blue-50/80 p-2.5 border border-blue-200">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase text-blue-900 tracking-wide">Acesso Antecipado</span>
+            <span className="text-[10px] font-bold text-blue-700">Beta v3.0</span>
+          </div>
+          <p className="text-[11px] text-slate-600 mt-0.5 leading-tight">
+            Programa de Escritórios Pioneiros
+          </p>
+        </div>
         <p className="truncate text-xs font-medium text-[var(--foreground)]">
           {user.name}
         </p>
