@@ -6,6 +6,12 @@ import { Card } from "@/components/ui";
 export default function InteligenciaPage() {
   const [activeTab, setActiveTab] = useState<"cnpj" | "veiculo" | "juiz" | "dominio">("cnpj");
 
+  // Common Case Context for Petitions
+  const [exequente, setExequente] = useState("RevTech Systems Ltda.");
+  const [processNum, setProcessNum] = useState("1029384-55.2023.8.26.0100");
+  const [lawyer, setLawyer] = useState("Dr. Giulliano Alves (OAB/SP 123456)");
+  const [claimValue, setClaimValue] = useState("16590.23");
+
   // 1. CNPJ State
   const [cnpj, setCnpj] = useState("");
   const [cnpjLoading, setCnpjLoading] = useState(false);
@@ -88,19 +94,36 @@ export default function InteligenciaPage() {
     setVehLoading(true);
     setVehError(null);
 
-    // Realistic valuation
     const masked = clean.slice(0, 3) + "-" + clean.slice(3);
     const fipeVal = 124500.00;
-    const minuta = `DO PEDIDO DE PENHORA DE VEÍCULO AUTOMOTOR (ART. 835, IV DO CPC)
+    const debt = parseFloat(claimValue) || 16590.23;
 
-Requer o Exequente a imediata PENHORA E AVALIAÇÃO do seguinte bem móvel de propriedade do devedor:
+    const minuta = `EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO DA VARA CÍVEL DA COMARCA COMPETENTE
 
-- VEÍCULO: VOLKSWAGEN / T-CROSS HIGHLINE 1.4 TSI
-- PLACA: ${masked}
-- ANO / MODELO: 2023
-- VALOR VENAL DE MERCADO (TABELA FIPE): R$ ${fipeVal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+PROCESSO Nº: ${processNum || "1029384-55.2023.8.26.0100"}
 
-Requer a expedição de termo de penhora nos autos (Art. 845, § 1º do CPC) e a inserção de gravame de RESTRIÇÃO DE TRANSFERÊNCIA via RENAJUD.`;
+EXEQUENTE / REQUERENTE: ${exequente || "REVTECH SYSTEMS LTDA."}, devidamente qualificado nos autos da Ação de Execução em epígrafe, por seu advogado infra-assinado (${lawyer || "OAB/SP 123456"})
+EXECUTADO / DEVEDOR: EMPRESA DEVEDORA S.A., já qualificada nos autos
+
+VALOR DA EXECUÇÃO ATUALIZADA: R$ ${debt.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+
+DO PEDIDO DE PENHORA DE VEÍCULO AUTOMOTOR E BLOQUEIO RENAJUD (ART. 835, IV DO CPC)
+
+Diante do inadimplemento voluntário pelo Executado e da ausência de liquidação espontânea do débito, requer o Exequente:
+
+1. A imediata PENHORA E AVALIAÇÃO do seguinte veículo automotor de propriedade do devedor:
+   • VEÍCULO: VOLKSWAGEN / T-CROSS HIGHLINE 1.4 TSI 16V FLEX
+   • PLACA: ${masked}
+   • ANO / MODELO: 2023
+   • VALOR VENAL OFICIAL (TABELA FIPE): R$ ${fipeVal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+
+2. A lavratura do competente termo de penhora nos autos (Art. 845, § 1º do CPC) e a inserção de gravame de RESTRIÇÃO DE TRANSFERÊNCIA via sistema RENAJUD;
+3. A intimação do Executado na pessoa de seu patrono para ciência da constrição judicial.
+
+Nestes termos, pede deferimento.
+São Paulo/SP, ${new Date().toLocaleDateString("pt-BR")}.
+
+${lawyer || "DR. GIULLIANO ALVES - OAB/SP 123456"}`;
 
     setVehData({
       plate: masked,
@@ -207,9 +230,28 @@ Requer a expedição de termo de penhora nos autos (Art. 845, § 1º do CPC) e a
         } catch (err) {}
       }
 
-      const minuta = `DO PEDIDO DE PENHORA DE RECEBÍVEIS DE E-COMMERCE (ART. 855 DO CPC)
+      const debt = parseFloat(claimValue) || 16590.23;
+      const minuta = `EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO DA VARA CÍVEL DA COMARCA COMPETENTE
 
-Tendo em vista a operação ativa de comércio eletrônico sob o domínio "${clean}", de titularidade da empresa ${ownerName}${ownerCnpj ? ", inscrita no CNPJ nº " + ownerCnpj : ""}, requer-se a expedição de OFÍCIO URGENTE aos principais gateways de pagamento e intermediadores de checkout (Stripe Brasil, Mercado Pago, Pagar.me/Stone, Asaas e PagBank) para que procedam à RETENÇÃO E DEPÓSITO JUDICIAL de 100% dos repasses financeiros de vendas online até o limite da execução.`;
+PROCESSO Nº: ${processNum || "1029384-55.2023.8.26.0100"}
+
+EXEQUENTE / REQUERENTE: ${exequente || "REVTECH SYSTEMS LTDA."}, devidamente qualificado nos autos, por seu advogado infra-assinado (${lawyer || "OAB/SP 123456"})
+EXECUTADO / DEVEDOR: ${ownerName}${ownerCnpj ? ", inscrito no CNPJ sob o nº " + ownerCnpj : ""}, com sede na ${enderecoOficial || "Avenida Paulista, São Paulo/SP"}
+
+VALOR DA EXECUÇÃO: R$ ${debt.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+
+DO PEDIDO DE PENHORA DE RECEBÍVEIS DE E-COMMERCE E MEIOS DE PAGAMENTO DIGITAL (ART. 855 DO CPC)
+
+Tendo em vista a operação ativa de comércio eletrônico pelo Executado sob o domínio digital "${clean}", de titularidade da empresa ${ownerName}, requer o Exequente:
+
+1. A expedição de OFÍCIO JUDICIAL URGENTE aos principais gateways de pagamento e intermediadores de checkout (Stripe Brasil, Mercado Pago, Pagar.me/Stone, Asaas e PagBank);
+2. A determinação de RETENÇÃO E DEPÓSITO JUDICIAL de 100% dos repasses financeiros e liquidações de vendas online até o limite da execução;
+3. A intimação do Executado na pessoa de seu advogado para ciência da penhora deferida.
+
+Nestes termos, pede deferimento.
+São Paulo/SP, ${new Date().toLocaleDateString("pt-BR")}.
+
+${lawyer || "DR. GIULLIANO ALVES - OAB/SP 123456"}`;
 
       setDomData({
         domain: clean,
@@ -401,6 +443,26 @@ Tendo em vista a operação ativa de comércio eletrônico sob o domínio "${cle
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-mono outline-none focus:border-[var(--primary)]"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-[var(--muted)] block mb-1">Exequente (Autor)</label>
+                  <input
+                    value={exequente}
+                    onChange={(e) => setExequente(e.target.value)}
+                    placeholder="Nome do Cliente"
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-[var(--muted)] block mb-1">Processo CNJ</label>
+                  <input
+                    value={processNum}
+                    onChange={(e) => setProcessNum(e.target.value)}
+                    placeholder="0000000-00.0000.0.00.0000"
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-mono outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+              </div>
               <button
                 type="submit"
                 disabled={vehLoading}
@@ -547,6 +609,26 @@ Tendo em vista a operação ativa de comércio eletrônico sob o domínio "${cle
                   placeholder="empresa.com.br"
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-mono outline-none focus:border-[var(--primary)]"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-[var(--muted)] block mb-1">Exequente (Autor)</label>
+                  <input
+                    value={exequente}
+                    onChange={(e) => setExequente(e.target.value)}
+                    placeholder="Nome do Cliente"
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-[var(--muted)] block mb-1">Processo CNJ</label>
+                  <input
+                    value={processNum}
+                    onChange={(e) => setProcessNum(e.target.value)}
+                    placeholder="0000000-00.0000.0.00.0000"
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-mono outline-none focus:border-[var(--primary)]"
+                  />
+                </div>
               </div>
               <button
                 type="submit"
