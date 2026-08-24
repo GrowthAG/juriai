@@ -15,6 +15,7 @@ import {
   INSUFFICIENT_DRAFT_CONTEXT_MESSAGE,
 } from "@/lib/draft-context";
 import { prisma } from "@/lib/prisma";
+import { checkQuota, incrementQuota } from "@/lib/quotas";
 import type { DraftType } from "@prisma/client";
 
 type DraftGenerationActionResult =
@@ -109,6 +110,16 @@ export async function generateCaseDraft(
   const runtimeState = await getLlmRuntimeState();
   if (runtimeState.status !== "ready") {
     return { ok: false, status: runtimeState.status };
+  }
+
+  // Verificacao de Quota Beta de Minutas por IA
+  const quotaCheck = await checkQuota("ai_drafts", caso.workspaceId);
+  if (!quotaCheck.allowed) {
+    return {
+      ok: false,
+      status: "quota_exceeded",
+      message: quotaCheck.message || "Limite mensal de minutas do Programa Pioneiro atingido.",
+    };
   }
 
   const workspace = await prisma.workspace.findUnique({
@@ -226,6 +237,8 @@ export async function generateCaseDraft(
 
     return draft;
   });
+
+  await incrementQuota("ai_drafts", caso.workspaceId);
 
   revalidatePath(`/casos/${caseId}`);
   revalidatePath("/workspace");

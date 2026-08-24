@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkQuota, incrementQuota } from "@/lib/quotas";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       { error: "CNPJ inválido. Digite os 14 dígitos numéricos." },
       { status: 400 }
+    );
+  }
+
+  // Verificacao de Quota Beta
+  const quotaCheck = await checkQuota("intel_searches");
+  if (!quotaCheck.allowed) {
+    return NextResponse.json(
+      {
+        error: quotaCheck.message || "Limite de consultas do Programa Pioneiro atingido.",
+        quotaExceeded: true,
+        current: quotaCheck.current,
+        limit: quotaCheck.limit,
+      },
+      { status: 429 }
     );
   }
 
@@ -34,6 +49,8 @@ export async function GET(req: NextRequest) {
       const adminNames = qsa.map((s: any) => s.nome_socio).slice(0, 2).join(" e ") || "seus administradores legais";
       const qualif = `${data.razao_social}, pessoa jurídica de direito privado inscrita no CNPJ sob o nº ${masked}, com sede na ${end}, representada por ${adminNames}`;
 
+      const newCount = await incrementQuota("intel_searches");
+
       return NextResponse.json({
         provider: "brasilapi",
         razao_social: data.razao_social,
@@ -53,6 +70,11 @@ export async function GET(req: NextRequest) {
         })),
         qualificacao: qualif,
         is_jec: (data.porte === "MICRO EMPRESA" || data.porte === "EMPRESA DE PEQUENO PORTE" || data.codigo_porte === 1 || data.codigo_porte === 3 || data.opcao_pelo_simples === true),
+        quota: {
+          current: newCount,
+          limit: quotaCheck.limit,
+          isUnlimited: quotaCheck.isUnlimited,
+        }
       });
     }
   } catch (err) {

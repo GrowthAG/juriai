@@ -11,6 +11,7 @@ import {
   lookupDatajudProcess,
 } from "@/lib/datajud";
 import { prisma } from "@/lib/prisma";
+import { checkQuota } from "@/lib/quotas";
 import type { CaseType, LegalDomain } from "@prisma/client";
 
 export async function listCases() {
@@ -299,6 +300,15 @@ export async function createCase(input: {
   summary?: string;
 }) {
   const { workspaceId, actorId, workspaceKind } = await getActorContext();
+
+  // Verificacao de Quota Beta de Casos Ativos
+  const quotaCheck = await checkQuota("active_cases", workspaceId);
+  if (!quotaCheck.allowed) {
+    throw new Error(
+      `Limite do Programa Pioneiro atingido (${quotaCheck.current}/${quotaCheck.limit} casos ativos). Arquive um caso anterior ou contate seu consultor para ampliar a capacidade da sua banca.`,
+    );
+  }
+
   const clientName = input.clientName?.trim() || null;
   const displayClientName = clientName || "Cliente não informado";
 

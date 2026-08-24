@@ -272,16 +272,24 @@ ${lawyer || "DR. GIULLIANO ALVES - OAB/SP 123456"}`;
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-          Inteligência Forense & Ativos
-        </p>
-        <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight">
-          Investigação Patrimonial & Precedentes
-        </h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          Consultas públicas oficiais conectadas à Receita Federal, Tabela FIPE, Registro.br e Jurimetria do Magistrado.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+            Inteligência Forense & Ativos
+          </p>
+          <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight">
+            Investigação Patrimonial & Precedentes
+          </h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Consultas públicas oficiais conectadas à Receita Federal, Tabela FIPE, Registro.br e Jurimetria do Magistrado.
+          </p>
+        </div>
+        <div className="shrink-0 self-start sm:self-auto flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-3.5 py-1.5 text-xs text-blue-800">
+          <span className="h-2 w-2 rounded-full bg-blue-600" />
+          <span className="font-semibold">Programa Pioneiro</span>
+          <span className="text-blue-400">·</span>
+          <span>Até 30 consultas/mês</span>
+        </div>
       </div>
 
       {/* Sub-tabs */}
