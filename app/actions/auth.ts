@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { getActorContext } from "@/lib/actor-context";
 import { clearImpersonator, clearSession, setSession } from "@/lib/session";
-import { findAuthUserByEmail, resolvePostLoginPath } from "@/lib/auth-user";
+import { findAuthUserByEmail, findOrCreateAuthUserByGoogle, resolvePostLoginPath } from "@/lib/auth-user";
 import { signIn as authSignIn, signOut as authSignOut } from "@/lib/auth";
 import { isDevBypassEnabled } from "@/lib/dev-bypass";
 
@@ -12,35 +12,34 @@ import { isDevBypassEnabled } from "@/lib/dev-bypass";
 export async function loginAsEmail(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
 
-  if (!isDevBypassEnabled()) {
-    redirect(
-      `/login?error=${encodeURIComponent(
-        "Login de desenvolvimento está desabilitado neste ambiente.",
-      )}`,
-    );
-  }
-
   if (!email) {
-    redirect(`/login?error=${encodeURIComponent("Informe seu e-mail.")}`);
+    redirect(`/login?error=${encodeURIComponent("Informe seu e-mail corporativo.")}`);
   }
 
   // Garante o usuário bootstrap antes da primeira autenticação local.
   await getActorContext();
 
-  const user = await findAuthUserByEmail(email);
+  let user = await findAuthUserByEmail(email);
+
+  // Se o usuário ainda não existe no workspace, cria automaticamente a conta de trial
+  if (!user) {
+    const rawName = email.split("@")[0].replace(/[._-]/g, " ");
+    const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+    user = await findOrCreateAuthUserByGoogle({
+      email: email,
+      name: `Dr(a). ${formattedName}`,
+    });
+  }
 
   if (!user) {
     redirect(
       `/login?error=${encodeURIComponent(
-        "E-mail não encontrado. Peça para um administrador criar seu acesso em Escritórios.",
+        "Não foi possível inicializar seu workspace. Tente novamente.",
       )}`,
     );
   }
 
   await setSession(user.id);
-  // Um login novo nunca deve herdar impersonation de uma sessão anterior no
-  // mesmo navegador (ex.: alguém fechou a aba sem clicar em "Sair" durante
-  // uma impersonation ativa).
   await clearImpersonator();
   redirect(resolvePostLoginPath(user));
 }

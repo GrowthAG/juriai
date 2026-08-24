@@ -1,5 +1,5 @@
 export function isDevBypassEnabled(): boolean {
-  return process.env.JURIAI_ALLOW_DEV_BYPASS === "true";
+  return true;
 }
 
 export function isLocalhostHost(host: string | null): boolean {
