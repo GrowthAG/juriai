@@ -26,19 +26,37 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://app.juriai.adv.br"),
   title: {
-    default: "JuriAI",
+    default: "JuriAI : Inteligência Forense & Gestão de Contencioso Cível",
     template: "%s · JuriAI",
   },
   description:
-    "Plataforma juridica anti-alucinacao para escritorios de advocacia civel B2B. A IA sugere, o advogado aprova, tudo rastreado.",
+    "Todo escritório tem fatos que não conseguiu provar. O seu não precisa ser um deles. Matriz Fato x Prova, Diário Oficial DJEN e Jurimetria sem alucinações.",
   applicationName: "JuriAI",
   openGraph: {
-    title: "JuriAI",
+    title: "JuriAI : Inteligência Forense & Gestão de Contencioso Cível",
     description:
-      "Plataforma juridica anti-alucinacao para escritorios de advocacia civel B2B.",
+      "Todo escritório tem fatos que não conseguiu provar. O seu não precisa ser um deles. Matriz Fato x Prova, Diário Oficial DJEN e Jurimetria sem alucinações.",
+    url: "https://app.juriai.adv.br",
+    siteName: "JuriAI LegalTech",
     locale: "pt_BR",
     type: "website",
+    images: [
+      {
+        url: "https://app.juriai.adv.br/brand/og-juriai-cover.png",
+        width: 1200,
+        height: 630,
+        alt: "JuriAI : Inteligência Forense para Advocacia Cível",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "JuriAI : Inteligência Forense & Gestão de Contencioso Cível",
+    description:
+      "Todo escritório tem fatos que não conseguiu provar. O seu não precisa ser um deles. Matriz Fato x Prova, Diário Oficial DJEN e Jurimetria.",
+    images: ["https://app.juriai.adv.br/brand/og-juriai-cover.png"],
   },
 };
 
