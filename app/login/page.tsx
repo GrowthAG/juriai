@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { Button, Card } from "@/components/ui";
 import { loginAsEmail, loginWithGoogle } from "@/app/actions/auth";
 import { getAppPath, getAppUrl, isMarketingHost } from "@/lib/public-urls";
+import { getSessionUserId } from "@/lib/session";
+import { getActorContext } from "@/lib/actor-context";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +24,20 @@ export default async function LoginPage({
     const target = new URL(getAppPath("/login"));
     if (error) target.searchParams.set("error", error);
     redirect(target.toString());
+  }
+
+  // Se o usuário já possui sessão ativa, vai direto para o cockpit
+  const sessionUserId = await getSessionUserId();
+  if (sessionUserId) {
+    try {
+      const ctx = await getActorContext();
+      if (ctx) {
+        if (ctx.isSuperAdmin || ctx.workspaceKind === "MASTER") {
+          redirect(getAppPath("/admin"));
+        }
+        redirect(getAppPath("/workspace"));
+      }
+    } catch (e) {}
   }
 
   return (

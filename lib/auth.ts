@@ -31,13 +31,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       });
 
       if (!resolvedUser) {
-        return `/login?error=${encodeURIComponent(
-          "Não foi possível autenticar sua conta Google. Tente novamente.",
-        )}`;
+        return false;
       }
 
-      await setSession(resolvedUser.id);
-      return resolvePostLoginPath(resolvedUser);
+      try {
+        await setSession(resolvedUser.id);
+      } catch (e) {}
+
+      return true;
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      try {
+        if (new URL(url).origin === baseUrl) return url;
+      } catch (e) {}
+      return `${baseUrl}/workspace`;
     },
   },
 });

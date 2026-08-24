@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { getSessionUserId } from "@/lib/session";
+import { getSessionUserId, setSession } from "@/lib/session";
 import { isDevBypassEnabled } from "@/lib/dev-bypass";
+import { findOrCreateAuthUserByGoogle } from "@/lib/auth-user";
+import { auth } from "@/lib/auth";
 import type { MembershipRole, Role, WorkspaceKind } from "@prisma/client";
 
 type ActorContext = {
@@ -147,11 +149,33 @@ async function loadContextForUser(userId: string): Promise<ActorContext | null> 
 }
 
 export async function getActorContext() {
-  // Se há sessão válida, o contexto vem do usuário logado (RBAC real).
+  // 1. Se há sessão válida pelo cookie customizado JuriAI, carrega direto
   const sessionUserId = await getSessionUserId();
   if (sessionUserId) {
     const sessionContext = await loadContextForUser(sessionUserId);
     if (sessionContext) return sessionContext;
+  }
+
+  // 2. Se há sessão ativa pelo NextAuth (Google OAuth), resolve e sincroniza
+  try {
+    const nextAuthSession = await auth();
+    if (nextAuthSession?.user?.email) {
+      const resolved = await findOrCreateAuthUserByGoogle({
+        email: nextAuthSession.user.email,
+        name: nextAuthSession.user.name,
+      });
+      if (resolved) {
+        try {
+          await setSession(resolved.id);
+        } catch (e) {
+          // Cookies podem ser read-only em alguns Server Components, não bloqueia
+        }
+        const sessionContext = await loadContextForUser(resolved.id);
+        if (sessionContext) return sessionContext;
+      }
+    }
+  } catch (e) {
+    // Auth check fallback
   }
 
   if (DEFAULT_CONTEXT) {

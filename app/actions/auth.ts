@@ -44,10 +44,9 @@ export async function loginAsEmail(formData: FormData) {
   redirect(resolvePostLoginPath(user));
 }
 
-// Ponte para o Auth.js: dispara o handshake OAuth do Google. A resolução do
-// usuário e o setSession() acontecem no callback signIn (ver lib/auth.ts).
+// Ponte para o Auth.js: dispara o handshake OAuth do Google.
 export async function loginWithGoogle() {
-  await authSignIn("google");
+  await authSignIn("google", { redirectTo: "/workspace" });
 }
 
 export async function logout() {
