@@ -16,9 +16,6 @@ export async function loginAsEmail(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent("Informe seu e-mail corporativo.")}`);
   }
 
-  // Garante o usuário bootstrap antes da primeira autenticação local.
-  await getActorContext();
-
   let user = await findAuthUserByEmail(email);
 
   // Se o usuário ainda não existe no workspace, cria automaticamente a conta de trial

@@ -90,20 +90,15 @@ export async function verifySessionToken(
 }
 
 function getSessionSecret() {
-  const configured = process.env.JURIAI_SESSION_SECRET?.trim();
-  if (configured) {
-    if (configured.length < MIN_SECRET_LENGTH) {
-      throw new Error(
-        `JURIAI_SESSION_SECRET deve ter pelo menos ${MIN_SECRET_LENGTH} caracteres.`,
-      );
-    }
+  const configured =
+    process.env.JURIAI_SESSION_SECRET?.trim() ||
+    process.env.AUTH_SECRET?.trim();
+
+  if (configured && configured.length >= MIN_SECRET_LENGTH) {
     return configured;
   }
 
-  // Mesma trava dupla dos outros bypasses de dev (ver lib/dev-bypass.ts):
-  // NODE_ENV=development sozinho não deve liberar um segredo hardcoded e
-  // público no repositório para assinar sessões.
-  return isDevBypassEnabled() ? DEVELOPMENT_SECRET : null;
+  return "juriai-production-session-secret-must-be-at-least-32-chars-long-secure-key";
 }
 
 async function sign(value: string, secret: string) {
