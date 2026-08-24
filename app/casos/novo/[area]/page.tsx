@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { Button, Card } from "@/components/ui";
 import { CASE_TYPE_LABEL, DOMAIN_LABEL } from "@/lib/case-labels";
 import { createCaseFromWizard } from "@/app/actions/cases";
+import { getActorContext } from "@/lib/actor-context";
+import { prisma } from "@/lib/prisma";
 
 // Etapa 2 do wizard: contexto mínimo que cria o caso de verdade. Server
 // component; o submit chama a action createCaseFromWizard (adaptador da
@@ -28,13 +30,22 @@ export default async function NovoCasoContextoPage({
   searchParams,
 }: {
   params: Promise<{ area: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; clientId?: string; clientName?: string }>;
 }) {
   const { area } = await params;
-  const { error } = await searchParams;
+  const { error, clientId, clientName } = await searchParams;
   const key = area.toUpperCase();
   const label = DOMAIN_LABEL[key];
   if (!label) notFound();
+
+  const ctx = await getActorContext();
+  const registeredClients = await prisma.client.findMany({
+    where: { workspaceId: ctx.workspaceId },
+    select: { id: true, name: true, document: true },
+    orderBy: { name: "asc" },
+  });
+
+  const defaultClientName = clientName || (registeredClients[0] ? registeredClients[0].name : "");
 
   const contextRows: { k: string; v: string; muted?: boolean }[] = [
     { k: "Área", v: label },
@@ -134,15 +145,33 @@ export default async function NovoCasoContextoPage({
 
               <label className="grid gap-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-                  Cliente
+                  Cliente da Banca
                 </span>
-                <input
-                  name="clientName"
-                  type="text"
-                  maxLength={200}
-                  placeholder="Cliente não informado"
-                  className={fieldClass}
-                />
+                {registeredClients.length > 0 ? (
+                  <select name="clientName" required defaultValue={defaultClientName} className={fieldClass}>
+                    <option value="" disabled>
+                      Selecione um cliente cadastrado
+                    </option>
+                    {registeredClients.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name} ({c.document || "Documento não informado"})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    name="clientName"
+                    type="text"
+                    required
+                    defaultValue={defaultClientName}
+                    maxLength={200}
+                    placeholder="Razão Social ou Nome Completo do Cliente"
+                    className={fieldClass}
+                  />
+                )}
+                <span className="text-xs text-[var(--muted)]">
+                  Cliente titular dos direitos cadastrado na carteira do escritório.
+                </span>
               </label>
 
               <label className="grid gap-1.5">

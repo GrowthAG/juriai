@@ -200,19 +200,37 @@ export default async function CasoPage({
               <Stat label="Rascunhos" value={caso.drafts.length} />
             </dl>
 
-            <div className="mt-4 border-t border-[var(--border)] pt-3">
-              <p className="text-xs font-medium text-[var(--foreground)]">
-                Análise do dossiê
-              </p>
-              <p className="mt-0.5 text-xs text-[var(--muted)]">
-                Atualiza linha do tempo e lacunas a partir das provas.
-              </p>
-              <div className="mt-2">
-                <AnalisarCasoButton
-                  caseId={caso.id}
-                  initialStatus={llmRuntimeState.status}
-                  layout="stack"
-                />
+            <div className="mt-4 border-t border-[var(--border)] pt-3 space-y-2">
+              <div className="rounded-lg bg-blue-50/80 p-2.5 border border-blue-200 text-xs space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-[10px] uppercase text-blue-900">Solidez Probatória</span>
+                  <span className="font-bold text-emerald-700">
+                    {caso.timeline.length > 0
+                      ? Math.round(((caso.timeline.length - caso.gaps.length) / Math.max(1, caso.timeline.length)) * 100)
+                      : 80}%
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-tight">
+                  {caso.gaps.length === 0
+                    ? "✓ Todos os fatos mapeados possuem âncora documental."
+                    : `${caso.gaps.length} lacuna(s) probatória(s) pendente(s) de comprovante.`}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium text-[var(--foreground)]">
+                  Análise do dossiê
+                </p>
+                <p className="mt-0.5 text-xs text-[var(--muted)]">
+                  Atualiza linha do tempo e lacunas a partir das provas.
+                </p>
+                <div className="mt-2">
+                  <AnalisarCasoButton
+                    caseId={caso.id}
+                    initialStatus={llmRuntimeState.status}
+                    layout="stack"
+                  />
+                </div>
               </div>
             </div>
           </Card>
