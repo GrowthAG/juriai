@@ -1,24 +1,19 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { getActorContext } from "@/lib/actor-context";
 import { getSessionUserId } from "@/lib/session";
-import { getAppPath, isAppHost } from "@/lib/public-urls";
-import { LandingPage } from "@/components/LandingPage";
+import { getAppPath } from "@/lib/public-urls";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [sessionUserId, requestHeaders] = await Promise.all([
-    getSessionUserId(),
-    headers(),
-  ]);
+  const sessionUserId = await getSessionUserId();
 
   let ctx: Awaited<ReturnType<typeof getActorContext>> | null = null;
   if (sessionUserId) {
     try {
       ctx = await getActorContext();
     } catch (error) {
-      console.warn("[JuriAI public home] contexto indisponivel", error);
+      console.warn("[JuriAI root] contexto indisponivel", error);
     }
   }
 
@@ -29,11 +24,5 @@ export default async function HomePage() {
     redirect(getAppPath("/workspace"));
   }
 
-  const requestHost =
-    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
-  if (isAppHost(requestHost)) {
-    redirect("/login");
-  }
-
-  return <LandingPage />;
+  redirect("/login");
 }
