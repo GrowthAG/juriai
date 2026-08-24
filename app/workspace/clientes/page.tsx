@@ -128,11 +128,21 @@ const INITIAL_CLIENTS: ClientItem[] = [
 ];
 
 export default function ClientesPage() {
-  const [clients, setClients] = useState<ClientItem[]>(INITIAL_CLIENTS);
+  const [clients, setClients] = useState<ClientItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("juriai_clients");
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return INITIAL_CLIENTS;
+  });
+
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<"ALL" | "PJ" | "PF">("ALL");
   const [selectedClient, setSelectedClient] = useState<ClientItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingClientId, setEditingClientId] = useState<string | null>(null);
 
   // Form State
   const [formType, setFormType] = useState<ClientType>("PJ");
@@ -201,6 +211,44 @@ export default function ClientesPage() {
     }
   }
 
+  function handleEditClient(c: ClientItem) {
+    setEditingClientId(c.id);
+    setFormType(c.type);
+    setNameInput(c.name || "");
+    setTradeNameInput(c.trade_name || "");
+    if (c.type === "PJ") {
+      setCnpjInput(c.document || "");
+      setCapitalInput(c.capital_social ? String(c.capital_social) : "");
+      setCnaeInput(c.cnae || "");
+      setQsaList(c.qsa || []);
+      setRepName(c.legal_representative?.name || "");
+      setRepCpf(c.legal_representative?.cpf || "");
+      setRepRole(c.legal_representative?.role || "Sócio-Administrador");
+    } else {
+      setCpfInput(c.document || "");
+      setRgInput(c.rg || "");
+      setMaritalInput(c.marital_status || "Solteiro(a)");
+      setProfInput(c.profession || "");
+      setBankPixInput(c.bank_data?.pix || "");
+    }
+    setEmailInput(c.email || "");
+    setPhoneInput(c.phone || "");
+    setAddressInput(c.address || "");
+    setIsModalOpen(true);
+  }
+
+  function handleDeleteClient(id: string) {
+    if (!confirm("Deseja realmente excluir este cliente da banca?")) return;
+    const updated = clients.filter((c) => c.id !== id);
+    setClients(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("juriai_clients", JSON.stringify(updated));
+    }
+    if (selectedClient?.id === id) {
+      setSelectedClient(null);
+    }
+  }
+
   function handleSaveClient(e: React.FormEvent) {
     e.preventDefault();
     if (!nameInput.trim()) {
@@ -208,49 +256,92 @@ export default function ClientesPage() {
       return;
     }
 
-    const newId = `CLI-2026-${String(clients.length + 1).padStart(3, "0")}`;
     const today = new Date().toISOString().split("T")[0];
+    let updated: ClientItem[] = [];
 
-    const newClient: ClientItem = {
-      id: newId,
-      name: nameInput.trim(),
-      trade_name: tradeNameInput.trim() || undefined,
-      document: formType === "PJ" ? cnpjInput.trim() || "00.000.000/0001-00" : cpfInput.trim() || "000.000.000-00",
-      type: formType,
-      email: emailInput.trim(),
-      phone: phoneInput.trim(),
-      address: addressInput.trim(),
-      city_state: "São Paulo / SP",
-      status: "Ativo",
-      cases_count: 0,
-      created_at: today,
-      capital_social: parseFloat(capitalInput) || undefined,
-      cnae: cnaeInput.trim() || undefined,
-      qsa: qsaList.length > 0 ? qsaList : undefined,
-      legal_representative: repName ? {
-        name: repName,
-        cpf: repCpf || "-",
-        role: repRole,
-        email: emailInput,
-        phone: phoneInput
-      } : undefined,
-      rg: rgInput.trim() || undefined,
-      marital_status: maritalInput || undefined,
-      profession: profInput.trim() || undefined,
-      bank_data: bankPixInput ? {
-        bank: "Banco Informado",
-        agency: "-",
-        account: "-",
-        pix: bankPixInput
-      } : undefined
-    };
+    if (editingClientId) {
+      updated = clients.map((c) => {
+        if (c.id === editingClientId) {
+          return {
+            ...c,
+            name: nameInput.trim(),
+            trade_name: tradeNameInput.trim() || undefined,
+            document: formType === "PJ" ? cnpjInput.trim() || c.document : cpfInput.trim() || c.document,
+            type: formType,
+            email: emailInput.trim(),
+            phone: phoneInput.trim(),
+            address: addressInput.trim(),
+            capital_social: parseFloat(capitalInput) || undefined,
+            cnae: cnaeInput.trim() || undefined,
+            qsa: qsaList.length > 0 ? qsaList : undefined,
+            legal_representative: repName ? {
+              name: repName,
+              cpf: repCpf || "-",
+              role: repRole,
+              email: emailInput,
+              phone: phoneInput
+            } : undefined,
+            rg: rgInput.trim() || undefined,
+            marital_status: maritalInput || undefined,
+            profession: profInput.trim() || undefined,
+            bank_data: bankPixInput ? {
+              bank: "Banco Informado",
+              agency: "-",
+              account: "-",
+              pix: bankPixInput
+            } : undefined
+          };
+        }
+        return c;
+      });
+    } else {
+      const newId = `CLI-2026-${String(clients.length + 1).padStart(3, "0")}`;
+      const newClient: ClientItem = {
+        id: newId,
+        name: nameInput.trim(),
+        trade_name: tradeNameInput.trim() || undefined,
+        document: formType === "PJ" ? cnpjInput.trim() || "00.000.000/0001-00" : cpfInput.trim() || "000.000.000-00",
+        type: formType,
+        email: emailInput.trim(),
+        phone: phoneInput.trim(),
+        address: addressInput.trim(),
+        city_state: "São Paulo / SP",
+        status: "Ativo",
+        cases_count: 0,
+        created_at: today,
+        capital_social: parseFloat(capitalInput) || undefined,
+        cnae: cnaeInput.trim() || undefined,
+        qsa: qsaList.length > 0 ? qsaList : undefined,
+        legal_representative: repName ? {
+          name: repName,
+          cpf: repCpf || "-",
+          role: repRole,
+          email: emailInput,
+          phone: phoneInput
+        } : undefined,
+        rg: rgInput.trim() || undefined,
+        marital_status: maritalInput || undefined,
+        profession: profInput.trim() || undefined,
+        bank_data: bankPixInput ? {
+          bank: "Banco Informado",
+          agency: "-",
+          account: "-",
+          pix: bankPixInput
+        } : undefined
+      };
+      updated = [newClient, ...clients];
+    }
 
-    setClients([newClient, ...clients]);
+    setClients(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("juriai_clients", JSON.stringify(updated));
+    }
     setIsModalOpen(false);
     resetForm();
   }
 
   function resetForm() {
+    setEditingClientId(null);
     setNameInput("");
     setTradeNameInput("");
     setCnpjInput("");
@@ -413,19 +504,31 @@ export default function ClientesPage() {
                       {c.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right space-x-2">
+                  <td className="px-6 py-4 text-right space-x-1.5">
                     <button
                       onClick={() => setSelectedClient(c)}
-                      className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded text-xs font-medium border border-slate-200 transition"
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded text-xs font-medium border border-slate-200 transition"
                     >
                       Dossiê 360º
                     </button>
+                    <button
+                      onClick={() => handleEditClient(c)}
+                      className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-xs font-semibold border border-blue-200 transition"
+                    >
+                      Editar
+                    </button>
                     <Link
                       href={`/casos/novo?clientId=${c.id}&clientName=${encodeURIComponent(c.name)}`}
-                      className="px-3 py-1 bg-[var(--primary)] hover:opacity-90 text-[var(--primary-foreground)] rounded text-xs font-semibold transition inline-block"
+                      className="px-2.5 py-1 bg-[var(--primary)] hover:opacity-90 text-[var(--primary-foreground)] rounded text-xs font-semibold transition inline-block"
                     >
-                      + Novo Caso
+                      + Caso
                     </Link>
+                    <button
+                      onClick={() => handleDeleteClient(c.id)}
+                      className="px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded text-xs font-medium transition"
+                    >
+                      Excluir
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -440,8 +543,12 @@ export default function ClientesPage() {
           <div className="bg-white border border-slate-200 shadow-2xl rounded-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-base font-bold text-slate-900">Cadastrar Novo Cliente da Banca</h3>
-                <p className="text-xs text-slate-500">Qualificação completa para procurações, contratos de honorários e petições</p>
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingClientId ? "Editar Dados do Cliente" : "Cadastrar Novo Cliente da Banca"}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {editingClientId ? "Atualize as informações cadastrais e societárias deste titular" : "Qualificação completa para procurações, contratos de honorários e petições"}
+                </p>
               </div>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
             </div>
@@ -722,7 +829,7 @@ export default function ClientesPage() {
                   type="submit"
                   className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition shadow-sm"
                 >
-                  Salvar Cliente na Banca
+                  {editingClientId ? "Salvar Alterações do Cliente" : "Salvar Cliente na Banca"}
                 </button>
               </div>
             </form>
@@ -783,9 +890,27 @@ export default function ClientesPage() {
                 >
                   + Abrir Novo Processo para este Cliente
                 </Link>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      const c = selectedClient;
+                      setSelectedClient(null);
+                      handleEditClient(c);
+                    }}
+                    className="py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg border border-slate-200 transition text-center"
+                  >
+                    Editar Dados
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClient(selectedClient.id)}
+                    className="py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-lg border border-red-200 transition text-center"
+                  >
+                    Excluir Cliente
+                  </button>
+                </div>
                 <button
                   onClick={() => alert("Procuração Ad Judicia gerada em PDF com base na qualificação oficial deste cliente!")}
-                  className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg border border-slate-200 transition"
+                  className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg border border-blue-200 transition"
                 >
                   Gerar Procuração Ad Judicia em 1 Clique
                 </button>
