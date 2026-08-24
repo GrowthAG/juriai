@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { getActorContext } from "@/lib/actor-context";
 import { getSessionUserId, getImpersonatorUserId } from "@/lib/session";
@@ -11,7 +12,17 @@ export default async function CasosLayout({
 }) {
   const sessionUserId = await getSessionUserId();
   const impersonating = !!(await getImpersonatorUserId());
-  const ctx = await getActorContext();
+  
+  let ctx: Awaited<ReturnType<typeof getActorContext>> | null = null;
+  try {
+    ctx = await getActorContext();
+  } catch {
+    redirect("/login");
+  }
+
+  if (!ctx) {
+    redirect("/login");
+  }
 
   return (
     <Shell

@@ -11,7 +11,17 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const sessionUserId = await getSessionUserId();
-  const ctx = await getActorContext();
+  
+  let ctx: Awaited<ReturnType<typeof getActorContext>> | null = null;
+  try {
+    ctx = await getActorContext();
+  } catch {
+    redirect("/login");
+  }
+
+  if (!ctx) {
+    redirect("/login");
+  }
 
   const isMasterAdmin =
     ctx.isSuperAdmin || ctx.workspaceKind === "MASTER";
