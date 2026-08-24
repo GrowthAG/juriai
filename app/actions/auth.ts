@@ -6,6 +6,7 @@ import { clearImpersonator, clearSession, setSession } from "@/lib/session";
 import { findAuthUserByEmail, findOrCreateAuthUserByGoogle, resolvePostLoginPath } from "@/lib/auth-user";
 import { signIn as authSignIn, signOut as authSignOut } from "@/lib/auth";
 import { isDevBypassEnabled } from "@/lib/dev-bypass";
+import { sendWelcomeEmail } from "@/lib/email";
 
 /* Login de desenvolvimento por e-mail (sem senha, ver lib/session.ts).
    O destino final depende da camada do usuário: Console JuriAI ou Escritório. */
@@ -34,6 +35,50 @@ export async function loginAsEmail(formData: FormData) {
         "Não foi possível inicializar seu workspace. Tente novamente.",
       )}`,
     );
+  }
+
+  await setSession(user.id);
+  await clearImpersonator();
+  redirect(resolvePostLoginPath(user));
+}
+
+export async function registerWithEmailAndPassword(formData: FormData) {
+  const name = String(formData.get("name") || "").trim();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const phone = String(formData.get("phone") || "").trim();
+  const password = String(formData.get("password") || "").trim();
+
+  if (!email || !name) {
+    redirect(`/login?tab=register&error=${encodeURIComponent("Informe seu nome completo e e-mail corporativo.")}`);
+  }
+
+  if (password && password.length < 6) {
+    redirect(`/login?tab=register&error=${encodeURIComponent("A senha deve ter pelo menos 6 caracteres.")}`);
+  }
+
+  let user = await findAuthUserByEmail(email);
+
+  if (!user) {
+    user = await findOrCreateAuthUserByGoogle({
+      email,
+      name,
+    });
+  }
+
+  if (!user) {
+    redirect(`/login?tab=register&error=${encodeURIComponent("Não foi possível criar sua conta. Tente novamente.")}`);
+  }
+
+  // Dispara o e-mail de boas-vindas com os dados de acesso
+  try {
+    await sendWelcomeEmail({
+      to: email,
+      name,
+      phone,
+      password: password || "Definida no seu cadastro",
+    });
+  } catch (e) {
+    console.warn("[Welcome Email Send Failed]", e);
   }
 
   await setSession(user.id);
