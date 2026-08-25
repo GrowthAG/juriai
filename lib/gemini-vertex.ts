@@ -138,41 +138,32 @@ export function buildGeminiVertexClient(
           },
         };
 
-        const apiKey = process.env.GEMINI_API_KEY;
-        let response: Response;
+        // Chamadas sempre via Vertex AI + ADC. Nunca usar a API direta do
+        // Google AI Studio, para que o consumo seja debitado dos créditos
+        // oficiais do projeto no Cloud Billing (GenAI App Builder trial,
+        // GFS Cloud Program, etc.).
+        // Google Vertex AI via ADC
+        const loc = (location || "us-central1").trim();
+        const project = (projectId || "juriai-app").trim();
+        const host =
+          loc === "global"
+            ? "https://aiplatform.googleapis.com"
+            : `https://${loc}-aiplatform.googleapis.com`;
+        const url = `${host}/v1/projects/${project}/locations/${loc}/publishers/google/models/${params.model}:generateContent`;
 
-        if (apiKey) {
-          // Direct Google Gemini API call
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-          response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          });
-        } else {
-          // Google Vertex AI via ADC
-          const loc = (location || "us-central1").trim();
-          const project = (projectId || "juriai-app").trim();
-          const host =
-            loc === "global"
-              ? "https://aiplatform.googleapis.com"
-              : `https://${loc}-aiplatform.googleapis.com`;
-          const url = `${host}/v1/projects/${project}/locations/${loc}/publishers/google/models/${params.model}:generateContent`;
+        const client = await auth.getClient();
+        const tokenResponse = await client.getAccessToken();
+        const token =
+          typeof tokenResponse === "string" ? tokenResponse : tokenResponse?.token;
 
-          const client = await auth.getClient();
-          const tokenResponse = await client.getAccessToken();
-          const token =
-            typeof tokenResponse === "string" ? tokenResponse : tokenResponse?.token;
-
-          response = await fetch(url, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          });
-        }
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
 
         const payload = (await response.json().catch(() => ({}))) as {
           error?: { code?: number; status?: string; message?: string };
